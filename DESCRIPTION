@@ -1,11 +1,16 @@
 Package: demerstem
 Type: Package
-Title: What the Package Does (Title Case)
+Title: This package aims to falicitate Fish stock assessement for west african partners involved in the EU DEMERSTEM project
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Pierre Calvy, Fabien Bourinet, Didier Gascuel et Jérôme Guitton
+Maintainer: Jérôme Guitton <jerome.guitton@agrocampus-ouest.fr>
+Description: 
+Before modelling, this package provides functions to create abundance indice from artisanal, industrial or scientific fisheries using GLM models.
+It provides function to create pseudo-cohort data
+
+    It also provide easy to use function for global model.
+    It will provide function to use assessment model based on length frequency (SAM, XSA)    
+    
+License: GPL V3
 Encoding: UTF-8
 LazyData: true
