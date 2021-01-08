@@ -4,13 +4,15 @@ Title: This package aims to falicitate Fish stock assessement for west african p
 Version: 0.1.0
 Author: Pierre Calvy, Fabien Bourinet, Didier Gascuel et Jérôme Guitton
 Maintainer: Jérôme Guitton <jerome.guitton@agrocampus-ouest.fr>
-Description: 
-Before modelling, this package provides functions to create abundance indice from artisanal, industrial or scientific fisheries using GLM models.
-It provides function to create pseudo-cohort data
-
+Description: Before modelling, this package provides functions to create abundance indice from artisanal, industrial or scientific fisheries using GLM models.
+    It provides function to create pseudo-cohort data
     It also provide easy to use function for global model.
     It will provide function to use assessment model based on length frequency (SAM, XSA)    
-    
+Suggests: DBI,RPostgreSQL
+URL: https://github.com/polehalieutique/demerstem
 License: GPL V3
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.1.1
+Depends: 
+    ggplot2,dplyr,data.table,MASS,tidyr,ggpubr
