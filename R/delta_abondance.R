@@ -14,7 +14,6 @@
 #' #SC
 #' delta_abondance(tableau_sc, "PSEUDOTOLITHUS ELONGATUS", list_param, "scientifique", "auto", titre="SC", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, seuil=0.05)
 #' @export
-
 delta_abondance <- function(tab, esp, param_test, type_donnee, effort, titre, list_param,  espece_id_list, var_eff_list, ope_id, col_capture, logtrans, interactions, seuil){
   print("SOUS-MODELE ABONDANCE")
   tableau_pres <- indice_ab_pres (tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, ope_id, col_capture, seuil)
@@ -22,6 +21,7 @@ delta_abondance <- function(tab, esp, param_test, type_donnee, effort, titre, li
   print(param_use(tableau_ab, param_test))
   param <- param_use(tableau_ab, param_test)
   print(lapply(param, moda_facto, tab=as.data.frame(tableau_ab), titre))
+
   print(evo_an(tableau_ab, titre))
   print(lapply(param, evo_facto, tab=as.data.frame(tableau_ab), titre))
 

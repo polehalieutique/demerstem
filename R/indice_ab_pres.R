@@ -61,7 +61,6 @@
 
 #' @export
 #'
-
 indice_ab_pres <- function(tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, ope_id, col_capture, seuil) {
 
   # Garder uniquement les colonnes du tableau contenues dans col_list
@@ -98,27 +97,15 @@ indice_ab_pres <- function(tab, type_donnee, effort, esp, list_param,  espece_id
     print(paste("i_ab =", col_capture2, "/" ,col_effort))
 
   }else if(type_donnee=="scientifique"){
-    # calcul de la surface chalutee = ouverture chalut*distance
-    if(effort=="auto"){
-      # Calcul de distance des traits : methode a choisir selon la perte de donnees induite (lors de la preparation du tableau dans prep_GLM_tab)
-      # methode 1 : calcul de distance entre 2 points
-      # geom_deb <-  st_as_sf(tab_posit, coords = c("longitude_deb", "latitude_deb"),
-      #                       crs = 4326, agr = "constant")
-      #
-      # geom_fin <- st_as_sf(tab_posit, coords = c("longitude_fin", "latitude_fin"),
-      #                      crs = 4326, agr = "constant" )
-      #
-      # tab_posit$distance_chalutee <- st_distance(geom_deb, geom_fin, by_element = TRUE) # lwgeom plus long que pointDistance (raster)
-      # methode 2 : calcul de distance avec vitesse et duree (vitesse chalutage en noeuds)
-      tab_posit <- tab_posit %>% mutate(distance_chalutee=as.numeric((duree/60) * vitesse_chalutage*1.852*1000)) # distance chalutee en m (homogene avec methode 1)
+    #Remarques Jerome Poyr Fabien
+    #Le calcul de la surface chalutée ne devrait pas se faire là pour les campagnes scientifiques
+    #En fait la surface chalutée devrait être déjà dans le tableau d'entrée - à mettre dans le préparation des données.
+    # C'est l'équivalent de la colonne des efforts pour la PA et PI donc cela devrait être fairt en amont.
+    #C'est notamment important parcequ'on peut avoir des données fournies avec déjà l'indice d'abondance calculé par strate (sans lat long donc)
+    # Cas des données Bissau par ememple
+tab_posit_old<-tab_posit
 
-      tab_posit <- tab_posit %>% mutate(surface_chalutee=as.numeric(distance_chalutee*larg_ouverture/1000000)) #passer de m2 a km2 pour methode1
-    }else{
-      tab_posit <- tab_posit %>% mutate(surface_chalutee=as.numeric(effort))
-    }
-    tab_posit_old <- tab_posit
-
-    tab_posit <- tab_posit_old %>% filter(as.numeric(surface_chalutee) > 0)
+tab_posit<-tab_posit%>%filter(as.numeric(surface_chalutee) > 0)
     tab_posit <- tab_posit %>% mutate(i_ab=as.numeric(tab_posit[,col_capture2])/as.numeric(surface_chalutee)) # calcul de l indice_abondance
     print(paste( "perte de ", nrow(tab_posit_old)-nrow(tab_posit) , "surface chalutees nulles ou NA, sur" , nrow(tab_posit_old), "a l'origine"))
     print(paste("i_ab =", col_capture2, "/surface_chalutee(km2)"))
@@ -127,7 +114,7 @@ indice_ab_pres <- function(tab, type_donnee, effort, esp, list_param,  espece_id
   # Aggreger par station/operation
   names.use <- names(tab_posit)[(names(tab_posit) %in% ope_id)]
   tab_posit_old <- tab_posit
-  tab_posit <- tab_posit_old %>% group_by(across(names.use)) %>% summarise(i_ab = sum(i_ab))
+  tab_posit <- tab_posit_old %>% dplyr::group_by(across(names.use)) %>% dplyr::summarise(i_ab = sum(i_ab))
   print(paste("passage de", nrow(tab_posit_old), "à", nrow(tab_posit), "presences en aggregeant par station ou operation"))
   tab_posit <- tab_posit %>% distinct()
   print(paste(nrow(tab_posit), "stations selectionnees avec presence de", esp))

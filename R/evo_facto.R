@@ -14,7 +14,7 @@
 evo_facto <- function(tab, facteur, titre){
   tab$annee=factor(tab$annee)
   tab$facteur=factor(tab[,facteur])
-  requete <- tab %>% group_by(facteur, annee) %>% summarise(mean_ind_ab=mean(i_ab))
+  requete <- tab %>% dplyr::group_by(facteur, annee) %>% dplyr::summarise(mean_ind_ab=mean(i_ab))
   ggplot(requete, aes(annee, mean_ind_ab)) + geom_point(aes(col=facteur)) + geom_line(aes(group=facteur, color=facteur))+
     theme(axis.text.x = element_text(angle = 60)) +
     ggtitle(paste(facteur, titre))

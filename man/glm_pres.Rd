@@ -18,7 +18,7 @@ la fonction glm_pres
 }
 \examples{
  glm_pres_pa <- glm_pres(tableau_pa_pres, param_pa, interactions="auto")
- glm_pres_pi <- glm_pres(tableau_pi_pres, param_pi) 150 000 lignes, 9 facteurs = trop lourd pour les interactions
+ glm_pres_pi <- glm_pres(tableau_pi_pres, param_pi) #150 000 lignes, 9 facteurs = trop lourd pour les interactions
 tableau_sc_pres <- pres_abs(tableau_sc, "PSEUDOTOLITHUS ELONGATUS")
 tab <- tableau_sc_pres
 tab_old <- tab

@@ -47,10 +47,10 @@ couplage_delta <- function(glm_posit, glm_pres, tab , esp, type_donnee, effort, 
   # Tracer les series temporelles i_ab moyen et par flotilles
   tab_ab2 <- cbind(tab_ab, E.dens.pos) #  plot(tab_ab2$i_ab, tab_ab2$E.dens.pos, xlim=c(0,1000), ylim=c(0,1000))
   tab_pres2 <- cbind(tab_pres, presence.pred)
-  tab_ab_pres <- inner_join(tab_pres2, tab_ab2) %>% mutate(E.dens=E.dens.pos * presence.pred)
+  tab_ab_pres <- dplyr::inner_join(tab_pres2, tab_ab2) %>% dplyr::mutate(E.dens=E.dens.pos * presence.pred)
   tab_ab_pres[,facteur_flotille] <- as.factor(tab_ab_pres[,facteur_flotille])
 
-  requete <- tab_ab_pres %>% group_by(flotille=tab_ab_pres[,facteur_flotille], annee) %>% summarise(mean_E.dens=mean(E.dens))
+  requete <- tab_ab_pres %>% dplyr::group_by(flotille=tab_ab_pres[,facteur_flotille], annee) %>% dplyr::summarise(mean_E.dens=mean(E.dens))
   a <- ggplot()  + geom_line(data=requete, aes(annee, mean_E.dens, group=flotille, color=flotille))+
     stat_summary(data=tab_ab_pres, aes(annee, E.dens, color="INDICE MOYEN"), fun="mean", geom="line", linetype=2)+
     ylab("indice abondance") + ggtitle(paste("indice abondance modelise", titre))
