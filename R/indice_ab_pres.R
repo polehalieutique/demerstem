@@ -8,7 +8,7 @@
 #' @param tab               : Tableau avec les captures et paramètres associés
 #' @param type_donnee       : "scientifique" ou "commercial"
 #' @param effort            : "auto" pour un choix automatique de la variable effort ou choix personnel ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee" si pas besoin de recalculer la surface chalutee dans les donnees scientifiques
-#' @param esp               : nom_taxonomique ou commun selon tableau, espece dont on veut tester la presence. ex : "BOBO" , "PSEUDOTOLITHUS ELONGATUS"
+#' @param esp               : yyy nom_taxonomique ou commun selon tableau, espece dont on veut tester la presence. ex : "BOBO" , "PSEUDOTOLITHUS ELONGATUS"
 #' @param list_param liste des param_tres
 #' @param espece_id_list liste des espèces
 #' @param var_eff_list  liste des données d'éffort
