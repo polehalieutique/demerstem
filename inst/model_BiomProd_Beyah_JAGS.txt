@@ -1,0 +1,135 @@
+# ---------------------------------------------------------------
+# JAGS code for Dynamic Biomass Production Model
+# State-space model
+
+# Model with Catches and Abundance Indices
+
+# And 5 years projection
+
+################################################
+
+
+# ---------------------------------------------------------------
+
+model_JAGS <- "
+# Data block
+# ---------------------------------------------------------------
+
+# No data trasformation in this example
+# data{}
+
+# Model
+# ---------------------------------------------------------------
+
+model
+{
+
+#q prior
+
+iq ~dunif(1.0E-2,10)
+q <- 1/iq
+iq_p ~dunif(1.0E-2,10)
+q_p<- 1/iq_p
+
+#Thiof
+#r,K and B0 (alpha) priors
+
+r~dlnorm(val_r,var_r)
+r_p~dlnorm(val_r,var_r)
+
+alpha~dunif(val_a,var_a)
+alpha_p~dunif(val_a,var_a)
+
+K~dunif(5000,70000)
+K_p~dunif(5000,70000)
+
+
+#MSY
+MSY_p<- r_p*K_p /(exp(1)*log(K_p))
+
+
+#Fishing effort at MSY
+EMSY_p <- (MSY_p/(K_p/exp(1)))/q_p
+
+
+# Process error variance
+logsigma~dunif(-100,10)
+sigma <- exp(logsigma)
+isigma <- 1/sigma
+
+
+# Measurement error variance
+#logtau~dunif(-10,10)
+#tau <- exp(logtau)
+#itau <- 1/tau
+itau<- isigma
+
+
+#Biomass
+Btruem[1] <- alpha*K;
+#Ajout jerome
+Btrue[1] ~ dlnorm(log(Btruem[1]),isigma)
+###
+
+
+for(i in 1 : (n))
+{
+Btruem[i + 1] <- max(Btrue[i] - Cobs[i] + r*Btrue[i]*(1 - log(Btrue[i])/log(K)), 0.01)
+}
+
+
+for (i in 1 :n+1)
+{
+logBtruem[i] <-log(Btruem[i])
+Btrue[i] <-exp(logBtruem[i])
+
+}
+
+
+# Predicted abundance indices
+for (i in 1 :n)
+{
+logItrue[i] <- log(Btrue[i]*q)
+logIobs[i] <- log(Iobs[i])
+residuals[i] <- logItrue[i]-logIobs[i]
+Itrue[i] <- exp(logItrue[i])
+}
+
+#Quantities of Interest
+
+
+# Maximum surplus production
+MSY <- r*K/(exp(1)*log(K))
+
+
+
+for (i in 1:n.mf)
+{
+Ye[i] <- q*K * mf[i] * exp(-q*log(K) * mf[i]/r)
+}
+
+#Fishing mortality at MSY
+#FMSY <- MSY/BMSY attention a relmettre
+FMSY <- MSY/1
+
+
+
+#Fishing effort at MSY
+EMSY <- FMSY/q;
+
+
+
+# abundance indices at equilibrium
+
+for (i in 1:n.mf)
+{
+Ie[i] <- q*K*exp(-q*log(K) * mf[i]/r)
+}
+# biomass at equilibrium
+
+for (i in 1:n.mf)
+{
+Be[i] <- K*exp(-q*log(K) * mf[i]/r)
+}
+
+}"

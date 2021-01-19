@@ -27,7 +27,7 @@ indice_ab_pres(
 
 \item{effort}{: "auto" pour un choix automatique de la variable effort ou choix personnel ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee" si pas besoin de recalculer la surface chalutee dans les donnees scientifiques}
 
-\item{esp}{: nom_taxonomique ou commun selon tableau, espece dont on veut tester la presence. ex : "BOBO" , "PSEUDOTOLITHUS ELONGATUS"}
+\item{esp}{: yyy nom_taxonomique ou commun selon tableau, espece dont on veut tester la presence. ex : "BOBO" , "PSEUDOTOLITHUS ELONGATUS"}
 
 \item{list_param}{liste des param_tres}
 

@@ -21,4 +21,6 @@ Depends:
     MASS,
     tidyr,
     ggpubr,
+    rjags,
+    coda,
     R (>= 2.10)
