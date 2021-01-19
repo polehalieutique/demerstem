@@ -1,6 +1,6 @@
 #' la fonction couplage_delta s'applique au cas où le sous_modèle glm_positif est gaussien
 
-#' @param glm_posit : Sous-modele abondance
+#' @param glm_posit : Sous-modele abondance totaux
 #' @param glm_pres  : Sous-modele presence/absence
 #' @param data_posit: donnees d'abondances (présences seulement)
 #' @param data_pres : donnees presence_absence
