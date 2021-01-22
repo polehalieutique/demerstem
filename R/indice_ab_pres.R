@@ -124,6 +124,7 @@ tab_posit<-tab_posit%>%filter(as.numeric(surface_chalutee) > 0)
   # Rajouter les absences
   # Aggreger le tableau d origine par station/operation mais sans les especes
   names.use <- names(tab)[(names(tab) %in% ope_id)]
+  names.use <- c(names.use, col_capture2)
   tab_stations <- tab[, names.use]
   # Select unique + jointure tab_posit + ajout des 0 pour les absences
   presabs <- tab_stations %>% distinct() %>% left_join(tab_posit) %>% mutate(presence = replace_na(presence, 0))
