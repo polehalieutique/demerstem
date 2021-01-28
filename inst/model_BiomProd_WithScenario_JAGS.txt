@@ -4,7 +4,7 @@
 
 # Model with Catches and Abundance Indices
 
-# And 5 years projection 
+# And 5 years projection
 
 ################################################
 
@@ -20,33 +20,37 @@ model_JAGS <- "
 # No data trasformation in this example
 # data{}
 
-# Model 
+# Model
 # ---------------------------------------------------------------
 
 model
 {
 
-# Prior 
+# Prior
 # -----------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------
 
-r ~ dunif(0.01,3)
-r_p ~ dunif(0.01,3)
+#Comment because of futher r and r_p definition using Er and CVr line 45
+#r ~ dunif(0.01,3)
+#r_p ~ dunif(0.01,3)
 
-K ~ dunif(100,15000) 
-K_p ~ dunif(100,15000) 
+#Les bornes viennent des data min_c et max_c
+
+K ~ dunif(min_c,max_c)
+K_p ~ dunif(min_c,max_c)
 
 # Gamma Informative priors on (r,K)
 
-# Er <- 0.45 ; CVr <- 0.3
-# ar <- 1/(CVr*CVr) ; br <- (1/(CVr*CVr))*(1/Er)
-# r ~ dgamma(ar,br) 
-# r_p ~ dgamma(ar,br) 
+# From data  Er <- 0.45 ; CVr <- 0.3
+ ar <- 1/(CVr*CVr)
+ br <- (1/(CVr*CVr))*(1/Er)
+ r ~ dgamma(ar,br)
+ r_p ~ dgamma(ar,br)
 
 # EK <- 5000 ; CVK <- 0.6
 # aK <- 1/(CVK*CVK) ; bK <- (1/(CVK*CVK))*(1/EK)
-# K ~ dgamma(aK,bK) 
-# K_p ~ dgamma(aK,bK) 
+# K ~ dgamma(aK,bK)
+# K_p ~ dgamma(aK,bK)
 
 
 # Process error variance (Prior Uniform in the log scale (logNormal)
@@ -54,7 +58,7 @@ K_p ~ dunif(100,15000)
 # sigma2p <- 0.01
 
 log_sigma2p ~ dunif(-10,10)
-sigma2p <- exp(log_sigma2p) 
+sigma2p <- exp(log_sigma2p)
 taup <- 1/sigma2p
 
 # Ratio obs / process error variance
@@ -64,8 +68,8 @@ taup <- 1/sigma2p
 
 # Catchability (scale factor --> prior uniform in the log scale)
 
-log_q ~ dunif(-10,10) 
-q <- exp(log_q) 
+log_q ~ dunif(-10,10)
+q <- exp(log_q)
 
 
 # Process equation on the latent variable B(t)
@@ -88,7 +92,7 @@ for (t in n_obs:(n_obs+n_proj-1))  {  h[t] <- 0.0  }
 
 alpha <- 1
 Bm[1] <- alpha * K
-B[1] ~ dlnorm(log(Bm[1]),taup) 
+B[1] ~ dlnorm(log(Bm[1]),taup)
 
 for (t in 1:(n_obs-1+n_proj))
 {
@@ -110,7 +114,7 @@ B[t+1] ~ dlnorm(log(Bm[t+1]),taup)
 # -------------------------------------------
 
 # Variance of measurement error on catches
-CV_Cobs <- 0.15
+# input from data list CV_Cobs <- 0.15
 tau_Cobs <- 1 /  log(CV_Cobs*CV_Cobs+1)
 
 for (t in 1:(n_obs-1))
@@ -129,14 +133,14 @@ C[t] <- h[t]*B[t]
 # -------------------------------------------
 
 # Variance of measurement error on AI
-CV_Iobs <- 0.30
+# Input from data  list CV_Iobs <- 0.30
 tau_Iobs <- 1 /  log(CV_Iobs*CV_Iobs+1)
 
-for (t in 1:n_obs) 
+for (t in 1:n_obs)
 {
 I[t] <- q*B[t]
 I_obs[t] ~ dlnorm(log(I[t]),tau_Iobs)
-} 
+}
 
 
 # Quantity of Interest
@@ -148,10 +152,10 @@ I_obs[t] ~ dlnorm(log(I[t]),tau_Iobs)
 # Posterior replicate of abundance indices
 # (to check the fit of the model to the data)
 
-for (t in 1:n_obs) 
+for (t in 1:n_obs)
 {
 I_pred[t] ~ dlnorm(log(I[t]),tau_Iobs)
-} 
+}
 
 for (t in 1:(n_obs-1))
 {
@@ -183,7 +187,7 @@ B_MSY_p <- K_p/2
 h_MSY <- C_MSY / B_MSY
 
 # Depletion
-for (t in 1:(n_obs + n_proj)){  D[t] <- B[t]/B[1]  } 
+for (t in 1:(n_obs + n_proj)){  D[t] <- B[t]/B[1]  }
 
 # Catches over C_MSY
 # h over h_MSY

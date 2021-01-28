@@ -6,7 +6,7 @@
 
 #' @export
 
-bgm_output_5<- function (mcmc,data,n_proj){
+bgm_output_5<- function (mcmc,data,n_proj=0){
 
   # ----------------------------------------------
   # Catches - predicted vs observed
@@ -18,7 +18,7 @@ bgm_output_5<- function (mcmc,data,n_proj){
   def.par <- par(no.readonly = TRUE)
   Year<-data$Year
   n_obs <- length(Year)
-  Year = c(Year, seq(from = max(Year), to = max(Year)+n_proj-1, by=1))
+  if (n_proj>0) {Year = c(Year, seq(from = max(Year), to = max(Year)+n_proj-1, by=1))}
   #windows()
 
   par(mfrow = c(1,1), mar=c(5,5,1,1))
@@ -31,34 +31,26 @@ bgm_output_5<- function (mcmc,data,n_proj){
   #mcmc <- window(mcmc)
   mcmc.table <- as.data.frame(as.matrix(mcmc))
   X = mcmc.table[,which(substr(colnames(mcmc.table),1,nchar(x)+1)==paste(x,"[",sep=""))]
-  n_plot <- dim(X)[2]
+  names(X)<-data$Year[seq(1,length(names(X)))]
 
-  q.mean <- apply(X,2,mean)
-  q.inf <- NULL
-  q.sup <- NULL
-  for (k in 1:dim(X)[2])
-  {
-    q.inf[k] <- quantile(X[,k],probs=0.05)
-    q.sup[k] <- quantile(X[,k],probs=0.95)
-  }
 
-  q.inf1 <- NULL
-  q.sup1 <- NULL
-  for (k in 1:dim(X)[2])
-  {
-    q.inf1[k] <- quantile(X[,k],probs=0.25)
-    q.sup1[k] <- quantile(X[,k],probs=0.75)
-  }
 
-  plot(x=Year[1:n_plot],y=q.sup*1.2,ylim=c(0,max(q.sup*1.2)),ylab="Catches",type="n",las=1, main = "Fit Catches")
-  polygon(x=c(Year[1:n_plot],rev(Year[1:n_plot])),y=c(q.sup,rev(q.inf)),col = col[1],border=NA)
-  polygon(x=c(Year[1:n_plot],rev(Year[1:n_plot])),y=c(q.sup1,rev(q.inf1)),col = col[2],border=NA)
-  points(x=Year[1:n_plot], y=q.mean, col="red", lwd=2, type="l")
-  points(Year[1:n_plot],data$C_obs[1:n_plot],pch=20,cex=1,col="blue",type="p")
+  X %>%pivot_longer(cols=names(X), names_to = "Year") %>% group_by(Year) %>%
+    dplyr::summarize(Mean_C = mean(value, na.rm=TRUE),lower = quantile(value,probs = c(0.05)),upper = quantile(value,probs = c(0.95)),lower2 = quantile(value,probs = c(0.25)),upper2 = quantile(value,probs = c(0.75)))->X1
 
-  legend(	legend = c("Cred interv. (95%)","C pred.","C obs."),
-          col = c("lightgray","red","blue"),
-          lty = c(3,2,NA), pch=c(NA,NA,20), lwd = c(2,2,NA), x = "topright", cex = size.text, bty ="n")
+
+ g<- ggplot(X1)+
+    geom_ribbon(aes(ymin=lower, ymax=upper, x=Year,group=1,fill="C(0.5,0.95)"))+
+    geom_ribbon(aes(ymin=lower2, ymax=upper2, x=Year,group=1,fill="C(0.25,0.75)"))+
+    scale_fill_manual(name='',  values=c("C(0.5,0.95)" = "grey70", "C(0.25,0.75)" = "grey"))+
+    geom_line(aes(x=Year,y=Mean_C,group="Mean",color='Mean'))+
+    geom_point(data=complet,aes(x=factor(Year),y=C,color='Cobs'))+
+    ylab("Catches")+
+    theme(axis.text.x = element_text(angle=90))+
+    ggtitle("Fit Catches")
+
+
+print(g)
 
   # dev.off()
 

@@ -7,7 +7,7 @@
 #' @export
 
 
-bgm_output_2<- function (mcmc,data,n_proj){
+bgm_output_2<- function (mcmc,data,n_proj=0){
 
   # ------------------------------------------------------------------------------------
   # Customized nice graphs
@@ -61,7 +61,7 @@ bgm_output_2<- function (mcmc,data,n_proj){
   n <- n_obs + n_proj
   I_obs <- data$I_obs
   Year = data$Year
-  Year = c(Year, seq(from = max(Year), to = max(Year)+n_proj-1, by=1))
+  if (n_proj>0) { Year = c(Year, seq(from = max(Year), to = max(Year)+n_proj-1, by=1))}
 
   size.text <- 1.3
   size.labels <- 1

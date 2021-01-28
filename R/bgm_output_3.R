@@ -6,7 +6,7 @@
 
 #' @export
 
-bgm_output_3<- function (mcmc,data,n_proj){
+bgm_output_3<- function (mcmc,data,n_proj=0){
 
   # ----------------------------------------------
   # Harvest Rate
@@ -14,7 +14,7 @@ bgm_output_3<- function (mcmc,data,n_proj){
 
   Year<-data$Year
   n_obs <- length(Year)
-  Year = c(Year, seq(from = max(Year), to = max(Year)+n_proj-1, by=1))
+  if (n_proj>0) {Year = c(Year, seq(from = max(Year), to = max(Year)+n_proj-1, by=1))}
   #windows()
   size.text <- 1.3
   size.labels <- 1

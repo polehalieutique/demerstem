@@ -6,7 +6,8 @@
 
 #' @export
 
-bgm_output_1<- function (mcmc){
+
+bgm_output_1<- function (mcmc,data,n_proj=0){
 
   # --------------------------------------------
 # Work with mcmc.list
@@ -139,44 +140,37 @@ plot(density(mcmc.table$'sigma2p'))
 #windows() ;
 par(mfrow = c(2,2))
 
-x = "B"
-title = "Biomass"
+
+todo<-data.frame(x=c('B','C','h','D'),
+                 title=c("Biomass","Catches","Harvest rates","Depletion"))
+
+i<-1
+g<-list()
 
 mcmc <- window(mcmc)
 mcmc.table <- as.data.frame(as.matrix(mcmc))
-x = mcmc.table[,which(substr(colnames(mcmc.table),1,nchar(x)+1)==paste(x,"[",sep=""))]
+g<-list()
+for (i in 1:(length(todo$x)))
+{
 
-boxplot(x, outline = F, main = title)
-
-
-x = "C"
-title = "Catches"
-
-mcmc <- window(mcmc)
-mcmc.table <- as.data.frame(as.matrix(mcmc))
-x = mcmc.table[,which(substr(colnames(mcmc.table),1,nchar(x)+1)==paste(x,"[",sep=""))]
-
-boxplot(x, outline = F, main = title)
+print(i)
+variable<-todo[i,1]
+title = todo[i,2]
 
 
-x = "h"
-title = "Harvest rates"
+x<-mcmc.table[,which(substr(colnames(mcmc.table),1,nchar(variable)+1)==paste(variable,"[",sep=""))]
 
-mcmc <- window(mcmc)
-mcmc.table <- as.data.frame(as.matrix(mcmc))
-x = mcmc.table[,which(substr(colnames(mcmc.table),1,nchar(x)+1)==paste(x,"[",sep=""))]
-
-boxplot(x, outline = F, main = title)
+names(x)<-data$Year[seq(1,length(names(x)))]
 
 
-x = "D"
-title = "Depletion"
+x %>%pivot_longer(cols=names(x), names_to = "Year") %>%
+  ggplot() + geom_boxplot(aes(x=Year,y=value),outlier.size=0.5,outlier.colour = 'grey')+
+  theme(axis.text.x = element_text(angle=90))+
+  ggtitle(title)->g[[i]]
 
-mcmc <- window(mcmc)
-mcmc.table <- as.data.frame(as.matrix(mcmc))
-x = mcmc.table[,which(substr(colnames(mcmc.table),1,nchar(x)+1)==paste(x,"[",sep=""))]
+}
 
-boxplot(x, outline = F, main = title)
+print(ggarrange(plotlist=g, widths = c(2,2)))
 
 
 # ------------------------------------------------------------------------------------

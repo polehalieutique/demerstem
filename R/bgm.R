@@ -14,7 +14,7 @@
 
 #' @export
 
-bgm<- function (tab_input,n_proj){
+bgm<- function (tab_input,min_c,max_c,Er,CVr,CV_Cobs,CV_Iobs,n_proj=0){
 
   # Load the model
   # ----------------------------------------
@@ -50,7 +50,7 @@ model <- textConnection(model_JAGS)
   # Format data as a list to be read in JAGS
 
   data <- list("I_obs" = tab_input$I, "C_obs" = tab_input$C, "n_obs" = n_obs, "n_proj" = n_proj,
-               "B_e" = B_e, "n_equi" = n_equi, "Year"=Year)
+               "B_e" = B_e, "n_equi" = n_equi, "Year"=Year,"min_c"=min_c,"max_c"=max_c,"Er"=Er,"CVr"=CVr,"CV_Cobs"=CV_Cobs,"CV_Iobs"=CV_Iobs)
 
 
   # MCMC options
