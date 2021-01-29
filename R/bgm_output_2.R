@@ -7,7 +7,7 @@
 #' @export
 
 
-bgm_output_2<- function (mcmc,data,n_proj=0){
+bgm_output_2<- function (mcmc,data,n_proj=0,multiple=FALSE){
 
   # ------------------------------------------------------------------------------------
   # Customized nice graphs
@@ -20,7 +20,16 @@ bgm_output_2<- function (mcmc,data,n_proj=0){
   x1 <- mcmc.table[,'K']
   x2 <- mcmc.table[,'r']
   x3 <- mcmc.table[,'C_MSY']
-  x4 <- mcmc.table[,'q']
+  if (multiple)
+    {
+    x4_1 <- mcmc.table[,'q1']
+    x4_2 <- mcmc.table[,'q2']
+    x4_3 <- mcmc.table[,'q3']
+  }
+  else
+  {
+    x4 <- mcmc.table[,'q']
+  }
   x5 <- mcmc.table[,'sigma2p']
 
   def.par <- par(no.readonly = TRUE)
@@ -28,12 +37,22 @@ bgm_output_2<- function (mcmc,data,n_proj=0){
 
   par(pch='.')
 
-  pairs( cbind(x1,x2,x3,x4,x5),labels=c("K","r",expression(C[MSY]),"q",expression(sigma[p]^2)),
+  if (multiple)
+    {
+    pairs( cbind(x1,x2,x3,x4_1,x4_2,x4_3,x5),labels=c("K","r",expression(C[MSY]),"q1","q2","q3",expression(sigma[p]^2)),
          lower.panel=panel.smooth,
          diag.panel=panel.dens,
          upper.panel=panel.cor,
          cex.labels = 2.0, font.labels=1.2)
-
+  }
+  else
+  {
+    pairs( cbind(x1,x2,x3,x4,x5),labels=c("K","r",expression(C[MSY]),"q",expression(sigma[p]^2)),
+           lower.panel=panel.smooth,
+           diag.panel=panel.dens,
+           upper.panel=panel.cor,
+           cex.labels = 2.0, font.labels=1.2)
+  }
 
 
 
@@ -59,7 +78,16 @@ bgm_output_2<- function (mcmc,data,n_proj=0){
   n_obs <- length(data$Year)
 
   n <- n_obs + n_proj
-  I_obs <- data$I_obs
+  if (multiple)
+    {
+    I_obs1 <- data$I_obs1
+    I_obs2 <- data$I_obs2
+    I_obs3 <- data$I_obs3
+  }
+  else
+  {
+    I_obs <- data$I_obs
+  }
   Year = data$Year
   if (n_proj>0) { Year = c(Year, seq(from = max(Year), to = max(Year)+n_proj-1, by=1))}
 
@@ -91,9 +119,8 @@ bgm_output_2<- function (mcmc,data,n_proj=0){
 
   densMSY <- density(mcmc.table$C_MSY)
   densMSYp <- density(mcmc.table$C_MSY_p)
-
-  plot(densMSY ,ylab = "", xlab = "", xaxt="n", yaxt="n", main="", xlim = c(0,1000), col = "black", type = "l", lty = 1, lwd = 2)
-  points(densMSYp ,ylab = "", xlab = "", xaxt="n", yaxt="n", main="", xlim = c(0,1000), col = "black", type = "l", lty = 2, lwd = 2)
+  plot(densMSY ,ylab = "", xlab = "", xaxt="n", yaxt="n", main="", xlim = c(0,max(densMSY$x)), col = "black", type = "l", lty = 1, lwd = 2)
+  points(densMSYp ,ylab = "", xlab = "", xaxt="n", yaxt="n", main="", xlim = c(0,max(densMSY$x)), col = "black", type = "l", lty = 2, lwd = 2)
 
   axis(side = 1, tick = T, cex.axis=1, las=1)
   axis(side = 2, tick = T, lwd.ticks=0, labels=NA, cex.axis=1)
@@ -127,9 +154,8 @@ bgm_output_2<- function (mcmc,data,n_proj=0){
   mcmc <- window(mcmc)
   mcmc.table <- as.data.frame(as.matrix(mcmc))
   X = mcmc.table[,which(substr(colnames(mcmc.table),1,nchar(x)+1)==paste(x,"[",sep=""))]
-
   x.min = 1 ; x.max = n+1
-  y.min = 0 ; y.max = 5000
+  y.min = 0 ; y.max = max(X)
   line.y = y.max*2
   y.label = "Biomass"
   x.label = "Years"

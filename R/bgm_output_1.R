@@ -7,7 +7,7 @@
 #' @export
 
 
-bgm_output_1<- function (mcmc,data,n_proj=0){
+bgm_output_1<- function (mcmc,data,n_proj=0,multiple=FALSE){
 
   # --------------------------------------------
 # Work with mcmc.list
@@ -46,8 +46,17 @@ B1.mcmc <- mcmc[,c("B[1]")]
 # Point est. should be near 1
 
 gelman.diag(mcmc[,c("B[1]")], confidence = 0.95, transform=TRUE, autoburnin=TRUE)
-gelman.diag(mcmc[,c("q")], confidence = 0.95, transform=TRUE, autoburnin=TRUE)
+if (multiple)
+{
+  gelman.diag(mcmc[,c("q1")], confidence = 0.95, transform=TRUE, autoburnin=TRUE)
+  gelman.diag(mcmc[,c("q2")], confidence = 0.95, transform=TRUE, autoburnin=TRUE)
+  gelman.diag(mcmc[,c("q3")], confidence = 0.95, transform=TRUE, autoburnin=TRUE)
 
+}
+else
+{
+gelman.diag(mcmc[,c("q")], confidence = 0.95, transform=TRUE, autoburnin=TRUE)
+}
 
 # Effective size
 # An estimate of the number of "independent" samples
@@ -69,8 +78,18 @@ par(mfrow=c(3,3))
 traceplot(mcmc[,'K'],ylab="K")
 traceplot(mcmc[,'r'],ylab="r")
 traceplot(mcmc[,'C_MSY'],ylab="C_MSY")
-traceplot(mcmc[,'q'],ylab="q")
-traceplot(mcmc[,'sigma2p'],ylab="sigma2p")
+if (multiple)
+{
+traceplot(mcmc[,'q1'],ylab="q1")
+  traceplot(mcmc[,'q2'],ylab="q2")
+  traceplot(mcmc[,'q3'],ylab="q3")
+}
+else
+{
+  traceplot(mcmc[,'q'],ylab="q")
+
+}
+  traceplot(mcmc[,'sigma2p'],ylab="sigma2p")
 
 
 #windows()
@@ -96,7 +115,18 @@ par(mfrow=c(3,3))
 densplot(mcmc[,'K'],ylab="K")
 densplot(mcmc[,'r'],ylab="r")
 densplot(mcmc[,'C_MSY'],ylab="C_MSY")
-densplot(mcmc[,'q'],ylab="q")
+if (multiple)
+{
+densplot(mcmc[,'q1'],ylab="q1")
+  densplot(mcmc[,'q2'],ylab="q2")
+  densplot(mcmc[,'q3'],ylab="q3")
+}
+else
+{
+  densplot(mcmc[,'q'],ylab="q")
+
+
+}
 densplot(mcmc[,'sigma2p'],ylab="sigma2p")
 
 
@@ -127,7 +157,17 @@ par(mfrow = c(2,3))
 plot(density(mcmc.table$'K'))
 plot(density(mcmc.table$'r'))
 plot(density(mcmc.table$'C_MSY'))
-plot(density(mcmc.table$'q'))
+if (multiple)
+{
+plot(density(mcmc.table$'q1'))
+  plot(density(mcmc.table$'q2'))
+  plot(density(mcmc.table$'q3'))
+}
+else
+{
+  plot(density(mcmc.table$'q'))
+
+}
 plot(density(mcmc.table$'sigma2p'))
 
 

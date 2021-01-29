@@ -4,7 +4,7 @@
 \alias{bgm_output_3}
 \title{Bayesian global model, on encapsule un modèle global générique dans la fonction}
 \usage{
-bgm_output_3(mcmc, data, n_proj = 0)
+bgm_output_3(mcmc, data, n_proj = 0, multiple = FALSE)
 }
 \arguments{
 \item{mcmc}{mcmc liste venant de la fonction bgm}

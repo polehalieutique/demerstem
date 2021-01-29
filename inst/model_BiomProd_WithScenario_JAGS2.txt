@@ -1,0 +1,235 @@
+# ---------------------------------------------------------------
+# JAGS code for Dynamic Biomass Production Model
+# State-space model
+
+# Model with Catches and Abundance Indices
+
+# And 5 years projection
+
+################################################
+
+
+# ---------------------------------------------------------------
+
+model_JAGS <- "
+
+
+# Data block
+# ---------------------------------------------------------------
+
+# No data trasformation in this example
+# data{}
+
+# Model
+# ---------------------------------------------------------------
+
+model
+{
+
+# Prior
+# -----------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
+
+#Comment because of futher r and r_p definition using Er and CVr line 45
+#r ~ dunif(0.01,3)
+#r_p ~ dunif(0.01,3)
+
+#Les bornes viennent des data min_c et max_c
+
+K ~ dunif(min_c,max_c)
+K_p ~ dunif(min_c,max_c)
+
+# Gamma Informative priors on (r,K)
+
+# From data  Er <- 0.45 ; CVr <- 0.3
+ ar <- 1/(CVr*CVr)
+ br <- (1/(CVr*CVr))*(1/Er)
+ r ~ dgamma(ar,br)
+ r_p ~ dgamma(ar,br)
+
+# EK <- 5000 ; CVK <- 0.6
+# aK <- 1/(CVK*CVK) ; bK <- (1/(CVK*CVK))*(1/EK)
+# K ~ dgamma(aK,bK)
+# K_p ~ dgamma(aK,bK)
+
+
+# Process error variance (Prior Uniform in the log scale (logNormal)
+
+# sigma2p <- 0.01
+
+log_sigma2p ~ dunif(-10,10)
+sigma2p <- exp(log_sigma2p)
+taup <- 1/sigma2p
+
+# Ratio obs / process error variance
+# lambda <- 1
+# sigma2_Iobs <- lambda*sigma2p
+# tau_Iobs <- 1/sigma2_Iobs
+
+# Catchability (scale factor --> prior uniform in the log scale)
+
+log_q1 ~ dunif(-10,10)
+q1 <- exp(log_q1)
+
+log_q2 ~ dunif(-10,10)
+q2 <- exp(log_q2)
+
+log_q3 ~ dunif(-10,10)
+q3 <- exp(log_q3)
+
+# Process equation on the latent variable B(t)
+# -----------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
+
+
+# Prior on Harvest rate
+
+for (t in 1:(n_obs-1))  {  h[t] ~ dbeta(1,1)  }
+
+
+# Scenarios on harvest rate from t = n_obs to t = n_obs+n_proj
+
+for (t in n_obs:(n_obs+n_proj-1))  {  h[t] <- 0.0  }
+
+
+# Biomass first year (Mean biomass = K)
+# Random around alpha K
+
+alpha <- 1
+Bm[1] <- alpha * K
+B[1] ~ dlnorm(log(Bm[1]),taup)
+
+for (t in 1:(n_obs-1+n_proj))
+{
+# Logistic (Schaefer form)
+Bm[t+1] <- max( (B[t] + r*B[t]*(1 - B[t]/K) - h[t]*B[t] ), 0.001*K)
+
+# Exponentiel (Fox form)
+# Bm[t+1] <- max( (B[t] + r*B[t]*(1 - log(B[t])/log(K)) - h[t]*B[t] ), 0.001*K)
+
+B[t+1] ~ dlnorm(log(Bm[t+1]),taup)
+}
+
+# Observation equation (abundance indices are available up to n_obs)
+# ---------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------
+
+
+# Catches (Available up to n_obs + n_proj)
+# -------------------------------------------
+
+# Variance of measurement error on catches
+# input from data list CV_Cobs <- 0.15
+tau_Cobs <- 1 /  log(CV_Cobs*CV_Cobs+1)
+
+for (t in 1:(n_obs-1))
+{
+C[t] <- h[t]*B[t]
+C_obs[t] ~ dlnorm(log(C[t]),tau_Cobs)
+}
+
+for (t in n_obs:(n_obs+n_proj-1))
+{
+C[t] <- h[t]*B[t]
+}
+
+
+# Abundance indices (Available up to n_obs)
+# -------------------------------------------
+
+# Variance of measurement error on AI
+# Input from data  list CV_Iobs <- 0.30
+#Currently the CV_Iobs is the same but we could developp n different CVobs values
+tau_Iobs1 <- 1 /  log(CV_Iobs*CV_Iobs+1)
+tau_Iobs2 <- 1 /  log(CV_Iobs*CV_Iobs+1)
+tau_Iobs3 <- 1 /  log(CV_Iobs*CV_Iobs+1)
+
+for (t in 1:n_obs)
+{
+I1[t] <- q1*B[t]
+I_obs1[t] ~ dlnorm(log(I1[t]),tau_Iobs1)
+
+I2[t] <- q2*B[t]
+I_obs2[t] ~ dlnorm(log(I2[t]),tau_Iobs2)
+
+I3[t] <- q3*B[t]
+I_obs3[t] ~ dlnorm(log(I3[t]),tau_Iobs3)
+
+}
+
+
+# Quantity of Interest
+# -----------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
+
+# Posterior predictive
+
+# Posterior replicate of abundance indices
+# (to check the fit of the model to the data)
+
+for (t in 1:n_obs)
+{
+I_pred1[t] ~ dlnorm(log(I1[t]),tau_Iobs1)
+I_pred2[t] ~ dlnorm(log(I2[t]),tau_Iobs2)
+I_pred3[t] ~ dlnorm(log(I3[t]),tau_Iobs3)
+
+}
+
+for (t in 1:(n_obs-1))
+{
+C_pred[t] ~ dlnorm(log(C[t]),tau_Cobs)
+}
+
+
+# Maximum surplus production
+
+# Schaefer
+C_MSY <-  r*K/4
+C_MSY_p <-   r_p*K_p/4
+# Fox
+# C_MSY <-  r*K/(exp(1)*log(K))
+# C_MSY_p <-   r_p*K_p/(exp(1)*log(K_p))
+
+# Biomass at maximum surplus production
+
+# Schaefer
+B_MSY <- K/2
+B_MSY_p <- K_p/2
+# Fox
+# B_MSY <- K / exp(1)
+# B_MSY_p <- K_p / exp(1)
+
+# Fishing mortality at MSY
+# Schaefer : F_MSY = r/2
+# Fox : F_MSY <- r/log(K)
+h_MSY <- C_MSY / B_MSY
+
+# Depletion
+for (t in 1:(n_obs + n_proj)){  D[t] <- B[t]/B[1]  }
+
+# Catches over C_MSY
+# h over h_MSY
+for (t in 1:(n_obs-1+n_proj)) {
+Over_C[t] <- (h[t]*B[t])/C_MSY
+Over_h[t] <- h[t]/h_MSY }
+
+# Risk
+# Measured as the probability that the biomass level (last year)
+# is under 0.2*K
+
+for (t in 1:(n_obs+n_proj)) {  risk[t] <- step((0.2*K)-B[t])  }
+
+# Equilibrium curve
+# Depends on the parameters only
+
+for (e in 1:n_equi)
+{
+# Schaefer
+C_e[e] <- r*B_e[e]*(1-B_e[e]/K)
+# Fox model
+# C_e[e] <- r*B_e[e]*(1-log(B_e[e])/log(K))
+}
+
+
+# end model
+}"

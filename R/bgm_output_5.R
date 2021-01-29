@@ -6,7 +6,7 @@
 
 #' @export
 
-bgm_output_5<- function (mcmc,data,n_proj=0){
+bgm_output_5<- function (mcmc,data,n_proj=0,multiple=FALSE){
 
   # ----------------------------------------------
   # Catches - predicted vs observed

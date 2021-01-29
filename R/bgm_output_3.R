@@ -6,7 +6,7 @@
 
 #' @export
 
-bgm_output_3<- function (mcmc,data,n_proj=0){
+bgm_output_3<- function (mcmc,data,n_proj=0,multiple=FALSE){
 
   # ----------------------------------------------
   # Harvest Rate

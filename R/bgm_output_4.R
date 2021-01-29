@@ -6,7 +6,7 @@
 
 #' @export
 
-bgm_output_4<- function (mcmc,data,n_proj=4){
+bgm_output_4<- function (mcmc,data,n_proj=4,multiple=FALSE){
 
   # ----------------------------------------------------------------------------
   # Equilibrium curve
