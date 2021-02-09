@@ -79,42 +79,19 @@ indice_ab_pres <- function(tab, type_donnee, effort, esp, list_param,  espece_id
   col_capture2 <- col_capture2[[1]]
 
   # Calcul de l indice d_abondance
-  if(type_donnee=="commercial"){
-    if(effort=="auto"){
-      # choix de la variable d'effort nominal :
-      # Rappel : var_eff_list = variables possibles d'effort nominal
-      names.use <- names(tab_posit)[(names(tab_posit) %in% var_eff_list)]
-      tab_posit_effort <- tab_posit[, names.use]
-      a <- tab_posit_effort %>% summarise_all(funs(sum(is.na(.) | .==0)))
-      col_effort <- names(which.min(a)) #colonne(s) avec le plus de donnees renseignees
-      col_effort <- col_effort[[1]] #si plusieurs colonnes
-    }else{col_effort=effort}
-    print(paste("effort = ", col_effort))
-    print(paste(sum(is.na(tab_posit[,col_effort]) | tab_posit[,col_effort]==0),"sur", nrow(tab_posit),
-                "lignes avec effort nul ou NA")) # indiquer le nombre de donnees perdues
-    #calcul de la cpue
-    tab_posit <- tab_posit %>% mutate(i_ab=tab_posit[,col_capture2]/tab_posit[,col_effort])
-    print(paste("i_ab =", col_capture2, "/" ,col_effort))
+  col_effort <- var_eff_list
+  print(paste("effort = ", col_effort))
+  print(paste(sum(is.na(tab_posit[,col_effort]) | tab_posit[,col_effort]==0),"sur", nrow(tab_posit),
+              "lignes avec effort nul ou NA")) # indiquer le nombre de donnees perdues
+  #calcul de la cpue
+  tab_posit <- tab_posit %>% mutate(i_ab=tab_posit[,col_capture2]/tab_posit[,col_effort])
+  print(paste("i_ab =", col_capture2, "/" ,col_effort))
 
-  }else if(type_donnee=="scientifique"){
-    #Remarques Jerome Poyr Fabien
-    #Le calcul de la surface chalutée ne devrait pas se faire là pour les campagnes scientifiques
-    #En fait la surface chalutée devrait être déjà dans le tableau d'entrée - à mettre dans le préparation des données.
-    # C'est l'équivalent de la colonne des efforts pour la PA et PI donc cela devrait être fairt en amont.
-    #C'est notamment important parcequ'on peut avoir des données fournies avec déjà l'indice d'abondance calculé par strate (sans lat long donc)
-    # Cas des données Bissau par ememple
-tab_posit_old<-tab_posit
-
-tab_posit<-tab_posit%>%filter(as.numeric(surface_chalutee) > 0)
-    tab_posit <- tab_posit %>% mutate(i_ab=as.numeric(tab_posit[,col_capture2])/as.numeric(surface_chalutee)) # calcul de l indice_abondance
-    print(paste( "perte de ", nrow(tab_posit_old)-nrow(tab_posit) , "surface chalutees nulles ou NA, sur" , nrow(tab_posit_old), "a l'origine"))
-    print(paste("i_ab =", col_capture2, "/surface_chalutee(km2)"))
-  }
 
   # Aggreger par station/operation
   names.use <- names(tab_posit)[(names(tab_posit) %in% ope_id)]
   tab_posit_old <- tab_posit
-  tab_posit <- tab_posit_old %>% dplyr::group_by(across(names.use)) %>% dplyr::summarise(i_ab = sum(i_ab))
+  tab_posit <- tab_posit_old %>% dplyr::group_by(across(names.use)) %>% dplyr::summarise(i_ab = sum(i_ab)) # RQ1
   print(paste("passage de", nrow(tab_posit_old), "à", nrow(tab_posit), "presences en aggregeant par station ou operation"))
   tab_posit <- tab_posit %>% distinct()
   print(paste(nrow(tab_posit), "stations selectionnees avec presence de", esp))
@@ -124,7 +101,6 @@ tab_posit<-tab_posit%>%filter(as.numeric(surface_chalutee) > 0)
   # Rajouter les absences
   # Aggreger le tableau d origine par station/operation mais sans les especes
   names.use <- names(tab)[(names(tab) %in% ope_id)]
-  names.use <- c(names.use, col_capture2)
   tab_stations <- tab[, names.use]
   # Select unique + jointure tab_posit + ajout des 0 pour les absences
   presabs <- tab_stations %>% distinct() %>% left_join(tab_posit) %>% mutate(presence = replace_na(presence, 0))
@@ -134,10 +110,11 @@ tab_posit<-tab_posit%>%filter(as.numeric(surface_chalutee) > 0)
 
   # Enlever les modalites peu representees dans tableau_ab (representant par ex moins de 5% des donnees)
   names_facteur <- names(tableau_ab)[(names(tableau_ab) %in% list_param)] #liste param = facteurs utilises pour le GLM
-  tableau_ab2 <- moda_few_rm(tableau_ab, names_facteur, seuil)
+  tableau_ab2 <- moda_few_rm(tab, names_facteur, seuil)
 
-  # Enlever dans tableau pres les modalites qui sont absentes dans tableau_ab
-  tableau_pres <- presabs %>% semi_join(tableau_ab, by = names_facteur)
+  # On garde uniquement les modalités présentes dans tableau_ab2 (selon valeur seuil)
+  tableau_pres <- presabs %>% semi_join(tableau_ab2, by = names_facteur)
+  nrow(tableau_pres)
   tableau_pres$mois <- as.factor(tableau_pres$mois)
 
   return(tableau_pres)
