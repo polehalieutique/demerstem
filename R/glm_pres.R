@@ -18,7 +18,7 @@
 #' @export
 
 
-glm_pres <- function(tab, parametres, interactions){
+glm_pres <- function(tab, parametres, interactions, formule_select){
   #passer les parametres en facteur
   lapply(tab[,parametres], as.factor)
   # Mise en forme des parametres
@@ -31,25 +31,32 @@ glm_pres <- function(tab, parametres, interactions){
 
   #Ecriture du modele de base
   Model<-glm(as.formula(formule), family=binomial, data=tab)
-
-  if(interactions=="auto"){
-    #Ecriture du modele avec intercations sous conditions de nb_lignes^nb_parametres < 100000^5
-    if(nrow(tab)^length(parametres) < 100000^5){
-      Model_inter <- glm(as.formula(formule_inter), family=binomial, data=tab)
-      if(AIC(Model_inter)<(AIC(Model)-10)){
-        Model_old <- Model
-        Model <- Model_inter
-        formule <- formule_inter
-        print(paste("les interactions ordre 2 sont prises en compte, l'AIC est amelioré de", AIC(Model_old)-AIC(Model_inter), "points"))
+  if (formule_select == "auto"){
+    if(interactions=="auto"){
+      #Ecriture du modele avec intercations sous conditions de nb_lignes^nb_parametres < 100000^5
+      if(nrow(tab)^length(parametres) < 100000^5){
+        Model_inter <- glm(as.formula(formule_inter), family=binomial, data=tab)
+        if(AIC(Model_inter)<(AIC(Model)-10)){
+          Model_old <- Model
+          Model <- Model_inter
+          formule <- formule_inter
+          print(paste("les interactions ordre 2 sont prises en compte, l'AIC est amelioré de", AIC(Model_old)-AIC(Model_inter), "points"))
+        }
+      } else {
+        print("les interactions ordre 2 ne sont pas testees car le nombre de donnees ou de parametres est trop important")
       }
-    }else{print("les interactions ordre 2 ne sont pas testees car le nombre de donnees ou de parametres est trop important")}
 
-  }else if (intercations=="force"){
-    Model_inter <- glm(as.formula(formule_inter), family=binomial, data=tab)
-    Model <- Model_inter
-    formule <- formule_inter
-    print("les interactions ordre 2 sont prises en compte")
+    } else if (intercations=="force"){
+      Model_inter <- glm(as.formula(formule_inter), family=binomial, data=tab)
+      Model <- Model_inter
+      formule <- formule_inter
+      print("les interactions ordre 2 sont prises en compte")
+    }
+  } else {
+    formule <- formule_select
+    Model <- glm(as.formula(formule), family=binomial, data=tab)
   }
+
 
   #selection aic
   Model_aic=stepAIC(Model, formule ,trace=TRUE, direction="both")
@@ -57,10 +64,21 @@ glm_pres <- function(tab, parametres, interactions){
   if(AIC(Model_aic)<(AIC(Model)-10)){
     Model_old <- Model
     Model <- Model_aic
+    formule <- as.character(Model_aic$formula)[2]
     print(paste("AIC ameliore de ", AIC(Model_old)-AIC(Model_aic), "points apres StepAIC"))
   }else{
-    print("La selection stepAIC n'apporte pas d'amelioration nette, elle n'est pas prise en compte")}
+    print("La selection stepAIC n'apporte pas d'amelioration nette, elle n'est pas prise en compte")
+  }
 
+  # Print du modele sélectionné
+  if (formule_select == "auto"){
+    print("Le modele sélectionné par optimisation statistique est le suivant :")
+  } else {
+    print("Le modele que vous avez sélectionné :")
+  }
+  print(formule)
+  print(summary(Model))
+  print(anova(Model))
 
   # resume modele et graphiques residus
   summary(Model)
@@ -74,3 +92,4 @@ glm_pres <- function(tab, parametres, interactions){
 
   return(Model)
 }
+
