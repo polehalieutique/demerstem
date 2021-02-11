@@ -2,8 +2,8 @@
 
 #' @param tab          : les données auxquelles ajuster le modèle
 #' @param parametres   : liste des parametres à tester
-#' @param logtrans     : pour automatiser la logtransformation des donnees si elle apporte une amélioration ("auto") ou pour forcer la logtransformation ("force")
 #' @param interactions : prendre en compte les interactions. ("auto") ou ("force")
+#' @param formule_select : permet la selection manuel de la formule à tester dans le glm / "auto" sinon
 
 #' @examples
 #'  #PA

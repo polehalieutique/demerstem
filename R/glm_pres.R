@@ -3,6 +3,7 @@
 #' @param tab          : les données auxquelles ajuster le modèle
 #' @param parametres   : liste des parametres à tester
 #' @param interactions : prendre en compte les interactions. ("auto") ou ("force")
+#' @param formule_select : permet la selection manuel de la formule à tester dans le glm / "auto" sinon
 
 #' @examples
 #'  glm_pres_pa <- glm_pres(tableau_pa_pres, param_pa, interactions="auto")
