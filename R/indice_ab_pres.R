@@ -9,59 +9,25 @@
 #' @param type_donnee       : "scientifique" ou "commercial"
 #' @param effort            : "auto" pour un choix automatique de la variable effort ou choix personnel ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee" si pas besoin de recalculer la surface chalutee dans les donnees scientifiques
 #' @param esp               : yyy nom_taxonomique ou commun selon tableau, espece dont on veut tester la presence. ex : "BOBO" , "PSEUDOTOLITHUS ELONGATUS"
-#' @param list_param liste des param_tres
-#' @param espece_id_list liste des espèces
-#' @param var_eff_list  liste des données d'éffort
-#' @param ope_id columne des opérations
+#' @param list_param        : liste des param_tres
+#' @param espece_id_list    : liste des espèces
+#' @param var_eff_list      : liste des données d'éffort
 #' @param col_capture       : listes d'identifiants de colonnes (voir prep_GLM_tab.Rmd)
 #' @param seuil             : seuil minimum de frequence des modalites a garder par facteur
 
 #' @return La fonction incice_ab_pres() retourne un seul tableau : tableau_pres a patir duquel on peut filtrer les presences pour obtenir tableau_ab
 
 #' @examples
-#' #Liste des colonnes  parametres categoriels (facteurs) à explorer
-#' list_param <- c("mois","zone","type_pirogue","motorisation","zone2","saison","engin_peche2", #PECHE ARTISANALE
-#' "licence" , "tjb2", "puissance2", "longueur2", "profondeur2","nationalite"  ,"sect_cod" , "tsect_cod" ,"intitule",  #PECHE INDUSTRIELLE
-#' "strate", "profond_deb2", "code_campagne2" , "code_projet")
-#' #Liste des noms de colonnes possible pour l'effort de pêche
-#'  var_eff_list <- c("duree_peche", "nombre_operation","nb_jour_peche", "nb_sorties", "larg_ouverture", "total_capture", "duree", "vitesse_chalutage")
-#'
-#'    # liste des identifiants possible pour la colonne capture
-#'  col_capture <- c("captures", "capture_retenue", "total_capture", "nombre")
-#'     # liste des identifiants possible une observation
-#'   ope_id=c("presence",
-#'         "code_pays", "code_projet", "code_campagne2", "code_station ", "date_chalutage",
-#'         "longitude_deb", "latitude_deb",  "longitude_fin", "latitude_fin",
-#'         "strates", "profond_deb2", "type_campagne", #donnees scientifiques
-#'         "code_navire", "date_operatio", "numero_operation","longitude_debut", "latitude_debut",
-#'         "profondeur2", "puissance2", "tjb2", "longueur2", "nationalite", "licence", # donnees PI
-#'         "annee", "mois", "zone", "zone2" , "saison", "type_pirogue" , "motorisation" , "engin_peche", "engin_peche2") #donnees PA
-#' PA #
-#' data(tableau_pa)
-#'
-#'
-#' tableau_pa_pres <- indice_ab_pres (tableau_pa, "commercial", "auto", esp="BOBO", list_param, "espece", var_eff_list, ope_id, col_capture,seuil=0.005)
-#' tableau_pa_ab <-  filter(tableau_pa_pres, presence==1)
-#' kable(tableau_pa_ab[sample(nrow(tableau_pa_ab), 5), ])
-#' kable(tableau_pa_pres[sample(nrow(tableau_pa_pres), 5), ])
 
-#' PI #
-#'
-#' tableau_pi_pres <- indice_ab_pres (tableau_pi, "commercial", "duree_peche",  esp="PSEUDOTOLITHUS ELONGATUS", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, seuil=0.05)
-#' tableau_pi_ab <-  filter(tableau_pi_pres, presence==1)
-
-#' SC Kg#
-#' tableau_sc_pres <- indice_ab_pres (tableau_sc, "scientifique", "auto",  esp="PSEUDOTOLITHUS ELONGATUS", list_param,  espece_id_list, var_eff_list, ope_id, col_capture="total_capture", seuil=0.05)
-#' tableau_sc_ab <-  filter(tableau_sc_pres, presence==1)
-
-#' SC nombre#
-#' tableau_sc_pres <- indice_ab_pres (tableau_sc, "scientifique", "auto",  esp="PSEUDOTOLITHUS ELONGATUS", list_param,  espece_id_list, var_eff_list, ope_id, col_capture="nombre", seuil=0.05)
-#' tableau_sc_ab <-  filter(tableau_sc_pres, presence==1)
-#' table(tableau_sc_pres$presence)
 
 #' @export
 #'
-indice_ab_pres <- function(tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, ope_id, col_capture, seuil) {
+indice_ab_pres <- function(tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, col_capture, seuil) {
+
+  #ope_id
+  tab_ope_id <- tab %>% dplyr::select(-all_of(var_eff_list), -all_of(col_capture))
+  ope_id <- c(colnames(tab_ope_id), "presence")
+
 
   # Garder uniquement les colonnes du tableau contenues dans col_list
   # liste des colonnes a garder
@@ -91,8 +57,12 @@ indice_ab_pres <- function(tab, type_donnee, effort, esp, list_param,  espece_id
   # Aggreger par station/operation
   names.use <- names(tab_posit)[(names(tab_posit) %in% ope_id)]
   tab_posit_old <- tab_posit
-  tab_posit <- tab_posit_old %>% dplyr::group_by(across(names.use)) %>% dplyr::summarise(i_ab = sum(i_ab)) # RQ1
+  tab_posit <- tab_posit_old %>% dplyr::group_by(across(names.use)) %>% dplyr::summarise(i_ab = sum(i_ab)) %>% ungroup() # RQ1
   print(paste("passage de", nrow(tab_posit_old), "à", nrow(tab_posit), "presences en aggregeant par station ou operation"))
+  if (nrow(tab_posit) != nrow(tab_posit_old)){
+    print(paste("WARNING : you're not suppose to aggregate many lines. Please take the time to check your data"))
+    print(paste("aggregation here with i_ab = sum(i_ab)"))
+  }
   tab_posit <- tab_posit %>% distinct()
   print(paste(nrow(tab_posit), "stations selectionnees avec presence de", esp))
 
