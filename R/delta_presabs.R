@@ -17,7 +17,7 @@
 
 delta_presabs <- function(tab, esp, param_test, type_donnee, effort, titre, list_param,  espece_id_list, var_eff_list, col_capture, seuil, formule_select){
   print("SOUS-MODELE PRESENCE ABSENCE")
-  tableau_pres <- indice_ab_pres(tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, ope_id, col_capture, seuil)
+  tableau_pres <- indice_ab_pres(tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, col_capture, seuil)
   print(param_use(tableau_pres, param_test) )
   param <- param_use(tableau_pres, param_test)
   print(lapply(param, pres_facto, tab=tableau_pres, titre))
@@ -36,7 +36,7 @@ delta_presabs <- function(tab, esp, param_test, type_donnee, effort, titre, list
 
   vect_param <- c(all.vars(formula(glm_presabs))[-1]) # liste des paramètres
   table_finale <- c()
-  table_pres <- as.data.frame(coef(summary(glm_pres)))
+  table_pres <- as.data.frame(coef(summary(glm_presabs)))
   for (i in 2:(length(vect_param)+1)){
     table_tempo <- as.data.frame(dummy.coef(glm_presabs)[i])
     table_tempo$modalite <- rownames(table_tempo)
