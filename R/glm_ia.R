@@ -18,65 +18,37 @@
 #' @export
 
 
-glm_ia <- function(tab, parametres, interactions, formule_select){
+glm_ia <- function(tab, parametres, formule_select){
   #passer les parametres en facteur
   lapply(tab[,parametres], as.factor)
-
   #ecriture formule
-  a <- paste(parametres[1], "+")
+  a <- paste("as.factor(", parametres[1], ") +")
   for (i in 2 : (length(parametres)-1)){
-    a <- paste(a, parametres[i], "+")}
-  a <- paste(a, parametres[length(parametres)])
-  formule <- paste("i_ab ~", a)
+    a <- paste(a, "as.factor(", parametres[i], ") +")}
+  a <- paste(a, "as.factor(", parametres[length(parametres)], ")")
   formule_log <- paste("log(i_ab+0.0001) ~", a)
-  formule_inter <- paste("i_ab ~ (", a, ")^2") #test des interactions ordre2
+  #formule_ini <- formule_log
+  #test des interactions ordre2
   formule_log_inter <- paste("log(i_ab+0.0001) ~ (", a,")^2")
 
+
   if (formule_select == "auto"){
-    print("les donnees sont passées au log (log+0.0001)")
-    #Ecriture du modele de base
-    Model_log <- glm(as.formula(formule_log) , family=gaussian, data=tab) # ou get(parametres)
-    AIC.log <- AIC(Model_log)+2*sum(log(tab$i_ab))
-    Model <- Model_log
-    formule <- formule_log
-    print("Modele Initiale :")
-    print(formule)
+    print("selection stepAIC en partant du modele sature :")
+    model_sature <- glm(formula = formule_log_inter, family=gaussian, data=tab)
+    test_sature <- stepAIC(model_sature, scope=(lower=~1)) #trace=TRUE
+    print("selection stepAIC en partant du modele min :")
+    model_cst <- glm(formula = log(i_ab + 1e-04) ~ 1, family=gaussian, data=tab)
+    test_cst <- stepAIC(model_cst, scope=(upper=paste("~ (", a,")^2"))) #trace=TRUE
 
+    print(anova(test_sature, test_cst))
 
-    if(interactions=="auto"){
-      #Ecriture du modele avec intercations sous conditions de nb_lignes^nb_parametres < 100000^5
-      if(nrow(tab)^length(parametres) < 100000^5){
-        Model_log_inter <- glm(as.formula(formule_log_inter), family=gaussian, data=tab) # ou get(parametres)
-
-        AIC_log_inter <- AIC(Model_log_inter)+2*sum(log(tab$i_ab))
-        if(AIC(Model_log_inter)<(AIC(Model)-10)){
-          Model_old <- Model
-          Model <- Model_log_inter
-          formule <- formule_log_inter
-          print(paste("les donnees sont passees au log (log+0.0001) et les interactions ordre 2 sont prises en compte, l'AIC est amelioré de", AIC(Model_old)-AIC(Model_log_inter), "points"))}
-      }else{
-        print("les interactions ordre 2 ne sont pas testees car le nombre de donnees ou de parametres est trop important")}
-
-    }else if(interactions=="force"){
-      Model_log_inter <- glm(as.formula(formule_log_inter) , family=gaussian, data=tab) # ou get(parametres)
-      AIC.log.inter <- AIC(Model_log_inter)+2*sum(log(tab$i_ab))
-
-      if(AIC(Model_log_inter)<(AIC(Model)-10)){
-        Model <- Model_log_inter
-        formule <- formule_log_inter
-        print(paste("les donnees sont passees au log (log+0.0001) et les interactions ordre 2 sont prises en compte"))}
+    if (AIC(test_sature) < AIC(test_cst)){
+      Model <- test_sature
+      formule <- test_sature$formula
+    } else {
+      Model <- test_cst
+      formule <- test_cst$formula
     }
-
-    #selection AIC
-    Model_aic=stepAIC(Model, formule ,trace=TRUE, direction="both")
-
-    if(AIC(Model_aic)<(AIC(Model)-5)){
-      Model_old <- Model
-      Model <- Model_aic
-      formule <- as.character(Model_aic$formula)[2]
-      print(paste("AIC ameliore de ", AIC(Model_old)-AIC(Model_aic), "points apres StepAIC"))
-    }else{
-      print("La selection stepAIC n'apporte pas d'e difference d'amelioration nette, elle n'est pas prise en compte")}
 
   } else {
     formule <- formule_select
