@@ -11,12 +11,13 @@
 
 
 
-modelo_fox <- function(table_Efox, upper_b, param_graph){
+modelo_fox <- function(table_Efox, param_graph){
 
   #limits calculation
   upper_a <- max(table_Efox$IA, na.rm=T)*3 #*3? #Efox?!
   lower_a <- max(table_Efox$IA, na.rm=T)*0.5
   start_a <- (upper_a + lower_a)/2
+  upper_b <- max(table_Efox$Efox)
 
   modelefox_IA <- nls(formula = log(IA) ~ log(a)-b*Efox, data=table_Efox, start = c(a = start_a , b = upper_b/2), algorithm = "port", lower = c(a = lower_a, b = 0), upper = c(a=upper_a, b = upper_b))
   #modelefox_IA <- nls(formula = IA_MOYEN_STANDARD ~ a*exp(-b*Efox), data=data_IA_FINAL, start = c(a = 4.44 , b = 0.6), algorithm = "default")
