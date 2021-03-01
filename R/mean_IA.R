@@ -11,7 +11,7 @@
 #' @export
 
 
-prep_table<-function(nb_table, MOY, vect_year_elim, ...){
+mean_IA<-function(nb_table, MOY, vect_year_elim, ...){
   listIA <- c(...)
   list_year <- c()
   for (i in 1:nb_table){
