@@ -18,7 +18,7 @@
 #' @export
 
 
-glm_pres <- function(tab, parametres, formule_select){
+glm_pres_abs <- function(tab, parametres, formule_select){
   #passer les parametres en facteur
   lapply(tab[,parametres], as.factor)
   # Mise en forme des parametres

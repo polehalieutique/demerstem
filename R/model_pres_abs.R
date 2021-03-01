@@ -16,9 +16,9 @@
 #' @export
 #'
 
-delta_presabs <- function(tab, esp, param_test, type_donnee, effort, titre, list_param,  espece_id_list, var_eff_list, col_capture, interactions, seuil, formule_select){
+model_pres_abs <- function(tab, esp, param_test, type_donnee, effort, titre, list_param,  espece_id_list, var_eff_list, col_capture, interactions, seuil, formule_select){
   print("SOUS-MODELE PRESENCE ABSENCE")
-  tableau_pres <- indice_ab_pres(tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, col_capture, seuil)
+  tableau_pres <- table_pres_abs(tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, col_capture, seuil)
   print(param_use(tableau_pres, param_test) )
   param <- param_use(tableau_pres, param_test)
   print(lapply(param, pres_facto, tab=tableau_pres, titre))
@@ -31,7 +31,7 @@ delta_presabs <- function(tab, esp, param_test, type_donnee, effort, titre, list
   }
   #NEW
 
-  glm_presabs <- glm_pres(tableau_pres, param, formule_select)
+  glm_presabs <- glm_pres_abs(tableau_pres, param, formule_select)
 
   #NEW4
 

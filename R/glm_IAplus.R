@@ -1,42 +1,43 @@
-#' la fonction glm_pres
+#' la fonction glm_ia établit le modèle d'indices d'abondances : (sous-modèle positif dans un GLM delta). Une selection des parametre est effectuee sur critere statistique (stepAIC) ; ajout de l'argument "formule_select" : soit "auto" et la fonction choisit le modèle par opti stat, soit on lui donne la formule que l'on souhaite tester. Permet de finaliser.
 
 #' @param tab          : les données auxquelles ajuster le modèle
 #' @param parametres   : liste des parametres à tester
+#' @param interactions : prendre en compte les interactions. ("auto") ou ("force")
 #' @param formule_select : permet la selection manuel de la formule à tester dans le glm / "auto" sinon
 
 #' @examples
-#'  glm_pres_pa <- glm_pres(tableau_pa_pres, param_pa, interactions="auto")
-#'  glm_pres_pi <- glm_pres(tableau_pi_pres, param_pi) #150 000 lignes, 9 facteurs = trop lourd pour les interactions
-#' tableau_sc_pres <- pres_abs(tableau_sc, "PSEUDOTOLITHUS ELONGATUS")
-#' tab <- tableau_sc_pres
-#' tab_old <- tab
-#' tab <- na.omit(tab)
-#' nrow(tab_old) ; nrow(tab)
-#' param_sc <- param_use(tableau_sc_pres, list_param)
-#' param_sc <- param_sc[-1] #####type_campagne pose probleme
-#' parametres <- param_sc
+#'  #PA
+#'  glm_ia_pa <- glm_ia(tableau_pa_ab, param_pa, logtrans="auto", interactions="auto")
+
+#' #PI
+#' glm_ia_pi <- glm_ia(tableau_pi_ab, param_pi, logtrans="auto", interactions="auto") # 60 000 lignes, 9 facteurs = trop lourd pour interactions2
+
+#' #SC
+#' glm_ia_sc <- glm_ia(tableau_sc_ab, param_sc, logtrans="auto", interactions="auto")
+
 #' @export
 
 
-glm_pres <- function(tab, parametres, formule_select){
+glm_IAplus <- function(tab, parametres, formule_select){
   #passer les parametres en facteur
   lapply(tab[,parametres], as.factor)
-  # Mise en forme des parametres
+  #ecriture formule
   a <- paste("as.factor(", parametres[1], ") +")
   for (i in 2 : (length(parametres)-1)){
     a <- paste(a, "as.factor(", parametres[i], ") +")}
   a <- paste(a, "as.factor(", parametres[length(parametres)], ")")
-  formule <- paste("presence ~", a)
-  formule_inter <- paste("presence ~ (", a, ")^2") #test des interactions ordre2
+  formule_log <- paste("log(i_ab+0.0001) ~", a)
+  #formule_ini <- formule_log
+  #test des interactions ordre2
+  formule_log_inter <- paste("log(i_ab+0.0001) ~ (", a,")^2")
 
 
   if (formule_select == "auto"){
     print("selection stepAIC en partant du modele sature :")
-    model_sature <- glm(formula = formule_inter, family=gaussian, data=tab)
+    model_sature <- glm(formula = formule_log_inter, family=gaussian, data=tab)
     test_sature <- stepAIC(model_sature, scope=(lower=~1)) #trace=TRUE
-
     print("selection stepAIC en partant du modele min :")
-    model_cst <- glm(formula = presence ~ 1, family=gaussian, data=tab)
+    model_cst <- glm(formula = log(i_ab + 1e-04) ~ 1, family=gaussian, data=tab)
     test_cst <- stepAIC(model_cst, scope=(upper=paste("~ (", a,")^2"))) #trace=TRUE
 
     print(anova(test_sature, test_cst))

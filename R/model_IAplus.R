@@ -16,9 +16,9 @@
 #' #SC
 #' delta_abondance(tableau_sc, "PSEUDOTOLITHUS ELONGATUS", list_param, "scientifique", "auto", titre="SC", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, seuil=0.05)
 #' @export
-delta_abondance <- function(tab, esp, param_test, type_donnee, effort, titre, list_param,  espece_id_list, var_eff_list, col_capture, interactions, seuil, formule_select){
+model_IAplus <- function(tab, esp, param_test, type_donnee, effort, titre, list_param,  espece_id_list, var_eff_list, col_capture, interactions, seuil, formule_select){
   print("SOUS-MODELE ABONDANCE")
-  tableau_pres <- indice_ab_pres(tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, col_capture, seuil)
+  tableau_pres <- table_pres_abs(tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, col_capture, seuil)
   tableau_ab <- filter(tableau_pres, presence==1)
   print(param_use(tableau_ab, param_test))
   param <- param_use(tableau_ab, param_test)
@@ -33,7 +33,7 @@ delta_abondance <- function(tab, esp, param_test, type_donnee, effort, titre, li
     contrasts(tableau_ab[,param[i]]) <- contr.sum(levels(tableau_ab[,param[i]]))
   }
 
-  glm_indice_ab <- glm_ia(tableau_ab, param, formule_select)
+  glm_indice_ab <- glm_IAplus(tableau_ab, param, formule_select)
 
   if (interactions == "Y"){
     vect_param <- c(all.vars(formula(glm_indice_ab))[-1])

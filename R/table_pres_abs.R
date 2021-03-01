@@ -22,7 +22,7 @@
 
 #' @export
 #'
-indice_ab_pres <- function(tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, col_capture, seuil) {
+table_pres_abs <- function(tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, col_capture, seuil) {
 
   #ope_id
   tab_ope_id <- tab %>% dplyr::select(-all_of(var_eff_list), -all_of(col_capture))
