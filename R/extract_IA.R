@@ -11,37 +11,60 @@
 #' @export
 
 
-extract_IA<-function(glm_pres,glm_ab, titre){
+extract_IA<-function(glm_pres,glm_ab, titre, type){
   ### Tableau IA par année
-  # Pres/Abs
-  table_pres <- as.data.frame(coef(summary(glm_pres))) #Table avec estim, std-error et p-values
-  table_pres$facteur <- as.character(rownames(table_pres))
-  table_pres$ExpEstimate <- exp(table_pres$Estimate)/(1+exp(table_pres$Estimate)) #correction de Laurent
-  #table_pres<- table_pres %>% dplyr::select(-"z value")
 
-  table_pres_annee <- table_pres %>% filter(substr(facteur, start = 1, stop = 3) == "ann")
+  # Pres/Abs
+  table_pres <- as.data.frame(coef(summary(glm_pres)))
+  vect_param <- c(all.vars(formula(glm_pres))[-1]) # liste des paramètres
+  table_finale <- c()
+  for (i in 2:(length(vect_param)+1)){
+    table_tempo <- as.data.frame(dummy.coef(glm_pres)[i])
+    table_tempo$modalite <- rownames(table_tempo)
+    rownames(table_tempo) <- NULL
+    table_tempo$variable <- vect_param[i-1]
+    colnames(table_tempo) <- c("Estimate", "modalite", "variable")
+    table_finale <- rbind(table_finale, table_tempo)
+  }
+  table_finale$ExpEstimate <- table_finale$Estimate + table_pres[1,1]
+  table_finale$ExpEstimate <- exp(table_finale$ExpEstimate)/(1+exp(table_finale$ExpEstimate)) #correction de Laurent
+
+  table_finale <- table_finale %>% filter(variable == "annee")
+
 
   # Abondance
   VAR <- var(residuals(glm_ab))
   table_ab <- as.data.frame(coef(summary(glm_ab)))
-  table_ab$facteur <- as.character(rownames(table_ab))
-  table_ab$ExpEstimate <- exp(table_ab$Estimate + 0.5*VAR)
-  #table_ab <- table_ab %>% dplyr::select(-"t value")
 
-  table_ab_annee <- table_ab %>% filter(substr(facteur, start = 1, stop = 3) == "ann")
+  vect_param <- c(all.vars(formula(glm_ab))[-1]) # liste des paramètres
+  table_finale2 <- c()
+  for (i in 2:(length(vect_param)+1)){
+    table_tempo <- as.data.frame(dummy.coef(glm_ab)[i])
+    table_tempo$modalite <- rownames(table_tempo)
+    rownames(table_tempo) <- NULL
+    table_tempo$variable <- vect_param[i-1]
+    colnames(table_tempo) <- c("Estimate", "modalite", "variable")
+    table_finale2 <- rbind(table_finale2, table_tempo)
+  }
+  table_finale2$ExpEstimate <- table_finale2$Estimate + table_ab[1,1]
+  table_finale2$ExpEstimate <- exp(table_finale2$Estimate + 0.5*VAR) # correction de lolo
+
+
+  table_finale2 <- table_finale2 %>% filter(variable == "annee")
 
   # Couplage
-  table_annee_final <- inner_join(table_ab_annee, table_pres_annee, by='facteur') #Inner Join? Ou Left joint? Avec left on a des NA.
-  table_annee_final <- table_annee_final %>% dplyr::select(facteur, ExpEstimate.x, ExpEstimate.y) %>%
-    mutate(EstimateurFinal = ExpEstimate.x * ExpEstimate.y) %>% dplyr::select(facteur, EstimateurFinal)
-  table_annee_final <- table_annee_final %>% mutate(annee = as.factor(substr(facteur, start = 6, stop = 9)))
+  table_annee_final <- inner_join(table_finale, table_finale2, by='modalite') #Inner Join? Ou Left joint? Avec left on a des NA.
+  table_annee_final <- table_annee_final %>% dplyr::select(modalite, ExpEstimate.x, ExpEstimate.y) %>%
+    mutate(EstimateurFinal = ExpEstimate.x * ExpEstimate.y) %>% dplyr::select(modalite, EstimateurFinal)
+  #table_annee_final <- table_annee_final %>% mutate(annee = as.factor(substr(facteur, start = 6, stop = 9)))
+  colnames(table_annee_final) <- c("annee", "EstimateurFinal")
 
-
-  g1<-ggplot(table_annee_final) + geom_bar(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(titre, "avec années numériques")) #"IA pêche scientifique Guinée"
+  g1<-ggplot(table_annee_final) + geom_bar(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(titre, "avec années numériques")) + theme(axis.text.x = element_text(angle = 35)) #"IA pêche scientifique Guinée"
 
 
   #Plot avec Annee as numeric
   table_annee_final$annee <- as.numeric(as.character(table_annee_final$annee))
+  table_annee_final$type <- type
 
   g2<-ggplot(table_annee_final) + geom_bar(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(titre, "avec annees en facteurs"))
   g3<-ggplot(table_annee_final) + geom_line(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(titre, "avec annees en facteurs"))
@@ -51,4 +74,5 @@ extract_IA<-function(glm_pres,glm_ab, titre){
 
   return (table_annee_final)
 }
+
 
