@@ -14,7 +14,7 @@
 Fox_model <- function(table_Efox, param_graph){
 
   #limits calculation
-  upper_a <- max(table_Efox$IA, na.rm=T)*1.25 #*3? #Efox?!
+  upper_a <- max(table_Efox$IA, na.rm=T)*3 #*3? #Efox?!
   lower_a <- max(table_Efox$IA, na.rm=T)*0.5
   start_a <- (upper_a + lower_a)/2
   upper_b <- max(table_Efox$Efox, na.rm=T)
