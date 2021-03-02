@@ -29,7 +29,7 @@ delta(
 
 \item{facteur_flotille}{: facteur pour lequel il est interessant de tracer les series temporelles d'indices modelises. (Ex : Trouver une flotille de tuning)}
 
-\item{glm_posit}{: Sous-modele abondance}
+\item{glm_posit}{: Sous-modele abondance totaux}
 
 \item{glm_pres}{: Sous-modele presence/absence}
 
