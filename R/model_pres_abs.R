@@ -1,27 +1,30 @@
 #' la fonction delta_presabs récapitule les actions qui concernent le sous-modele presence-absence y compris la selection des variables
 
-#' @param tableau = tableau issu de la préparation des tableaux
-#' @param esp = nom de l'espece comme precise dans les donnees
-#' @param param_test = liste des facteurs potentiels à tester dans le glm
-#' @param formule_select = permet la selection manuel de la formule à tester dans le glm / "auto" sinon
-#' @paraminteractions = "Y" si on a une interaction dans notre GLM. "N" sinon.
+#' @param   tab               : input dataset table
+#' @param   esp               : exact name of the studied speciess
+#' @param   effort            : "auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"
+#' @param   catch_col         : exact name of the column indicating the catches
+#' @param   formula_select    : if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
+#' @param   interactions      : "Y" if there is an interaction in our GLM. "N" else
+#' @param   limit             : percentage representing the limit value under which the modality is removed
+#' @param   title             : fraction of the title in the plots
 
 #' @examples
 #'  #PA
-#'  delta_presabs(tableau_pa, "BOBO", list_param, "commercial", "auto", titre="PA", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, interactions = "auto", seuil=0.05)
+#'  delta_presabs(tableau_pa, "BOBO", list_param, "commercial", "auto", titre="PA", list_param,  espece_id, var_eff_list, ope_id, catch_col, interactions = "auto", limit=0.05)
 #'  #PI
-#'  delta_presabs(tableau_pi, "PSEUDOTOLITHUS ELONGATUS", list_param, "commercial", "auto", titre="PI", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, interactions = "auto", seuil=0.05)
+#'  delta_presabs(tableau_pi, "PSEUDOTOLITHUS ELONGATUS", list_param, "commercial", "auto", titre="PI", list_param,  espece_id, var_eff_list, ope_id, catch_col, interactions = "auto", limit=0.05)
 #'  #SC
-#'  delta_presabs(tableau_sc, "PSEUDOTOLITHUS ELONGATUS", list_param, "scientifique", "auto", titre="SC", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, interactions = "auto", seuil=0.05)
+#'  delta_presabs(tableau_sc, "PSEUDOTOLITHUS ELONGATUS", list_param, "scientifique", "auto", titre="SC", list_param,  espece_id, var_eff_list, ope_id, catch_col, interactions = "auto", limit=0.05)
 #' @export
 #'
 
-model_pres_abs <- function(tab, esp, param_test, type_donnee, effort, titre, list_param,  espece_id_list, var_eff_list, col_capture, interactions, seuil, formule_select){
+model_pres_abs <- function(tab, esp, effort, title, list_param,  espece_id, var_eff_list, catch_col, interactions, limit, formula_select){
   print("SOUS-MODELE PRESENCE ABSENCE")
-  tableau_pres <- table_pres_abs(tab, type_donnee, effort, esp, list_param,  espece_id_list, var_eff_list, col_capture, seuil)
-  print(param_use(tableau_pres, param_test) )
-  param <- param_use(tableau_pres, param_test)
-  print(lapply(param, pres_facto, tab=tableau_pres, titre))
+  tableau_pres <- table_pres_abs(tab, effort, esp, list_param, espece_id, var_eff_list, catch_col, limit)
+  print(param_use(tableau_pres, list_param) )
+  param <- param_use(tableau_pres, list_param)
+  print(lapply(param, pres_facto, tab=tableau_pres, title))
 
   #NEW
   for (i in 1:length(param)){
@@ -31,7 +34,7 @@ model_pres_abs <- function(tab, esp, param_test, type_donnee, effort, titre, lis
   }
   #NEW
 
-  glm_presabs <- glm_pres_abs(tableau_pres, param, formule_select)
+  glm_presabs <- glm_pres_abs(tableau_pres, param, formula_select)
 
   #NEW4
 

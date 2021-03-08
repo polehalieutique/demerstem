@@ -1,21 +1,21 @@
-#' Cette fonction calcule l'effort de peche E, l'effort de Fox correspondant Efox ; relativise à la dernière année (= année la plus récente)
+#' this function calculate the fishing effort E, the corresponding Fox effort Efox ; standardised on the last year (= most recent year : mEfox = 1)
 #'
 #'
-#' @param data : le tableau avec IA
-#' @param table_capture : table avec les captures et les années (format :
-#' @param k : facteur k du calcul de l'effort de Fox. Au choix : 1, 3 ou 5
+#' @param data          : the table with the mean IA serie
+#' @param catch_table : table with catches and years (format :
+#' @param k             : K factor of the Fox effort calculation. Either : 1, 3 or 5
 #'
 #' @examples
 #'
 #' @export
 
 
-Efox_calculation <- function(data, table_capture, k){
+effort_fox_calculation <- function(data, catch_table, k){
   data <- data[-2:-(ncol(data)-1)]
   colnames(data) <- c('Year', 'IA')
 
-  colnames(table_capture) <- c('Year', 'Capture')
-  table_IA <- left_join(data, table_capture, by = "Year")
+  colnames(catch_table) <- c('Year', 'Capture')
+  table_IA <- left_join(data, catch_table, by = "Year")
 
   #table_IA <- as.data.frame(table_IA)
   table_IA <- mutate(table_IA, E = Capture/IA)

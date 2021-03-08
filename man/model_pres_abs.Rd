@@ -7,36 +7,42 @@
 model_pres_abs(
   tab,
   esp,
-  param_test,
-  type_donnee,
   effort,
-  titre,
+  title,
   list_param,
-  espece_id_list,
+  espece_id,
   var_eff_list,
-  col_capture,
+  catch_col,
   interactions,
-  seuil,
-  formule_select
+  limit,
+  formula_select
 )
 }
 \arguments{
-\item{esp}{= nom de l'espece comme precise dans les donnees}
+\item{tab}{: input dataset table}
 
-\item{param_test}{= liste des facteurs potentiels à tester dans le glm}
+\item{esp}{: exact name of the studied speciess}
 
-\item{formule_select}{= permet la selection manuel de la formule à tester dans le glm / "auto" sinon}
+\item{effort}{: "auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"}
 
-\item{tableau}{= tableau issu de la préparation des tableaux}
+\item{title}{: fraction of the title in the plots}
+
+\item{catch_col}{: exact name of the column indicating the catches}
+
+\item{interactions}{: "Y" if there is an interaction in our GLM. "N" else}
+
+\item{limit}{: percentage representing the limit value under which the modality is removed}
+
+\item{formula_select}{: if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.}
 }
 \description{
 la fonction delta_presabs récapitule les actions qui concernent le sous-modele presence-absence y compris la selection des variables
 }
 \examples{
  #PA
- delta_presabs(tableau_pa, "BOBO", list_param, "commercial", "auto", titre="PA", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, interactions = "auto", seuil=0.05)
+ delta_presabs(tableau_pa, "BOBO", list_param, "commercial", "auto", titre="PA", list_param,  espece_id, var_eff_list, ope_id, catch_col, interactions = "auto", limit=0.05)
  #PI
- delta_presabs(tableau_pi, "PSEUDOTOLITHUS ELONGATUS", list_param, "commercial", "auto", titre="PI", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, interactions = "auto", seuil=0.05)
+ delta_presabs(tableau_pi, "PSEUDOTOLITHUS ELONGATUS", list_param, "commercial", "auto", titre="PI", list_param,  espece_id, var_eff_list, ope_id, catch_col, interactions = "auto", limit=0.05)
  #SC
- delta_presabs(tableau_sc, "PSEUDOTOLITHUS ELONGATUS", list_param, "scientifique", "auto", titre="SC", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, interactions = "auto", seuil=0.05)
+ delta_presabs(tableau_sc, "PSEUDOTOLITHUS ELONGATUS", list_param, "scientifique", "auto", titre="SC", list_param,  espece_id, var_eff_list, ope_id, catch_col, interactions = "auto", limit=0.05)
 }

@@ -1,9 +1,8 @@
-#' Cette fonction réalise le modele de Fox à partir d'un IA et d'Efox
+#' this function develop the Fox global model from IA and Efox series
 #'
 #'
-#' @param data : le tableau avec IA
-#' @param table_capture : table avec les captures et les années (format :
-#' @param k : facteur k du calcul de l'effort de Fox. Au choix : 1, 3 ou 5
+#' @param table_Efox : table with IA and Efox
+#' @param graph_param : vector gathering the graphhics aestetics parameters (format : c(lengthEfox, title, upper_x, upper_y, upper_ybis))
 #'
 #' @examples
 #'
@@ -11,7 +10,7 @@
 
 
 
-Fox_model <- function(table_Efox, param_graph){
+fox_model <- function(table_Efox, graph_param){
 
   #limits calculation
   upper_a <- max(table_Efox$IA, na.rm=T)*3 #*3? #Efox?!
@@ -43,7 +42,7 @@ Fox_model <- function(table_Efox, param_graph){
 
   # Un vecteur d'effort entre 0 et 12 par pas de 0.01 (pour les besoins du graphique, a adapter a votre etude)
   # A vector of effort values between 0 and 12, for each 0.01 (for the graphs, adapt it to your study)
-  mE_fox <- seq(0,as.numeric(param_graph[1]),0.01)
+  mE_fox <- seq(0,as.numeric(graph_param[1]),0.01)
   annee_etude <- as.numeric(table_Efox$Year[1]):as.numeric(table_Efox$Year[nrow(table_Efox)])
 
   #line_E <- par_E[1]*exp(-par_E[2]*mE_fox)
@@ -55,22 +54,22 @@ Fox_model <- function(table_Efox, param_graph){
 
   plotFOX <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="black")
   plotFOX <- plotFOX + geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black")
-  plotFOX <- plotFOX + ggtitle(paste(param_graph[2]))
-  plotFOX <- plotFOX + xlim(0,as.numeric(param_graph[3])) + ylim(0,as.numeric(param_graph[4]))
+  plotFOX <- plotFOX + ggtitle(paste(graph_param[2]))
+  plotFOX <- plotFOX + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
   print(plotFOX)
 
   #?????
   plotFOX2 <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="black")
   plotFOX2 <- plotFOX2 + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black") #E ou Efox? D.a dit de prendre E je crois
-  plotFOX2 <- plotFOX2 + ggtitle(paste(param_graph[2]))
-  plotFOX2 <- plotFOX2 + xlim(0,as.numeric(param_graph[3])) + ylim(0,as.numeric(param_graph[5]))
+  plotFOX2 <- plotFOX2 + ggtitle(paste(graph_param[2]))
+  plotFOX2 <- plotFOX2 + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
   print(plotFOX2)
 
   #???
   plotFOX3 <- ggplot() + geom_line(aes(x=table_Efox$Year, y=table_Efox$IA_pred), color="black")
   plotFOX3 <- plotFOX3 + geom_point(aes(x=table_Efox$Year, y=table_Efox$IA), color="black") #E ou Efox? D.a dit de prendre E je crois
-  plotFOX3 <- plotFOX3 + ggtitle(paste(param_graph[2]))
-  plotFOX3 <- plotFOX3 + xlim(table_Efox$Year[1], table_Efox$Year[nrow(table_Efox)]) + ylim(0,as.numeric(param_graph[4]))
+  plotFOX3 <- plotFOX3 + ggtitle(paste(graph_param[2]))
+  plotFOX3 <- plotFOX3 + xlim(table_Efox$Year[1], table_Efox$Year[nrow(table_Efox)]) + ylim(0,as.numeric(graph_param[4]))
   print(plotFOX3)
 
 

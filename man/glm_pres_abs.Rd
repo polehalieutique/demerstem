@@ -2,19 +2,19 @@
 % Please edit documentation in R/glm_pres_abs.R
 \name{glm_pres_abs}
 \alias{glm_pres_abs}
-\title{la fonction glm_pres}
+\title{this function select the best GLM model possible for the presence/absence data, based on an AIC selection process (formula_select = "auto"). It runs the GLMs, plot the residuals analysis graphs and return the GLM outputs.}
 \usage{
-glm_pres_abs(tab, parametres, formule_select)
+glm_pres_abs(tab, parameters, formula_select)
 }
 \arguments{
-\item{tab}{: les données auxquelles ajuster le modèle}
+\item{tab}{: table of presence and absence data, coming as the output of table_pres_abs}
 
-\item{parametres}{: liste des parametres à tester}
+\item{parameters}{: list of parameters to test}
 
-\item{formule_select}{: permet la selection manuel de la formule à tester dans le glm / "auto" sinon}
+\item{formula_select}{: if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.}
 }
 \description{
-la fonction glm_pres
+this function select the best GLM model possible for the presence/absence data, based on an AIC selection process (formula_select = "auto"). It runs the GLMs, plot the residuals analysis graphs and return the GLM outputs.
 }
 \examples{
  glm_pres_pa <- glm_pres(tableau_pa_pres, param_pa, interactions="auto")

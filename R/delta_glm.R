@@ -1,9 +1,10 @@
-#' Cette fonction réalise le couplage Delta à partir des GLM pres/abs et abondance, extrait le facteur année et réalise 3 plots de l'IA déduit.
+#' this function realise the Delta coupling using the 2 precedents GLMs, extract the year factor, calculate the AI and plots.
 #'
 #'
-#' @param glm_pres : sorties de la fonction delta_presabs()
-#' @param glm_ab   : sorties de la fonction delta_abondance()
-#' @param titre    : première partie des titres de graphiques. Ex : "IA de pêches scientifiques"
+#' @param glm_pres_abs    : outputs from the function model_pres_abs()
+#' @param glm_abundance   : outputs from the function model_IAplus()
+#' @param title           : first part of the title for the plots
+#' @param type            : type of the data series. Ex : "SC", "PA", etc...
 #'
 #' @examples
 #' #SC
@@ -11,7 +12,7 @@
 #' @export
 
 
-delta_GLM_IA<-function(glm_pres,glm_ab, titre, type){
+delta_glm<-function(glm_pres,glm_abundance, title, type){
   ### Tableau IA par année
 
   # Pres/Abs
@@ -33,13 +34,13 @@ delta_GLM_IA<-function(glm_pres,glm_ab, titre, type){
 
 
   # Abondance
-  VAR <- var(residuals(glm_ab))
-  table_ab <- as.data.frame(coef(summary(glm_ab)))
+  VAR <- var(residuals(glm_abundance))
+  table_ab <- as.data.frame(coef(summary(glm_abundance)))
 
-  vect_param <- c(all.vars(formula(glm_ab))[-1]) # liste des paramètres
+  vect_param <- c(all.vars(formula(glm_abundance))[-1]) # liste des paramètres
   table_finale2 <- c()
   for (i in 2:(length(vect_param)+1)){
-    table_tempo <- as.data.frame(dummy.coef(glm_ab)[i])
+    table_tempo <- as.data.frame(dummy.coef(glm_abundance)[i])
     table_tempo$modalite <- rownames(table_tempo)
     rownames(table_tempo) <- NULL
     table_tempo$variable <- vect_param[i-1]
@@ -59,15 +60,15 @@ delta_GLM_IA<-function(glm_pres,glm_ab, titre, type){
   #table_annee_final <- table_annee_final %>% mutate(annee = as.factor(substr(facteur, start = 6, stop = 9)))
   colnames(table_annee_final) <- c("annee", "EstimateurFinal")
 
-  g1<-ggplot(table_annee_final) + geom_bar(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(titre, "avec années numériques")) + theme(axis.text.x = element_text(angle = 35)) #"IA pêche scientifique Guinée"
+  g1<-ggplot(table_annee_final) + geom_bar(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec années numériques")) + theme(axis.text.x = element_text(angle = 35)) #"IA pêche scientifique Guinée"
 
 
   #Plot avec Annee as numeric
   table_annee_final$annee <- as.numeric(as.character(table_annee_final$annee))
   table_annee_final$type <- type
 
-  g2<-ggplot(table_annee_final) + geom_bar(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(titre, "avec annees en facteurs"))
-  g3<-ggplot(table_annee_final) + geom_line(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(titre, "avec annees en facteurs"))
+  g2<-ggplot(table_annee_final) + geom_bar(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec annees en facteurs"))
+  g3<-ggplot(table_annee_final) + geom_line(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec annees en facteurs"))
   print(g1)
   print(g2)
   print(g3)

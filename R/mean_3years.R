@@ -1,7 +1,7 @@
-#' Cette fonction sert à "smooth" sur 3 ans (ou 2ans pour première et dernière ligne)
+#' this function smooth the value over 3 years (or 2 years at the start and the end of the serie)
 #'
 #'
-#' @param data : la table avec IA_MOYEN_STANDARD à lisser
+#' @param data : the table in mean_IA to smooth
 #'
 #' @examples
 #'

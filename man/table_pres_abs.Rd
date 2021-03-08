@@ -3,47 +3,40 @@
 \name{table_pres_abs}
 \alias{table_pres_abs}
 \title{indice_ab_pres
-Cette fonction est la reunion de deux anciennes fonctions décrites ci-dessous. Elle créé les tableaux necessaires pour le GLM et delta_GLM.
-Fonction 1 (indice_ab) créé la variable d'abondance sur laquelle seront ajustés les modèles. Pour les pêches scientifiques, il s'agit des captures par surface chalutee. Pour les pêches commerciales, il s'agit des cpue nominales. Pour les cpue, cette fonction automatise le choix de la variable d'effort nominal selon un critère de disponibilité des données. Le choix de la variable d'effort nominal pourra également être manuel. Elle retourne une ligne par operation ou station.
-Fonction 2 (pres_abs) créé le tableau qui sélectionne une espèce et donne sa presence/absence par station ou operation en vue d'un delta GLM (sous modèle presence/absence)}
+this function create the table used as an argument in the glm modelisation. It creates the i_ab and the presence columns, apply the modality selection functions.}
 \usage{
 table_pres_abs(
   tab,
-  type_donnee,
   effort,
   esp,
   list_param,
-  espece_id_list,
+  espece_id,
   var_eff_list,
-  col_capture,
-  seuil
+  catch_col,
+  limit
 )
 }
 \arguments{
-\item{tab}{: Tableau avec les captures et paramètres associés}
+\item{tab}{: Table with the captures, fishing efforts and associated parameters}
 
-\item{type_donnee}{: "scientifique" ou "commercial"}
+\item{effort}{: "auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"}
 
-\item{effort}{: "auto" pour un choix automatique de la variable effort ou choix personnel ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee" si pas besoin de recalculer la surface chalutee dans les donnees scientifiques}
+\item{esp}{: exact name of the studied species}
 
-\item{esp}{: yyy nom_taxonomique ou commun selon tableau, espece dont on veut tester la presence. ex : "BOBO" , "PSEUDOTOLITHUS ELONGATUS"}
+\item{list_param}{: list of tested parameters}
 
-\item{list_param}{: liste des param_tres}
+\item{espece_id}{: exact name of the column indicating the species}
 
-\item{espece_id_list}{: liste des espèces}
+\item{var_eff_list}{: list of the possible fishing effort column}
 
-\item{var_eff_list}{: liste des données d'éffort}
+\item{catch_col}{: exact name of the column indicating the catches}
 
-\item{col_capture}{: listes d'identifiants de colonnes (voir prep_GLM_tab.Rmd)}
-
-\item{seuil}{: seuil minimum de frequence des modalites a garder par facteur}
+\item{limit}{: percentage representing the limit value under which the modality is removed}
 }
 \value{
-La fonction incice_ab_pres() retourne un seul tableau : tableau_pres a patir duquel on peut filtrer les presences pour obtenir tableau_ab
+the function return a table from which we can select only the presence = 1 to get the abundance table
 }
 \description{
 indice_ab_pres
-Cette fonction est la reunion de deux anciennes fonctions décrites ci-dessous. Elle créé les tableaux necessaires pour le GLM et delta_GLM.
-Fonction 1 (indice_ab) créé la variable d'abondance sur laquelle seront ajustés les modèles. Pour les pêches scientifiques, il s'agit des captures par surface chalutee. Pour les pêches commerciales, il s'agit des cpue nominales. Pour les cpue, cette fonction automatise le choix de la variable d'effort nominal selon un critère de disponibilité des données. Le choix de la variable d'effort nominal pourra également être manuel. Elle retourne une ligne par operation ou station.
-Fonction 2 (pres_abs) créé le tableau qui sélectionne une espèce et donne sa presence/absence par station ou operation en vue d'un delta GLM (sous modèle presence/absence)
+this function create the table used as an argument in the glm modelisation. It creates the i_ab and the presence columns, apply the modality selection functions.
 }

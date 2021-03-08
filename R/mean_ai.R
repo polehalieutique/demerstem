@@ -1,21 +1,22 @@
-#' Cette fonction réunie les séries d'IA (/!\ MAX 5 SERIES) dans une seule table, standardise et plot plusieurs graphs en relation
+#' This function gather the different AI series (/!\ MAX 5 SERIES) in one single table, standardise one mean AI serie and plot several graphs
 #'
 #'
-#' @param nb_table : nb de table inclut dans "..." (=le nb de série d'IA différentes)
-#' @param MOY   : si "oui" vient appliquer la fonction Moy_3ans()
-#' @param vect_year_elim   : vecteur contenant les différentes années à éliminer. Sinon, vecteur vide c()
-#' @param ...  : les différentes tables d'IA (max 5)
+#' @param nb_table         : number of tables included in "..."
+#' @param MOY              : if "Y", then mean_3years is runned
+#' @param vect_year_elim   : vector containing the years to delete. Else, empty vector c()
+#' @param ...              : the different AI tables (max 5)
 #'
 #' @examples
 #'
 #' @export
 
 
-mean_IA<-function(nb_table, MOY, vect_year_elim, ...){
-  listIA <- c(...)
+mean_ai<-function(nb_table, MOY, vect_year_elim, ...){
+  list_IA <- list(...)
   list_year <- c()
   for (i in 1:nb_table){
-    list_year <- c(list_year, listIA[1 + 3*(i-1)])
+    tempo_table <- as.data.frame(list_IA[i])
+    list_year <- c(list_year, tempo_table[,1])
   }
 
   min_year <- min(unlist(list_year))
@@ -61,6 +62,7 @@ mean_IA<-function(nb_table, MOY, vect_year_elim, ...){
 
   if (length(vect_year_elim)>0){
     print("on élimine les années du vect_year_elim")
+    print("the years from vect_year_elim has been deleted")
     for (i in 1:length(vect_year_elim)){
       data_IA <- subset(data_IA, !(Year == as.numeric(vect_year_elim[i])))
     }

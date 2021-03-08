@@ -2,15 +2,15 @@
 % Please edit documentation in R/mean_3years.R
 \name{mean_3years}
 \alias{mean_3years}
-\title{Cette fonction sert à "smooth" sur 3 ans (ou 2ans pour première et dernière ligne)}
+\title{this function smooth the value over 3 years (or 2 years at the start and the end of the serie)}
 \usage{
 mean_3years(data)
 }
 \arguments{
-\item{data}{: la table avec IA_MOYEN_STANDARD à lisser}
+\item{data}{: the table in mean_IA to smooth}
 }
 \description{
-Cette fonction sert à "smooth" sur 3 ans (ou 2ans pour première et dernière ligne)
+this function smooth the value over 3 years (or 2 years at the start and the end of the serie)
 }
 \examples{
 
