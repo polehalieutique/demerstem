@@ -40,3 +40,6 @@ the function return a table from which we can select only the presence = 1 to ge
 indice_ab_pres
 this function create the table used as an argument in the glm modelisation. It creates the i_ab and the presence columns, apply the modality selection functions.
 }
+\examples{
+a=1
+}

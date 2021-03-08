@@ -13,6 +13,7 @@
 #' @return the function return a table from which we can select only the presence = 1 to get the abundance table
 
 #' @examples
+#' a=1
 
 
 #' @export
