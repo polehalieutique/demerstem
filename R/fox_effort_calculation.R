@@ -10,7 +10,7 @@
 #' @export
 
 
-effort_fox_calculation <- function(data, catch_table, k){
+fox_effort_calculation <- function(data, catch_table, k){
   data <- data[-2:-(ncol(data)-1)]
   colnames(data) <- c('Year', 'IA')
 
