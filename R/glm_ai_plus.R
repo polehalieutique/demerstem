@@ -17,7 +17,7 @@
 #' @export
 
 
-glm_ai_plusplus <- function(tab, parameters, formula_select){
+glm_ai_plus <- function(tab, parameters, formula_select){
   #passer les parametres en facteur
   lapply(tab[,parameters], as.factor)
   #ecriture formule
