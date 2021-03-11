@@ -1,6 +1,8 @@
-#' indice_ab_pres
-#' this function create the table used as an argument in the glm modelisation. It creates the i_ab and the presence columns, apply the modality selection functions.
-
+#' table_pres_abs
+#'
+#' \code{table_pres_abs} returns the table used as an argument in the glm modeling.
+#' It creates the i_ab and the presence columns, and apply the modalities selection functions.
+#'
 #' @param tab               : Table with the captures, fishing efforts and associated parameters
 #' @param effort            : "auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"
 #' @param esp               : exact name of the studied species
@@ -9,15 +11,16 @@
 #' @param var_eff_list      : list of the possible fishing effort column
 #' @param catch_col         : exact name of the column indicating the catches
 #' @param limit             : percentage representing the limit value under which the modality is removed
-
-#' @return the function return a table from which we can select only the presence = 1 to get the abundance table
-
-#' @examples
-#' a=1
-
-
-#' @export
 #'
+#' @return the function return a table from which we can select only the presence = 1 to get the abundance table
+#'
+#' @examples
+#' data(tableau_sc)
+#' table_pres_abs(tableau_sc, effort="auto", esp="PSEUDOTOLITHUS ELONGATUS", list_param=c("annee", "saison", "strate"), espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', limit=0.0001)
+#'
+#'
+#' @export
+
 table_pres_abs <- function(tab, effort, esp, list_param,  espece_id, var_eff_list, catch_col, limit) {
 
   #ope_id

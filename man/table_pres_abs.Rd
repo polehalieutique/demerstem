@@ -2,8 +2,7 @@
 % Please edit documentation in R/table_pres_abs.R
 \name{table_pres_abs}
 \alias{table_pres_abs}
-\title{indice_ab_pres
-this function create the table used as an argument in the glm modelisation. It creates the i_ab and the presence columns, apply the modality selection functions.}
+\title{table_pres_abs}
 \usage{
 table_pres_abs(
   tab,
@@ -37,9 +36,12 @@ table_pres_abs(
 the function return a table from which we can select only the presence = 1 to get the abundance table
 }
 \description{
-indice_ab_pres
-this function create the table used as an argument in the glm modelisation. It creates the i_ab and the presence columns, apply the modality selection functions.
+\code{table_pres_abs} returns the table used as an argument in the glm modeling.
+It creates the i_ab and the presence columns, and apply the modalities selection functions.
 }
 \examples{
-a=1
+data(tableau_sc)
+table_pres_abs(tableau_sc, effort="auto", esp="PSEUDOTOLITHUS ELONGATUS", list_param=c("annee", "saison", "strate"), espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', limit=0.0001)
+
+
 }
