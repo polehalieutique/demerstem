@@ -2,20 +2,25 @@
 % Please edit documentation in R/fox_effort_calculation.R
 \name{fox_effort_calculation}
 \alias{fox_effort_calculation}
-\title{this function calculate the fishing effort E, the corresponding Fox effort Efox ; standardised on the last year (= most recent year : mEfox = 1)}
+\title{Calculate the Fox fishing effort}
 \usage{
 fox_effort_calculation(data, catch_table, k)
 }
 \arguments{
-\item{data}{: the table with the mean IA serie}
+\item{data}{the table with the mean IA serie}
 
-\item{catch_table}{: table with catches and years (format :}
+\item{catch_table}{table with catches and years (format :}
 
-\item{k}{: K factor of the Fox effort calculation. Either : 1, 3 or 5}
+\item{k}{the k factor of the Fox effort calculation. Either : 1, 3 or 5}
 }
 \description{
-this function calculate the fishing effort E, the corresponding Fox effort Efox ; standardised on the last year (= most recent year : mEfox = 1)
+\code{fox_effort_calculation} calculate the fishing effort E, the corresponding Fox effort Efox ; standardised on the last year (= most recent year : mEfox = 1)
 }
 \examples{
-
+year <- c(1985:1995)
+mean_standard_AI <- c(4,8,2,4,6,5,7,8,2,2,1)
+catch <- c(1000, 1400, 1500, 1700, 2100, 2200, 1500, 1600, 1400, 1200, 1000)
+data_ex <- as.data.frame(cbind(year, mean_standard_AI))
+catch_ex <- as.data.frame(cbind(year, catch))
+fox_effort_calculation(data_ex, catch_ex, k=3)
 }

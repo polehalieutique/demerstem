@@ -2,16 +2,19 @@
 % Please edit documentation in R/mean_3years.R
 \name{mean_3years}
 \alias{mean_3years}
-\title{this function smooth the value over 3 years (or 2 years at the start and the end of the serie)}
+\title{Smooth over 3 years}
 \usage{
 mean_3years(data)
 }
 \arguments{
-\item{data}{: the table in mean_IA to smooth}
+\item{data}{the table in mean_IA to smooth. The mean AI column should be named "}
 }
 \description{
-this function smooth the value over 3 years (or 2 years at the start and the end of the serie)
+\code{mean_ai} smooth the value over 3 years (or 2 years at the start and the end of the serie)
 }
 \examples{
-
+year <- c(1985:1995)
+mean_standard_AI <- c(4,8,2,4,6,5,7,8,2,2,1)
+data_ex <- as.data.frame(cbind(year, mean_standard_AI))
+mean_3years(data_ex)
 }

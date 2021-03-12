@@ -1,21 +1,25 @@
-#' this function smooth the value over 3 years (or 2 years at the start and the end of the serie)
+#' Smooth over 3 years
 #'
+#' \code{mean_ai} smooth the value over 3 years (or 2 years at the start and the end of the serie)
 #'
-#' @param data : the table in mean_IA to smooth
+#' @param data  the table in mean_IA to smooth. The mean AI column should be named "
 #'
 #' @examples
-#'
+#' year <- c(1985:1995)
+#' mean_standard_AI <- c(4,8,2,4,6,5,7,8,2,2,1)
+#' data_ex <- as.data.frame(cbind(year, mean_standard_AI))
+#' mean_3years(data_ex)
 #' @export
 
 
 
 
 mean_3years <- function(data){
-  data$IA_MOYEN_STANDARD_COR[1] <- mean(c(data$IA_MOYEN_STANDARD[1], data$IA_MOYEN_STANDARD[1], data$IA_MOYEN_STANDARD[2]), na.rm=T)
+  data$mean_standard_AI_cor[1] <- mean(c(data$mean_standard_AI[1], data$mean_standard_AI[1], data$mean_standard_AI[2]), na.rm=T)
   z <- nrow(data)
-  data$IA_MOYEN_STANDARD_COR[z] <- mean(c(data$IA_MOYEN_STANDARD[z], data$IA_MOYEN_STANDARD[z], data$IA_MOYEN_STANDARD[z-1]), na.rm=T)
+  data$mean_standard_AI_cor[z] <- mean(c(data$mean_standard_AI[z], data$mean_standard_AI[z], data$mean_standard_AI[z-1]), na.rm=T)
   for (i in 2:(nrow(data)-1)){
-    data$IA_MOYEN_STANDARD_COR[i] <- mean(c(data$IA_MOYEN_STANDARD[i-1], data$IA_MOYEN_STANDARD[i], data$IA_MOYEN_STANDARD[i+1]), na.rm=T)
+    data$mean_standard_AI_cor[i] <- mean(c(data$mean_standard_AI[i-1], data$mean_standard_AI[i], data$mean_standard_AI[i+1]), na.rm=T)
 
   }
 

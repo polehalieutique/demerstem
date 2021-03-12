@@ -2,21 +2,21 @@
 #'
 #' \code{model_pres_abs} runs the actions for the GLM modeling process on presence/absence data.
 #'
-#' @param   tab               : input dataset table
-#' @param   esp               : exact name of the studied speciess
-#' @param   effort            : "auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"
-#' @param   title             : fraction of the title in the plots
-#' @param   list_param        : list of the tested parameters
-#' @param   var_eff_list      : list of the possible fishing effort column
-#' @param   espece_id         : exact name of the column indicating the species
-#' @param   catch_col         : exact name of the column indicating the catches
-#' @param   interactions      : "Y" if there is an interaction in our GLM. "N" else
-#' @param   limit             : percentage representing the limit value under which the modality is removed
-#' @param   formula_select    : if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
+#' @param   tab             input dataset table
+#' @param   esp             exact name of the studied species
+#' @param   effort          "auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"
+#' @param   title           fraction of the title in the plots
+#' @param   list_param      list of the tested parameters
+#' @param   var_eff_list    list of the possible fishing effort column
+#' @param   espece_id       exact name of the column indicating the species
+#' @param   catch_col       exact name of the column indicating the catches
+#' @param   interactions    "Y" if there is an interaction in our GLM. "N" else
+#' @param   limit           percentage representing the limit value under which the modality is removed
+#' @param   formula_select  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
 
 #' @examples
 #' data(tableau_sc)
-#' glm_pres <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"),  espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', interactions = "N", limit=0.0001, formula_select = "presence ~ strate + annee + saison")
+#' glm_pres <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions = "N", limit=0.0001, formula_select = "presence ~ strate + annee + saison")
 #' @export
 
 model_pres_abs <- function(tab, esp, effort, title, list_param,  var_eff_list, espece_id, catch_col, interactions, limit, formula_select){

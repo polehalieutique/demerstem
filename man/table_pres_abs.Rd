@@ -16,32 +16,32 @@ table_pres_abs(
 )
 }
 \arguments{
-\item{tab}{: Table with the captures, fishing efforts and associated parameters}
+\item{tab}{Table with the captures, fishing efforts and associated parameters}
 
-\item{effort}{: "auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"}
+\item{effort}{"auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"}
 
-\item{esp}{: exact name of the studied species}
+\item{esp}{exact name of the studied species}
 
-\item{list_param}{: list of the tested parameters}
+\item{list_param}{list of the tested parameters}
 
-\item{var_eff_list}{: list of the possible fishing effort column}
+\item{var_eff_list}{list of the possible fishing effort column}
 
-\item{espece_id}{: exact name of the column indicating the species}
+\item{espece_id}{exact name of the column indicating the species}
 
-\item{catch_col}{: exact name of the column indicating the catches}
+\item{catch_col}{exact name of the column indicating the catches}
 
-\item{limit}{: percentage representing the limit value under which the modality is removed}
+\item{limit}{percentage representing the limit value under which the modality is removed}
 }
 \value{
-the function return a table from which we can select only the presence = 1 to get the abundance table
+the function return a table from which we can select only the \emph{presence = 1} to get the abundance table
 }
 \description{
 \code{table_pres_abs} returns the table used as an argument in the glm modeling.
-It creates the i_ab and the presence columns, and apply the modality selection functions.
+It creates the \emph{i_ab} and the \emph{presence} columns, and apply the modality selection functions.
 }
 \examples{
 data(tableau_sc)
-table_pres_abs(tableau_sc, effort="auto", esp="PSEUDOTOLITHUS ELONGATUS", list_param=c("annee", "saison", "strate"), espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', limit=0.0001)
+table_pres_abs(tableau_sc, effort="auto", esp="PSEUDOTOLITHUS ELONGATUS", list_param=c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', limit=0.0001)
 
 
 }

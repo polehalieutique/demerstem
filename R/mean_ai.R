@@ -1,13 +1,31 @@
-#' This function gather the different AI series (/!\ MAX 5 SERIES) in one single table, standardise one mean AI serie and plot several graphs
+#' Mean of AI series
+#'
+#' \code{mean_ai} gather the different AI series (/!\ MAX 5 SERIES) in one single table, standardise one mean AI series and plot several graphs
 #'
 #'
-#' @param nb_table         : number of tables included in "..."
-#' @param MOY              : if "Y", then mean_3years is runned
-#' @param vect_year_elim   : vector containing the years to delete. Else, empty vector c()
-#' @param ...              : the different AI tables (max 5)
+#' @param nb_table        number of tables included in "..."
+#' @param MOY             if "Y", then mean_3years is run
+#' @param vect_year_elim  vector containing the years to delete. Else, empty vector c()
+#' @param ...             the different AI tables (max 5)
 #'
 #' @examples
+#' data(tableau_sc)
+#' data(tableau_pa)
+#' data(tableau_pi)
 #'
+#' glm_abundance_SC <- model_ai_plus(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"), espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', interactions="N", limit=0.001, formula_select = "log(i_ab+0.0001) ~ strate + annee + saison")
+#' glm_pres_abs_SC <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"), espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', interactions="N", limit=0.0001, formula_select = "presence ~ strate + annee + saison")
+#' AI_SC <- delta_glm(glm_pres_abs_SC, glm_abundance_SC, title="Scientific campaign GIN BOBO", type = "SC")
+#'
+#' glm_abundance_PA <- model_ai_plus(tableau_pa, esp="BOBO", effort="auto", title="PA", list_param=c("annee", "zone","engin_peche2"), espece_id='espece', var_eff_list=c("nb_jour_peche"), catch_col='captures', interactions="N", limit=0.001, formula_select = "log(i_ab + 1e-04) ~ as.factor(annee) + as.factor(zone) + as.factor(engin_peche2)")
+#' glm_pres_abs_PA <- model_pres_abs(tableau_pa, esp="BOBO", effort="auto", title="PA", list_param=c("annee", "zone","engin_peche2"), espece_id='espece', var_eff_list=c("nb_jour_peche"), catch_col='captures', interactions="N", limit=0.0001, formula_select = "presence ~ as.factor(annee) + as.factor(zone) + as.factor(engin_peche2)")
+#' AI_PA <- delta_glm(glm_pres_abs_PA, glm_abundance_PA, title="Artisanal Fishery GIN BOBO", type = "PA")
+#'
+#' glm_abundance_PI <- model_ai_plus(tableau_pi, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="PI", list_param=c("annee", "licence"), espece_id='espece', var_eff_list=c("nombre_operation", "duree_peche"), catch_col='capture_retenue', interactions="N", limit=0.001, formula_select = "log(i_ab + 1e-04) ~ as.factor(annee) + as.factor(licence)")
+#' glm_pres_abs_PI <- model_pres_abs(tableau_pi, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="PI", list_param=c("annee", "licence"), espece_id='espece', var_eff_list=c("nombre_operation", "duree_peche"), catch_col='capture_retenue', interactions="N", limit=0.0001, formula_select = "presence ~ as.factor(annee) + as.factor(licence)")
+#' AI_PI <- delta_glm(glm_pres_abs_PI, glm_abundance_PI, title="Industrial Fishery GIN BOBO", type = "PI")
+#'
+#' mean_ai(nb_table=3, MOY="Y", vect_year_elim=c(), AI_SC, AI_PA, AI_PI)
 #' @export
 
 
@@ -50,13 +68,13 @@ mean_ai<-function(nb_table, MOY, vect_year_elim, ...){
     mean_tempo <- sum(tab_moy[,i])/nrow(tab_moy)
     data_IA[,i] <- data_IA[,i]/mean_tempo
   }
-  data_IA$IA_MOYEN_STANDARD <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) mean(x, na.rm = T))
+  data_IA$mean_standard_AI <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) mean(x, na.rm = T))
   data_IA <- data_IA %>% dplyr::select(-Any_NA)
   IA_long<-reshape2::melt(data_IA,id.vars="Year")
   #Plot des nouveaux IA standardisé à 1 / plot of the new AIs standardised
   v <- ggplot() + geom_line(aes(x=IA_long$Year, y=IA_long$value, color=IA_long$variable)) + geom_point(aes(x=IA_long$Year, y=IA_long$value, color=IA_long$variable))
   v <- v + ylab("Indice d'Abondance") + scale_color_brewer(palette="Set1")
-  v <- v + geom_line(aes(x=data_IA$Year, y=data_IA$IA_MOYEN_STANDARD), col = "black") + geom_point(aes(x=data_IA$Year, y=data_IA$IA_MOYEN_STANDARD), col = "black")
+  v <- v + geom_line(aes(x=data_IA$Year, y=data_IA$mean_standard_AI), col = "black") + geom_point(aes(x=data_IA$Year, y=data_IA$mean_standard_AI), col = "black")
   print(v)
 
 
@@ -69,7 +87,7 @@ mean_ai<-function(nb_table, MOY, vect_year_elim, ...){
   }
 
 
-  if (MOY == "oui"){
+  if (MOY == "Y"){
     data_IA <- mean_3years(data_IA)
 
 
@@ -77,7 +95,7 @@ mean_ai<-function(nb_table, MOY, vect_year_elim, ...){
     #Plot des nouveaux IA standardisé à 1 / plot of the new AIs standardised
     s <- ggplot() + geom_line(aes(x=IA_long$Year, y=IA_long$value, color=IA_long$variable)) + geom_point(aes(x=IA_long$Year, y=IA_long$value, color=IA_long$variable))
     s <- s + ylab("Indice d'Abondance") + scale_color_brewer(palette="Set1")
-    s <- s + geom_line(aes(x=data_IA$Year, y=data_IA$IA_MOYEN_STANDARD_COR), col = "black") + geom_point(aes(x=data_IA$Year, y=data_IA$IA_MOYEN_STANDARD_COR), col = "black")
+    s <- s + geom_line(aes(x=data_IA$Year, y=data_IA$mean_standard_AI_cor), col = "black") + geom_point(aes(x=data_IA$Year, y=data_IA$mean_standard_AI_cor), col = "black")
     print(s)
   }
 
