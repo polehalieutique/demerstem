@@ -2,7 +2,7 @@
 % Please edit documentation in R/glm_pres_abs.R
 \name{glm_pres_abs}
 \alias{glm_pres_abs}
-\title{this function select the best GLM model possible for the presence/absence data, based on an AIC selection process (formula_select = "auto"). It runs the GLMs, plot the residuals analysis graphs and return the GLM outputs.}
+\title{Fit a Generalized Linear Models on presence/absence data}
 \usage{
 glm_pres_abs(tab, parameters, formula_select)
 }
@@ -13,18 +13,21 @@ glm_pres_abs(tab, parameters, formula_select)
 
 \item{formula_select}{: if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.}
 }
+\value{
+\code{glm_pres_abs} can either return the best GLM model based on AIC comparison, or return the outputs of the GLM based on the formula given in \emph{formula_select}
+}
 \description{
-this function select the best GLM model possible for the presence/absence data, based on an AIC selection process (formula_select = "auto"). It runs the GLMs, plot the residuals analysis graphs and return the GLM outputs.
+\code{glm_pres_abs} returns the best GLM model possible for the presence/absence data, based on an AIC selection process (formula_select = "auto"). It runs the GLMs, plot the residuals analysis graphs and return the GLM outputs.
 }
 \examples{
- glm_pres_pa <- glm_pres(tableau_pa_pres, param_pa, interactions="auto")
- glm_pres_pi <- glm_pres(tableau_pi_pres, param_pi) #150 000 lignes, 9 facteurs = trop lourd pour les interactions
-tableau_sc_pres <- pres_abs(tableau_sc, "PSEUDOTOLITHUS ELONGATUS")
-tab <- tableau_sc_pres
-tab_old <- tab
-tab <- na.omit(tab)
-nrow(tab_old) ; nrow(tab)
-param_sc <- param_use(tableau_sc_pres, list_param)
-param_sc <- param_sc[-1] #####type_campagne pose probleme
-parametres <- param_sc
+data(tableau_sc)
+table_ex <- table_pres_abs(tableau_sc, effort="auto", esp="PSEUDOTOLITHUS ELONGATUS", list_param=c("annee", "saison", "strate"), espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', limit=0.0001)
+param <- param_use(tableau_ex, list_param)
+for (i in 1:length(param)){
+tableau_ex[,param[i]] <- as.factor(tableau_ex[,param[i]])
+tableau_ex[,param[i]] <- droplevels(tableau_ex[,param[i]])
+contrasts(tableau_ex[,param[i]]) <- contr.sum(levels(tableau_ex[,param[i]]))
+}
+glm_pres_abs(tableau_ex, param, formula_select = "auto")
+
 }

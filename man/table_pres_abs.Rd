@@ -2,15 +2,15 @@
 % Please edit documentation in R/table_pres_abs.R
 \name{table_pres_abs}
 \alias{table_pres_abs}
-\title{table_pres_abs}
+\title{Creating the table used for the GLMs}
 \usage{
 table_pres_abs(
   tab,
   effort,
   esp,
   list_param,
-  espece_id,
   var_eff_list,
+  espece_id,
   catch_col,
   limit
 )
@@ -22,11 +22,11 @@ table_pres_abs(
 
 \item{esp}{: exact name of the studied species}
 
-\item{list_param}{: list of tested parameters}
-
-\item{espece_id}{: exact name of the column indicating the species}
+\item{list_param}{: list of the tested parameters}
 
 \item{var_eff_list}{: list of the possible fishing effort column}
+
+\item{espece_id}{: exact name of the column indicating the species}
 
 \item{catch_col}{: exact name of the column indicating the catches}
 
@@ -37,7 +37,7 @@ the function return a table from which we can select only the presence = 1 to ge
 }
 \description{
 \code{table_pres_abs} returns the table used as an argument in the glm modeling.
-It creates the i_ab and the presence columns, and apply the modalities selection functions.
+It creates the i_ab and the presence columns, and apply the modality selection functions.
 }
 \examples{
 data(tableau_sc)

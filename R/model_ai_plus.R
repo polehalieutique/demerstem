@@ -1,25 +1,29 @@
-#' this function run every action necessary for the GLM modelisation on abundance data
-
+#' Abundance-GLM modeling process
+#'
+#' \code{model_ai_plus} runs the actions for the GLM modeling process on abundance data.
+#'
 #' @param   tab               : input dataset table
 #' @param   esp               : exact name of the studied speciess
 #' @param   effort            : "auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"
+#' @param   title             : fraction of the title in the plots
+#' @param   list_param        : list of the tested parameters
+#' @param   var_eff_list      : list of the possible fishing effort column
+#' @param   espece_id         : exact name of the column indicating the species
 #' @param   catch_col         : exact name of the column indicating the catches
-#' @param   formula_select    : if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
 #' @param   interactions      : "Y" if there is an interaction in our GLM. "N" else
 #' @param   limit             : percentage representing the limit value under which the modality is removed
-#' @param   title             : fraction of the title in the plots
-
+#' @param   formula_select    : if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
+#'
+#'
 #' @examples
-#'  #PA
-#'  delta_abondance(tableau_pa, "BOBO", list_param, "commercial", "auto", titre="PA", list_param,  espece_id, var_eff_list, catch_col, logtrans="auto", interactions="auto", limit =0.05)
-#' #PI
-#' delta_abondance(tableau_pi, "PSEUDOTOLITHUS ELONGATUS", list_param, "commercial", "auto", titre="PI", list_param,  espece_id, var_eff_list, catch_col, limit =0.05)
-#' #SC
-#' delta_abondance(tableau_sc, "PSEUDOTOLITHUS ELONGATUS", list_param, "scientifique", "auto", titre="SC", list_param,  espece_id, var_eff_list, catch_col, limit =0.05)
+#'  data(tableau_sc)
+#'  model_ai_plus(tableau_sc, esp = "PSEUDOTOLITHUS ELONGATUS", effort = "auto", title = "SC", list_param = c("annee", "saison", "strate"),  espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', interactions ="N", limit=0.001, formula_select = "log(i_ab+0.0001) ~ strate + annee + saison")
+#'
 #' @export
-model_ai_plus <- function(tab, esp, effort, title, list_param,  espece_id, var_eff_list, catch_col, interactions, limit , formula_select){
+
+model_ai_plus <- function(tab, esp, effort, title, list_param,  var_eff_list, espece_id, catch_col, interactions, limit , formula_select){
   print("SOUS-MODELE ABONDANCE")
-  tableau_pres <- table_pres_abs(tab, effort, esp, list_param,  espece_id, var_eff_list, catch_col, limit)
+  tableau_pres <- table_pres_abs(tab, effort, esp, list_param,  var_eff_list, espece_id, catch_col, limit)
   tableau_ab <- filter(tableau_pres, presence==1)
   print(param_use(tableau_ab, list_param))
   param <- param_use(tableau_ab, list_param)

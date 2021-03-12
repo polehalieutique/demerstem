@@ -2,7 +2,7 @@
 % Please edit documentation in R/model_pres_abs.R
 \name{model_pres_abs}
 \alias{model_pres_abs}
-\title{la fonction delta_presabs récapitule les actions qui concernent le sous-modele presence-absence y compris la selection des variables}
+\title{Presence/Absence-GLM modeling process}
 \usage{
 model_pres_abs(
   tab,
@@ -10,8 +10,8 @@ model_pres_abs(
   effort,
   title,
   list_param,
-  espece_id,
   var_eff_list,
+  espece_id,
   catch_col,
   interactions,
   limit,
@@ -27,6 +27,12 @@ model_pres_abs(
 
 \item{title}{: fraction of the title in the plots}
 
+\item{list_param}{: list of the tested parameters}
+
+\item{var_eff_list}{: list of the possible fishing effort column}
+
+\item{espece_id}{: exact name of the column indicating the species}
+
 \item{catch_col}{: exact name of the column indicating the catches}
 
 \item{interactions}{: "Y" if there is an interaction in our GLM. "N" else}
@@ -36,13 +42,9 @@ model_pres_abs(
 \item{formula_select}{: if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.}
 }
 \description{
-la fonction delta_presabs récapitule les actions qui concernent le sous-modele presence-absence y compris la selection des variables
+\code{model_pres_abs} runs the actions for the GLM modeling process on presence/absence data.
 }
 \examples{
- #PA
- delta_presabs(tableau_pa, "BOBO", list_param, "commercial", "auto", titre="PA", list_param,  espece_id, var_eff_list, ope_id, catch_col, interactions = "auto", limit=0.05)
- #PI
- delta_presabs(tableau_pi, "PSEUDOTOLITHUS ELONGATUS", list_param, "commercial", "auto", titre="PI", list_param,  espece_id, var_eff_list, ope_id, catch_col, interactions = "auto", limit=0.05)
- #SC
- delta_presabs(tableau_sc, "PSEUDOTOLITHUS ELONGATUS", list_param, "scientifique", "auto", titre="SC", list_param,  espece_id, var_eff_list, ope_id, catch_col, interactions = "auto", limit=0.05)
+data(tableau_sc)
+glm_pres <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"),  espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', interactions = "N", limit=0.0001, formula_select = "presence ~ strate + annee + saison")
 }

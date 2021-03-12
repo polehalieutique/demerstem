@@ -1,14 +1,14 @@
-#' table_pres_abs
+#' Creating the table used for the GLMs
 #'
 #' \code{table_pres_abs} returns the table used as an argument in the glm modeling.
-#' It creates the i_ab and the presence columns, and apply the modalities selection functions.
+#' It creates the i_ab and the presence columns, and apply the modality selection functions.
 #'
 #' @param tab               : Table with the captures, fishing efforts and associated parameters
 #' @param effort            : "auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"
 #' @param esp               : exact name of the studied species
-#' @param list_param        : list of tested parameters
-#' @param espece_id         : exact name of the column indicating the species
+#' @param list_param        : list of the tested parameters
 #' @param var_eff_list      : list of the possible fishing effort column
+#' @param espece_id         : exact name of the column indicating the species
 #' @param catch_col         : exact name of the column indicating the catches
 #' @param limit             : percentage representing the limit value under which the modality is removed
 #'
@@ -21,7 +21,7 @@
 #'
 #' @export
 
-table_pres_abs <- function(tab, effort, esp, list_param,  espece_id, var_eff_list, catch_col, limit) {
+table_pres_abs <- function(tab, effort, esp, list_param, var_eff_list, espece_id, catch_col, limit) {
 
   #ope_id
   tab_ope_id <- tab %>% dplyr::select(-all_of(var_eff_list), -all_of(catch_col))

@@ -1,4 +1,6 @@
-#' this function realise the Delta coupling using the 2 precedents GLMs, extract the year factor, calculate the AI and plots.
+#' Delta coupling of 2 GLMs
+#'
+#' \code{delta_glm} realize the delta-coupling using the 2 precedents GLMs, extract the year factor, calculate the AI and display the plots.
 #'
 #'
 #' @param glm_pres_abs    : outputs from the function model_pres_abs()
@@ -7,12 +9,14 @@
 #' @param type            : type of the data series. Ex : "SC", "PA", etc...
 #'
 #' @examples
-#' #SC
-#' table_annee_final_SC <- extract_glm(glm_pres_sc,glm_ab_sc, titreSC)
+#' data(tableau_sc)
+#' glm_abundance <- model_ai_plus(tableau_sc, esp = "PSEUDOTOLITHUS ELONGATUS", effort = "auto", title = "SC", list_param = c("annee", "saison", "strate"),  espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', interactions ="N", limit=0.001, formula_select = "log(i_ab+0.0001) ~ strate + annee + saison")
+#' glm_pres_abs <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"),  espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', interactions = "N", limit=0.0001, formula_select = "presence ~ strate + annee + saison")
+#' delta_glm(glm_pres_abs, glm_abundance, title, type = "SC")
 #' @export
 
 
-delta_glm<-function(glm_pres,glm_abundance, title, type){
+delta_glm<-function(glm_pres_abs,glm_abundance, title, type){
   ### Tableau IA par année
 
   # Pres/Abs
