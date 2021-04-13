@@ -7,16 +7,16 @@
 delta_glm(glm_pres_abs, glm_abundance, title, type)
 }
 \arguments{
-\item{glm_pres_abs}{: outputs from the function model_pres_abs()}
+\item{glm_pres_abs}{: table of effects values for each modality taken from model_pres_abs (recalculated if needed)}
 
-\item{glm_abundance}{: outputs from the function model_IAplus()}
+\item{glm_abundance}{: table of effects values for each modality taken from model_ai_plus (recalculated if needed)}
 
 \item{title}{: first part of the title for the plots}
 
 \item{type}{: type of the data series. Ex : "SC", "PA", etc...}
 }
 \description{
-\code{delta_glm} realize the delta-coupling using the 2 precedents GLMs, extract the year factor, calculate the AI and display the plots.
+\code{delta_glm} realize the delta-coupling using the 2 precedents GLMs outputs, extract the year factor, calculate the AI and display the plots.
 }
 \examples{
 data(tableau_sc)

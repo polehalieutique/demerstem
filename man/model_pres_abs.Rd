@@ -13,7 +13,7 @@ model_pres_abs(
   var_eff_list,
   espece_id,
   catch_col,
-  interactions,
+  interactions = FALSE,
   limit,
   formula_select
 )
@@ -35,7 +35,7 @@ model_pres_abs(
 
 \item{catch_col}{exact name of the column indicating the catches}
 
-\item{interactions}{"Y" if there is an interaction in our GLM. "N" else}
+\item{interactions}{FALSE by default. IF TRUE, print the interactions plots}
 
 \item{limit}{percentage representing the limit value under which the modality is removed}
 
@@ -46,5 +46,5 @@ model_pres_abs(
 }
 \examples{
 data(tableau_sc)
-glm_pres <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions = "N", limit=0.0001, formula_select = "presence ~ strate + annee + saison")
+glm_pres <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions = FALSE, limit=0.0001, formula_select = "presence ~ strate + annee + saison")
 }

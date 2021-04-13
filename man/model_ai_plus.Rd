@@ -13,7 +13,7 @@ model_ai_plus(
   var_eff_list,
   espece_id,
   catch_col,
-  interactions,
+  interactions = FALSE,
   limit,
   formula_select
 )
@@ -35,7 +35,7 @@ model_ai_plus(
 
 \item{catch_col}{exact name of the column indicating the catches}
 
-\item{interactions}{"Y" if there is an interaction in our GLM. "N" else}
+\item{interactions}{FALSE by default. IF TRUE, print the interactions plots}
 
 \item{limit}{percentage representing the limit value under which the modality is removed}
 
@@ -46,6 +46,6 @@ model_ai_plus(
 }
 \examples{
  data(tableau_sc)
- model_ai_plus(tableau_sc, esp = "PSEUDOTOLITHUS ELONGATUS", effort = "auto", title = "SC", list_param = c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions ="N", limit=0.001, formula_select = "log(i_ab+0.0001) ~ strate + annee + saison")
+ model_ai_plus(tableau_sc, esp = "PSEUDOTOLITHUS ELONGATUS", effort = "auto", title = "SC", list_param = c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions =FALSE, limit=0.001, formula_select = "log(i_ab+0.0001) ~ strate + annee + saison")
 
 }
