@@ -58,7 +58,8 @@ model_ai_plus <- function(tab, esp, effort, title, list_param,  var_eff_list, es
 
     if (as.numeric(gregexpr(pattern =':',as.character(attr(glm_indice_ab$term, "term.labels"))[j]))<0){
       table_tempo$modality <- as.factor(table_tempo$modality)
-      levels(table_tempo$modality) <- levels(tableau_ab[,vect_param[j]])
+      table_tempo$modality <- ordered(table_tempo$modality, levels = levels(tableau_ab[,vect_param[j]]))
+      #levels(table_tempo$modality) <- levels(tableau_ab[,vect_param[j]])
       print(ggplot(table_tempo) + geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "white") + ylab("Estimateur") + ggtitle(paste(vect_param[j], "pour pres/abs")) + theme(axis.text.x = element_text(angle = 35)))
     }
 

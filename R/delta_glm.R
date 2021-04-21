@@ -1,10 +1,10 @@
 #' Delta coupling of 2 GLMs
 #'
-#' \code{delta_glm} realize the delta-coupling using the 2 precedents GLMs outputs, extract the year factor, calculate the AI and display the plots.
+#' \code{delta_glm} realize the delta-coupling using the 2 precedents GLMs outputs (filtered with year modality only), extract the year factor, calculate the AI and display the plots.
 #'
 #'
-#' @param glm_pres_abs    : table of effects values for each modality taken from model_pres_abs (recalculated if needed)
-#' @param glm_abundance   : table of effects values for each modality taken from model_ai_plus (recalculated if needed)
+#' @param glm_pres_abs    : table of effects values for each modality of the year factor taken from model_pres_abs (recalculated if needed)
+#' @param glm_abundance   : table of effects values for each modality of the year factor taken from model_ai_plus (recalculated if needed)
 #' @param title           : first part of the title for the plots
 #' @param type            : type of the data series. Ex : "SC", "PA", etc...
 #'
@@ -21,6 +21,8 @@ delta_glm<-function(glm_pres_abs,glm_abundance, title, type){
   table_finale1 <- glm_pres_abs %>% dplyr::select(modality, corrected_estimates)
   table_finale2 <- glm_abundance %>% dplyr::select(modality, corrected_estimates)
 
+  table_finale1$modality <- as.character(table_finale1$modality)
+  table_finale2$modality <- as.character(table_finale2$modality)
   # Couplage
   table_annee_final <- inner_join(table_finale1, table_finale2, by='modality') #Inner Join? Ou Left joint? Avec left on a des NA.
   table_annee_final <- table_annee_final %>% mutate(EstimateurFinal = corrected_estimates.x * corrected_estimates.y) %>% dplyr::select(modality, EstimateurFinal)

@@ -16,9 +16,10 @@ knitr::opts_chunk$set(
 
 ```{r setup, warning = FALSE}
 library(demerstem)
+packageVersion("demerstem")
 ```
 
-This first vignette aims to help *demerstem* package users to understand and use the different functions used for the AI calculation process, based on the delta-GLM method.
+This first vignette aims to help *demerstem* package users to understand and use the different functions used for the AI (Abundance Index) calculation process, based on the delta-GLM method.
 Cette première vignette doit aider les utilisateurs du package *demerstem* à comprendre et utiliser les différentes fonctions utilisées dans le processus de calcul d'IA (Indice d'Abondance) basé sur la méthode delta-GLM.
 
 As it aims to be used on a broad scale, this vignette will be written in english for international users, but also in french as most of Demerstem program participants are french-speakers.
@@ -32,6 +33,8 @@ Pour illustrer cette vignette, je vais utiliser un jeu de donnée de campagne sc
 
 ```{r}
 data(tableau_sc)
+#creation_file_date
+#remarks_version
 ```
 
 The *demerstem* package needs some specifics data table formats as inputs for several functions. For the GLM modeling, you need a table with catch data, fishing effort (several columns are possible), species designation, as well as the parameters needed to identify one single fishing operation (date, position, vessel, etc...). Check your data, filter, transform if necessary. Be sure that the table is already aggregated.
@@ -88,9 +91,9 @@ Le paramètre *interactions* devrait être défini comme "N" pour le premier tes
 
 
 ```{r}
-#glm_pres <- model_pres_abs(tableau_sc, esp, effort, title, list_param, var_eff_list, espece_id, catch_col, interactions = FALSE, limit, formula_select = "auto")
+#glm_pres <-  model_pres_abs(tableau_sc, esp, effort, title, list_param, var_eff_list, espece_id, catch_col, interactions = FALSE, limit, formula_select = "auto")
 
-#glm_ab <- model_ai_plus(tableau_sc, esp, effort, title, list_param, var_eff_list, espece_id, catch_col, interactions = FALSE, limit, formula_select = "log(i_ab+0.0001) ~ strate + annee + saison")
+#glm_abundance <- model_ai_plus(tableau_sc, esp, effort, title, list_param, var_eff_list, espece_id, catch_col, interactions = FALSE, limit, formula_select = "auto")
 ```
 
 For the first run, define *formula_select* as "auto". The function will select automatically, based on a stepAIC process, the formula with the smallest AIC value. Once you have defined the formula with which you want to keep working, assigned it to *formula_select* (see model_ai_plus above).
@@ -100,6 +103,7 @@ Lors du premier lancement, définissez *formula_select* sur "auto". La fonction 
 
 ```{r}
 #title <- "Scientific campaign BOBO GIN"
+
 
 #table_annee_final_SC <- delta_glm(glm_pres, glm_ab, title, type = "SC")
 ```
