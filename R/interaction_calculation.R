@@ -22,9 +22,9 @@
 #' @export
 
 
-interaction_calculation <- function(data_table, proportion_table, glm_type, tab, effort, esp, list_param, var_eff_list, espece_id, catch_col, limit, formula_select){
+interaction_calculation <- function(data_table, proportion_table, glm_type, tab, esp, list_param, var_eff_list, espece_id, catch_col, limit, formula_select){
   #On récupère l'intercept
-  tableau_pres <- table_pres_abs(tab, effort, esp, list_param, var_eff_list, espece_id, catch_col, limit)
+  tableau_pres <- table_pres_abs(tab, esp, list_param, var_eff_list, espece_id, catch_col, limit)
   tableau_ab <- filter(tableau_pres, presence==1)
   param <- param_use(tableau_pres, list_param)
   if (glm_type == "pres/abs"){

@@ -9,7 +9,6 @@ interaction_calculation(
   proportion_table,
   glm_type,
   tab,
-  effort,
   esp,
   list_param,
   var_eff_list,

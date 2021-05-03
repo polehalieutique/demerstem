@@ -4,7 +4,7 @@
 \alias{glm_ai_plus}
 \title{Fit a Generalized Linear Models on abundance data}
 \usage{
-glm_ai_plus(tab, parameters, formula_select)
+glm_ai_plus(tab, parameters, formula_select, summary = FALSE)
 }
 \arguments{
 \item{tab}{table of abundance data, extracted from the output of table_pres_abs}

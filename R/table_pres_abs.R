@@ -4,7 +4,6 @@
 #' It creates the \emph{i_ab} and the \emph{presence} columns, and apply the modality selection functions.
 #'
 #' @param tab           Table with the captures, fishing efforts and associated parameters
-#' @param effort        "auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"
 #' @param esp           exact name of the studied species
 #' @param list_param    list of the tested parameters
 #' @param var_eff_list  list of the possible fishing effort column
@@ -21,7 +20,7 @@
 #'
 #' @export
 
-table_pres_abs <- function(tab, effort, esp, list_param, var_eff_list, espece_id, catch_col, limit) {
+table_pres_abs <- function(tab, esp, list_param, var_eff_list, espece_id, catch_col, limit) {
 
   #ope_id
   tab_ope_id <- tab %>% dplyr::select(-all_of(var_eff_list), -all_of(catch_col))

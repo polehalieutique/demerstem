@@ -4,7 +4,7 @@
 \alias{glm_pres_abs}
 \title{Fit a Generalized Linear Models on presence/absence data}
 \usage{
-glm_pres_abs(tab, parameters, formula_select)
+glm_pres_abs(tab, parameters, formula_select, summary = FALSE)
 }
 \arguments{
 \item{tab}{table of presence and absence data, coming as the output of table_pres_abs}

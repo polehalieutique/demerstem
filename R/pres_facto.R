@@ -14,5 +14,5 @@
 pres_facto <- function(facteur, tab, titre){
   tab$facteur=factor(tab[,facteur])
   ggplot(tab, aes(facteur, fill=factor(presence)))+geom_bar() +ggtitle(paste("presence/absence", facteur, titre)) +
-    theme(axis.text.x = element_text(angle = 60))
+    theme(axis.text.x = element_text(angle = 60, size=8), plot.title = element_text(size=10, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8))
 }

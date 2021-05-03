@@ -4,21 +4,10 @@
 \alias{table_pres_abs}
 \title{Creating the table used for the GLMs}
 \usage{
-table_pres_abs(
-  tab,
-  effort,
-  esp,
-  list_param,
-  var_eff_list,
-  espece_id,
-  catch_col,
-  limit
-)
+table_pres_abs(tab, esp, list_param, var_eff_list, espece_id, catch_col, limit)
 }
 \arguments{
 \item{tab}{Table with the captures, fishing efforts and associated parameters}
-
-\item{effort}{"auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"}
 
 \item{esp}{exact name of the studied species}
 

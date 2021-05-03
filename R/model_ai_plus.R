@@ -4,7 +4,6 @@
 #'
 #' @param   tab             input dataset table
 #' @param   esp             exact name of the studied species
-#' @param   effort          "auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"
 #' @param   title           fraction of the title in the plots
 #' @param   list_param      list of the tested parameters
 #' @param   var_eff_list    list of the possible fishing effort column
@@ -13,7 +12,8 @@
 #' @param   interactions    FALSE by default. IF TRUE, print the interactions plots
 #' @param   limit           percentage representing the limit value under which the modality is removed
 #' @param   formula_select  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
-#'
+#' @param   plot            FALSE by default. If TRUE, print the data presentation histograms
+#' @param   summary         FALSE by default. If TRUE, print the summary of the selected GLM
 #'
 #' @examples
 #'  data(tableau_sc)
@@ -21,16 +21,23 @@
 #'
 #' @export
 
-model_ai_plus <- function(tab, esp, effort, title, list_param,  var_eff_list, espece_id, catch_col, interactions=FALSE, limit , formula_select){
+model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id, catch_col, interactions=FALSE, limit , formula_select, plot = FALSE, summary = FALSE){
   print("SOUS-MODELE ABONDANCE")
-  tableau_pres <- table_pres_abs(tab, effort, esp, list_param,  var_eff_list, espece_id, catch_col, limit)
+  tableau_pres <- table_pres_abs(tab, esp, list_param,  var_eff_list, espece_id, catch_col, limit)
   tableau_ab <- filter(tableau_pres, presence==1)
-  print(param_use(tableau_ab, list_param))
   param <- param_use(tableau_ab, list_param)
-  print(lapply(param, moda_facto, tab=as.data.frame(tableau_ab), title))
+  print(param_use(tableau_ab, list_param))
 
-  print(evo_an(tableau_ab, title))
-  print(lapply(param, evo_facto, tab=as.data.frame(tableau_ab), title))
+  if(plot==TRUE){
+    #print(lapply(param, moda_facto, tab=as.data.frame(tableau_ab), title))
+    #print(evo_an(tableau_ab, title))
+    #print(lapply(param, evo_facto, tab=as.data.frame(tableau_ab), title))
+    print(ggarrange(plotlist=lapply(param, moda_facto, tab=tableau_ab, title),
+                    ncol=2, nrow=2, common.legend = TRUE, legend = "bottom"))
+    print(ggarrange(plotlist=lapply(param, evo_facto, tab=tableau_ab, title),
+                    ncol=2, nrow=2))
+  }
+  #ceiling(length(param)/2)
 
   for (i in 1:length(param)){
     tableau_ab[,param[i]] <- as.factor(tableau_ab[,param[i]])
@@ -38,12 +45,14 @@ model_ai_plus <- function(tab, esp, effort, title, list_param,  var_eff_list, es
     contrasts(tableau_ab[,param[i]]) <- contr.sum(levels(tableau_ab[,param[i]]))
   }
 
-  glm_indice_ab <- glm_ai_plus(tableau_ab, param, formula_select)
+  glm_indice_ab <- glm_ai_plus(tableau_ab, param, formula_select, summary)
 
   VAR <- var(residuals(glm_indice_ab))
   vect_param <- c(attr(glm_indice_ab$terms, "term.label"))
   table_interact <- c()
   table_ab <- as.data.frame(coef(summary(glm_indice_ab)))
+  list_plot <- c()
+  count <- 0
   for (j in 1:length(vect_param)){
     table_tempo <- as.data.frame(dummy.coef(glm_indice_ab)[j+1])
     table_tempo$namemodality <- rownames(table_tempo)
@@ -57,10 +66,15 @@ model_ai_plus <- function(tab, esp, effort, title, list_param,  var_eff_list, es
     table_tempo$corrected_estimates <- exp(table_tempo$corrected_estimates + 0.5*VAR)
 
     if (as.numeric(gregexpr(pattern =':',as.character(attr(glm_indice_ab$term, "term.labels"))[j]))<0){
+      count <- count + 1
       table_tempo$modality <- as.factor(table_tempo$modality)
       table_tempo$modality <- ordered(table_tempo$modality, levels = levels(tableau_ab[,vect_param[j]]))
       #levels(table_tempo$modality) <- levels(tableau_ab[,vect_param[j]])
-      print(ggplot(table_tempo) + geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "white") + ylab("Estimateur") + ggtitle(paste(vect_param[j], "pour pres/abs")) + theme(axis.text.x = element_text(angle = 35)))
+      #print(ggplot(table_tempo) + geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "white") + ylab("Estimateur") + ggtitle(paste(vect_param[j], "pour pres/abs")) + theme(axis.text.x = element_text(angle = 35)))
+      list_plot[[j]] <- local({
+        tempo <- j
+        x1 <- ggplot(table_tempo) + geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "white") + ylab("Estimateur") + ggtitle(paste(vect_param[tempo], "for abundance data")) + theme(axis.text.x = element_text(angle = 60, size=8), plot.title = element_text(size=10, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8))
+      })
     }
 
     table_interact <- rbind(table_interact, table_tempo)
@@ -86,12 +100,13 @@ model_ai_plus <- function(tab, esp, effort, title, list_param,  var_eff_list, es
             xlab(variable1)+
             ggtitle(paste("First Interaction Plot for", attr(glm_indice_ab$term, "term.labels"))[j])+
             theme_bw()+
-            theme(text = element_text(size=12),
-                  legend.text = element_text(size=12),
-                  legend.direction = "horizontal",
-                  panel.grid.major = element_blank(),
-                  panel.grid.minor = element_blank(),
-                  legend.position="top")
+            #theme(text = element_text(size=12),
+            #legend.text = element_text(size=12),
+            #legend.direction = "horizontal",
+            #panel.grid.major = element_blank(),
+            #panel.grid.minor = element_blank(),
+            #legend.position="top")
+            theme(axis.text.x = element_text(angle = 60, size=8), plot.title = element_text(size=10, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8))
           print(plot_inter_glm)
 
           plot_inter_glm2 <- ggplot(data=inter_glm, aes(x=inter_glm[,1], y=fit, fill=inter_glm[,2])) +
@@ -99,12 +114,16 @@ model_ai_plus <- function(tab, esp, effort, title, list_param,  var_eff_list, es
             ylab("Predicted Ppres")+
             xlab(variable1)+
             ggtitle(paste("Second Interaction Plot for", attr(glm_indice_ab$term, "term.labels"))[j])+
-            theme_bw()
+            theme_bw() + theme(axis.text.x = element_text(angle = 30, size=8), plot.title = element_text(size=10, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8))
           print(plot_inter_glm2)
+          #print(ggarrange(plot_inter_glm, plot_inter_glm2, ncol=2, common.legend = TRUE, legend = "bottom"))
+
+          #print(plot_inter_glm2)
         }
       }
     }
   }
+  print(ggarrange(plotlist=list_plot, ncol=2, nrow=2, common.legend = TRUE, legend = "bottom"))
+  #ceiling(count/2)
   return(table_interact)
 }
-

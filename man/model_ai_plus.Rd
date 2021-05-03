@@ -7,7 +7,6 @@
 model_ai_plus(
   tab,
   esp,
-  effort,
   title,
   list_param,
   var_eff_list,
@@ -15,15 +14,15 @@ model_ai_plus(
   catch_col,
   interactions = FALSE,
   limit,
-  formula_select
+  formula_select,
+  plot = FALSE,
+  summary = FALSE
 )
 }
 \arguments{
 \item{tab}{input dataset table}
 
 \item{esp}{exact name of the studied species}
-
-\item{effort}{"auto" for an automatic selection of the effort parameter or manual selection ex "duree_peche","nombre_operation","nb_jour_peche", "nb_sorties", "surface_chalutee"}
 
 \item{title}{fraction of the title in the plots}
 
@@ -40,6 +39,10 @@ model_ai_plus(
 \item{limit}{percentage representing the limit value under which the modality is removed}
 
 \item{formula_select}{if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.}
+
+\item{plot}{FALSE by default. If TRUE, print the data presentation histograms}
+
+\item{summary}{FALSE by default. If TRUE, print the summary of the selected GLM}
 }
 \description{
 \code{model_ai_plus} runs the actions for the GLM modeling process on abundance data.

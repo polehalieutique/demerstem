@@ -23,7 +23,7 @@
 #' @export
 
 
-glm_pres_abs <- function(tab, parameters, formula_select){
+glm_pres_abs <- function(tab, parameters, formula_select, summary = FALSE){
   #passer les parametres en facteur
   lapply(tab[,parameters], as.factor)
   # Mise en forme des parametres
@@ -71,19 +71,23 @@ glm_pres_abs <- function(tab, parameters, formula_select){
     print("The model you selected:")
   }
   print(formula)
-  print(summary(Model))
   print(anova(Model))
 
 
   # resume modele et graphiques residus
   summary(Model)
-  res1 <- resid(Model)
-  fit1 <- fitted(Model)
-  par(mfrow = c(2,2))
-  hist(res1)
-  plot(fit1,res1)
-  qqnorm(res1) ; qqline(res1)
-  plot(Model, 4)
+
+
+  if (summary == TRUE){
+    print(summary(Model))
+    res1 <- resid(Model)
+    fit1 <- fitted(Model)
+    par(mfrow = c(2,2))
+    hist(res1)
+    plot(fit1,res1)
+    qqnorm(res1) ; qqline(res1)
+    plot(Model, 4)
+  }
 
   return(Model)
 }
