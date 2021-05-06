@@ -12,10 +12,15 @@
 #' @export
 
 evo_facto <- function(tab, facteur, titre){
-  tab$annee=factor(tab$annee)
+  tab$annee=as.numeric(tab$annee)
+  #tab$annee=factor(tab$annee)
   tab$facteur=factor(tab[,facteur])
   requete <- tab %>% dplyr::group_by(facteur, annee) %>% dplyr::summarise(mean_ind_ab=mean(i_ab))
-  ggplot(requete, aes(annee, mean_ind_ab)) + geom_point(aes(col=facteur)) + geom_line(aes(group=facteur, color=facteur))+
-    theme(axis.text.x = element_text(angle = 60)) +
-    ggtitle(paste(facteur, titre))
+  ggplot(requete, aes(annee, mean_ind_ab)) + geom_point(aes(col=facteur), size=1) + geom_line(aes(group=facteur, color=facteur))+
+    theme(axis.text.x = element_text(angle = 60, size=7), plot.title = element_text(size=8, face="bold"), axis.title.x = element_text(size=7), axis.title.y = element_text(size=7), axis.text.y = element_text(size=7)) +
+    ggtitle(paste(facteur, titre)) +
+    theme(legend.key.size = unit(0.4, "cm"), legend.title = element_text(size=7), legend.text = element_text(size=6))
+  #theme(legend.title = element_text(size=8), legend.text = element_text(size=7))
+
 }
+
