@@ -4,7 +4,7 @@
 #'
 #'
 #' @param nb_table        number of tables included in "..."
-#' @param MOY             if "Y", then mean_3years is run
+#' @param MOY             if TRUE, then mean_3years is run
 #' @param vect_year_elim  vector containing the years to delete. Else, empty vector c()
 #' @param ...             the different AI tables (max 5)
 #'
@@ -29,7 +29,7 @@
 #' @export
 
 
-mean_ai<-function(nb_table, MOY, vect_year_elim, ...){
+mean_ai<-function(nb_table, MOY=TRUE, vect_year_elim, ...){
   list_IA <- list(...)
   list_year <- c()
   for (i in 1:nb_table){
@@ -38,9 +38,9 @@ mean_ai<-function(nb_table, MOY, vect_year_elim, ...){
   }
 
   min_year <- min(unlist(list_year))
-  print(min_year)
+  #print(min_year)
   max_year <- max(unlist(list_year))
-  print(max_year)
+  #print(max_year)
   vect_year <- c(min_year:max_year)
 
   data_IA <- as.data.frame(vect_year)
@@ -51,6 +51,14 @@ mean_ai<-function(nb_table, MOY, vect_year_elim, ...){
     data_tempo <- data_tempo %>% dplyr::select(-type)
     colnames(data_tempo) <- c("Year", type_tempo)
     data_IA <- left_join(data_IA, data_tempo, by='Year')
+  }
+
+  if (length(vect_year_elim)>0){
+    print("on élimine les années du vect_year_elim")
+    print("the years from vect_year_elim has been deleted")
+    for (i in 1:length(vect_year_elim)){
+      data_IA <- subset(data_IA, !(Year == as.numeric(vect_year_elim[i])))
+    }
   }
 
   IA_long<-reshape2::melt(data_IA,id.vars="Year")
@@ -71,31 +79,31 @@ mean_ai<-function(nb_table, MOY, vect_year_elim, ...){
   data_IA$mean_standard_AI <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) mean(x, na.rm = T))
   data_IA <- data_IA %>% dplyr::select(-Any_NA)
   IA_long<-reshape2::melt(data_IA,id.vars="Year")
+  nb_col <- length(unique(as.factor(IA_long$variable)))
+  palette <- brewer.pal(nb_col,"Set1") #Max = 9!
+  palette[nb_col] <- "#000000"
   #Plot des nouveaux IA standardisé à 1 / plot of the new AIs standardised
   v <- ggplot() + geom_line(aes(x=IA_long$Year, y=IA_long$value, color=IA_long$variable)) + geom_point(aes(x=IA_long$Year, y=IA_long$value, color=IA_long$variable))
-  v <- v + ylab("Indice d'Abondance") + scale_color_brewer(palette="Set1")
-  v <- v + geom_line(aes(x=data_IA$Year, y=data_IA$mean_standard_AI), col = "black") + geom_point(aes(x=data_IA$Year, y=data_IA$mean_standard_AI), col = "black")
+  v <- v + ylab("Indice d'Abondance") #+ scale_color_brewer(palette="Set1")
+  v <- v + scale_color_manual(values = palette)
+  #v <- v + geom_line(aes(x=data_IA$Year, y=data_IA$mean_standard_AI), col = "black") + geom_point(aes(x=data_IA$Year, y=data_IA$mean_standard_AI), col = "black")
   print(v)
 
 
-  if (length(vect_year_elim)>0){
-    print("on élimine les années du vect_year_elim")
-    print("the years from vect_year_elim has been deleted")
-    for (i in 1:length(vect_year_elim)){
-      data_IA <- subset(data_IA, !(Year == as.numeric(vect_year_elim[i])))
-    }
-  }
 
-
-  if (MOY == "Y"){
+  if (MOY == TRUE){
     data_IA <- mean_3years(data_IA)
-
-
     IA_long<-reshape2::melt(data_IA,id.vars="Year")
+
+    nb_col <- length(unique(as.factor(IA_long$variable)))
+    palette <- brewer.pal(nb_col,"Set1") #Max = 9!
+    palette[nb_col] <- "#000000"
+
     #Plot des nouveaux IA standardisé à 1 / plot of the new AIs standardised
     s <- ggplot() + geom_line(aes(x=IA_long$Year, y=IA_long$value, color=IA_long$variable)) + geom_point(aes(x=IA_long$Year, y=IA_long$value, color=IA_long$variable))
-    s <- s + ylab("Indice d'Abondance") + scale_color_brewer(palette="Set1")
-    s <- s + geom_line(aes(x=data_IA$Year, y=data_IA$mean_standard_AI_cor), col = "black") + geom_point(aes(x=data_IA$Year, y=data_IA$mean_standard_AI_cor), col = "black")
+    s <- s + ylab("Indice d'Abondance") #+ scale_color_brewer(palette="Set1")
+    s <- s + scale_color_manual(values = palette)
+    #s <- s + geom_line(aes(x=data_IA$Year, y=data_IA$mean_standard_AI_cor), col = "black") + geom_point(aes(x=data_IA$Year, y=data_IA$mean_standard_AI_cor), col = "black")
     print(s)
   }
 

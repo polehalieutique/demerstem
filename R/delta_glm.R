@@ -37,7 +37,7 @@ delta_glm<-function(glm_pres_abs,glm_abundance, title, type){
   table_annee_final$type <- type
 
   g2<-ggplot(table_annee_final) + geom_bar(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec annees en numérique"))
-  g3<-ggplot(table_annee_final) + geom_line(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec annees en numérique") + ylim(0,max(table_annee_final$EstimateurFinal)))
+  g3<-ggplot(table_annee_final) + geom_line(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec annees en numérique")) + scale_y_continuous(limits=c(0, max(table_annee_final$EstimateurFinal))) #+ ylim(0,max(table_annee_final$EstimateurFinal)))
   #print(g1)
   print(g2)
   print(g3)

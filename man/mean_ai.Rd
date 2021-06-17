@@ -4,12 +4,12 @@
 \alias{mean_ai}
 \title{Mean of AI series}
 \usage{
-mean_ai(nb_table, MOY, vect_year_elim, ...)
+mean_ai(nb_table, MOY = TRUE, vect_year_elim, ...)
 }
 \arguments{
 \item{nb_table}{number of tables included in "..."}
 
-\item{MOY}{if "Y", then mean_3years is run}
+\item{MOY}{if TRUE, then mean_3years is run}
 
 \item{vect_year_elim}{vector containing the years to delete. Else, empty vector c()}
 
