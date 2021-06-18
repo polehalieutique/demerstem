@@ -28,5 +28,6 @@ Depends:
     coda,
     effects,
     ggpubr,
+    RColorBrewer,
     R (>= 2.10)
 VignetteBuilder: knitr

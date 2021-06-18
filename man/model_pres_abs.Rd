@@ -43,6 +43,8 @@ model_pres_abs(
 \item{plot}{FALSE by default. If TRUE, print the data presentation histograms}
 
 \item{summary}{FALSE by default. If TRUE, print the summary of the selected GLM}
+
+\item{family}{gaussian by default. You can define it on binomial to switch}
 }
 \description{
 \code{model_pres_abs} runs the actions for the GLM modeling process on presence/absence data.

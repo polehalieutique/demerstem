@@ -14,6 +14,7 @@
 #' @param   formula_select  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
 #' @param   plot            FALSE by default. If TRUE, print the data presentation histograms
 #' @param   summary         FALSE by default. If TRUE, print the summary of the selected GLM
+#' @param   family          gaussian by default. You can define it on binomial to switch
 
 #' @examples
 #' data(tableau_sc)
@@ -38,7 +39,7 @@ model_pres_abs <- function(tab, esp, title, list_param,  var_eff_list, espece_id
     contrasts(tableau_pres[,param[i]]) <- contr.sum(levels(tableau_pres[,param[i]]))
   }
 
-  glm_presabs <- glm_pres_abs(tableau_pres, param, formula_select, summary)
+  glm_presabs <- glm_pres_abs(tableau_pres, param, formula_select, summary, family=family)
 
   vect_param <- c(attr(glm_presabs$terms, "term.label"))
   table_interact <- c()
@@ -55,6 +56,7 @@ model_pres_abs <- function(tab, esp, title, list_param,  var_eff_list, espece_id
       table_tempo <- table_tempo %>% filter(estimates != 0)
     }
     table_tempo$corrected_estimates <- table_tempo$estimates + table_pres[1,1]
+
     #table_tempo$corrected_estimates <- exp(table_tempo$corrected_estimates)/(1+exp(table_tempo$corrected_estimates))
 
     if (as.numeric(gregexpr(pattern =':',as.character(attr(glm_presabs$term, "term.labels"))[j]))<0){
@@ -66,7 +68,7 @@ model_pres_abs <- function(tab, esp, title, list_param,  var_eff_list, espece_id
 
       list_plot[[j]] <- local({
         tempo <- j
-        x1 <- ggplot(table_tempo) + geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "white") + ylab("Estimateur") + ggtitle(paste(vect_param[tempo], "pour pres/abs")) + theme(axis.text.x = element_text(angle = 60, size=8), plot.title = element_text(size=10, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8))
+        x1 <- ggplot(table_tempo) + geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "white") + ylab("Estimateur") + ggtitle(paste(vect_param[tempo], "pour pres/abs")) + theme(axis.text.x = element_text(angle = 60, size=7), plot.title = element_text(size=10, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8))
       })
     }
 

@@ -96,7 +96,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
           plot_inter_glm<-ggplot(data=inter_glm, aes(x=inter_glm[,1], y=fit, group=inter_glm[,2]))+
             geom_line(size=2, aes(color=inter_glm[,2]))+
             geom_ribbon(aes(ymin=fit-se, ymax=fit+se,fill=inter_glm[,2]),alpha=.2)+
-            ylab("Predicted Ppres")+
+            ylab("Predicted Abudance")+
             xlab(variable1)+
             ggtitle(paste("First Interaction Plot for", attr(glm_indice_ab$term, "term.labels"))[j])+
             theme_bw()+

@@ -94,7 +94,7 @@ interaction_calculation <- function(data_table, proportion_table, glm_type, tab,
 
   #Plot
   colnames(tab_IA) <- c("annee", "estim")
-  g1 <- ggplot(tab_IA, aes(x = annee, y=estim)) + geom_line(aes(group=1)) + ggtitle(label = "IA recalculé pour données pres/abs")
+  g1 <- ggplot(tab_IA, aes(x = annee, y=estim)) + geom_line(aes(group=1)) + ggtitle(label = "IA recalculé pour données pres/abs") + ylab("Predicted estim.")
   print(g1)
   colnames(tab_IA) <- c("modality", "corrected_estimates")
   return(tab_IA)
