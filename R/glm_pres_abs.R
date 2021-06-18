@@ -5,7 +5,7 @@
 #' @param tab             table of presence and absence data, coming as the output of table_pres_abs
 #' @param parameters      list of parameters to test
 #' @param formula_select  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
-#' @param family          "gaussian" by default. You can define it on "binomial" to switch
+
 #'
 #' @return \code{glm_pres_abs} can either return the best GLM model based on AIC comparison, or return the outputs of the GLM based on the formula given in \emph{formula_select}
 #'

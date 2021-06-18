@@ -12,8 +12,6 @@ glm_pres_abs(tab, parameters, formula_select, summary = FALSE)
 \item{parameters}{list of parameters to test}
 
 \item{formula_select}{if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.}
-
-\item{family}{"gaussian" by default. You can define it on "binomial" to switch}
 }
 \value{
 \code{glm_pres_abs} can either return the best GLM model based on AIC comparison, or return the outputs of the GLM based on the formula given in \emph{formula_select}

@@ -14,7 +14,7 @@
 #' @param   formula_select  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
 #' @param   plot            FALSE by default. If TRUE, print the data presentation histograms
 #' @param   summary         FALSE by default. If TRUE, print the summary of the selected GLM
-#' @param   family          gaussian by default. You can define it on binomial to switch
+
 
 #' @examples
 #' data(tableau_sc)
@@ -39,7 +39,7 @@ model_pres_abs <- function(tab, esp, title, list_param,  var_eff_list, espece_id
     contrasts(tableau_pres[,param[i]]) <- contr.sum(levels(tableau_pres[,param[i]]))
   }
 
-  glm_presabs <- glm_pres_abs(tableau_pres, param, formula_select, summary, family=family)
+  glm_presabs <- glm_pres_abs(tableau_pres, param, formula_select, summary)
 
   vect_param <- c(attr(glm_presabs$terms, "term.label"))
   table_interact <- c()
