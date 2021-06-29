@@ -4,7 +4,7 @@
 \alias{fox_effort_calculation}
 \title{Calculate the Fox fishing effort}
 \usage{
-fox_effort_calculation(data, catch_table, k)
+fox_effort_calculation(data, catch_table, k, fish_power = 0)
 }
 \arguments{
 \item{data}{the table with the mean IA serie}

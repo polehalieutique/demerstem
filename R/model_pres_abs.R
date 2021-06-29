@@ -24,10 +24,15 @@
 model_pres_abs <- function(tab, esp, title, list_param,  var_eff_list, espece_id, catch_col, interactions=FALSE, limit, formula_select, plot = FALSE, summary = FALSE){
   print("SOUS-MODELE PRESENCE ABSENCE")
   tableau_pres <- table_pres_abs(tab, esp, list_param, var_eff_list, espece_id, catch_col, limit)
-  param <- param_use(tableau_pres, list_param)
-  print(param_use(tableau_pres, list_param))
+  param <- list_param
+  #param <- param_use(tableau_pres, list_param) #25/06/21 : test. Si RAS depuis, on peut supprimer ces 2 lignes et cette fonction
+  #print(param_use(tableau_pres, list_param))
+  facteur <- param[1]
   if (plot == TRUE){
     #print(lapply(param, pres_facto, tab=tableau_pres, title))
+    tableau_pres$facteur=factor(tableau_pres[,facteur])
+    print(ggplot(tableau_pres, aes(facteur, fill=factor(presence)))+geom_bar() +ggtitle(paste("presence/absence", facteur, title)) +
+      theme(axis.text.x = element_text(angle = 60, size=9), plot.title = element_text(size=11, face="bold"), axis.title.x = element_text(size=9), axis.title.y = element_text(size=9), legend.title = element_text(size=9), legend.text = element_text(size=9)))
     print(ggarrange(plotlist=lapply(param, pres_facto, tab=tableau_pres, title),
                     ncol=2, nrow=2, common.legend = TRUE, legend = "bottom"))
   }
@@ -70,6 +75,11 @@ model_pres_abs <- function(tab, esp, title, list_param,  var_eff_list, espece_id
         tempo <- j
         x1 <- ggplot(table_tempo) + geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "white") + ylab("Estimateur") + ggtitle(paste(vect_param[tempo], "pour pres/abs")) + theme(axis.text.x = element_text(angle = 60, size=7), plot.title = element_text(size=10, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8))
       })
+    }
+    if(plot==TRUE){
+      if(vect_param[j]==facteur){
+        plot(ggplot(table_tempo) + geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "white") + ylab("Estimateur") + ggtitle(paste(vect_param[j], "pour pres/abs")) + theme(axis.text.x = element_text(angle = 60, size=7), plot.title = element_text(size=10, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8)))
+      }
     }
 
     table_interact <- rbind(table_interact, table_tempo)

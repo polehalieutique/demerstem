@@ -17,7 +17,7 @@
 #' @export
 
 
-fox_effort_calculation <- function(data, catch_table, k){
+fox_effort_calculation <- function(data, catch_table, k, fish_power=0){
   data <- data[-2:-(ncol(data)-1)]
   colnames(data) <- c('Year', 'IA')
 
@@ -26,6 +26,15 @@ fox_effort_calculation <- function(data, catch_table, k){
 
   #table_IA <- as.data.frame(table_IA)
   table_IA <- mutate(table_IA, E = Capture/IA)
+
+  #Pour faire fonctionner la suite, on enlève les NA sur E (editdu 28/06)
+  table_IA <- table_IA %>% drop_na(E)
+
+  #facteur alpha de dérive des puissances de pêche.
+  for (i in 1:nrow(table_IA)){
+    fact <- 1 + fish_power*(i-1)
+    table_IA$E[i] <- table_IA$E[i] * fact
+  }
 
   #Efox
   vecttempo <- c()
@@ -36,6 +45,7 @@ fox_effort_calculation <- function(data, catch_table, k){
   }
   compt <- vecttempo[1]
   max <- max(vecttempo)
+  table_IA$Efox <- NA
   if (k==1){
     table_IA$Efox <- table_IA$E
   } else if (k==3){
@@ -55,6 +65,9 @@ fox_effort_calculation <- function(data, catch_table, k){
     table_IA$Efox[compt+1] <- (5*table_IA$E[compt+1] + 4*table_IA$E[compt])/9
     table_IA$Efox[compt] <- NA
   }
+
+  #Pour faire fonctionner la suite, on enlève les NA sur E (editdu 28/06)
+  table_IA <- table_IA %>% drop_na(E)
 
   # Relatif à la dernière valeur
   factE <- table_IA$E[dim(table_IA)[1]]

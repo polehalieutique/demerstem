@@ -25,15 +25,25 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
   print("SOUS-MODELE ABONDANCE")
   tableau_pres <- table_pres_abs(tab, esp, list_param,  var_eff_list, espece_id, catch_col, limit)
   tableau_ab <- filter(tableau_pres, presence==1)
-  param <- param_use(tableau_ab, list_param)
-  print(param_use(tableau_ab, list_param))
+  param <- list_param
+  #param <- param_use(tableau_ab, list_param) #25/06/21 : test. Si RAS depuis, on peut supprimer ces 2 lignes et cette fonction
+  #print(param_use(tableau_ab, list_param))
 
+  facteur <- param[1]
   if(plot==TRUE){
     #print(lapply(param, moda_facto, tab=as.data.frame(tableau_ab), title))
     #print(evo_an(tableau_ab, title))
     #print(lapply(param, evo_facto, tab=as.data.frame(tableau_ab), title))
+    tableau_ab$facteur=factor(tableau_ab[,facteur])
+    print(ggplot(tableau_ab, aes(facteur))+ geom_bar() + ggtitle(paste(facteur, title)) + ylab("nombre de donnees") + theme(axis.text.x = element_text(angle = 45)) +
+      theme(axis.text.x = element_text(angle = 60, size=8), plot.title = element_text(size=11, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8)))
     print(ggarrange(plotlist=lapply(param, moda_facto, tab=tableau_ab, title),
                     ncol=2, nrow=2, common.legend = TRUE, legend = "bottom"))
+    requete <- tableau_ab %>% dplyr::group_by(facteur, annee) %>% dplyr::summarise(mean_ind_ab=mean(i_ab))
+    print(ggplot(requete, aes(annee, mean_ind_ab)) + geom_point(aes(col=facteur), size=1) + geom_line(aes(group=facteur, color=facteur))+
+      theme(axis.text.x = element_text(angle = 60, size=7), plot.title = element_text(size=8, face="bold"), axis.title.x = element_text(size=7), axis.title.y = element_text(size=7), axis.text.y = element_text(size=7)) +
+      ggtitle(paste(facteur, title)) + ylab("mean CPUE") +
+      theme(legend.key.size = unit(0.4, "cm"), legend.title = element_text(size=7), legend.text = element_text(size=6)))
     print(ggarrange(plotlist=lapply(param, evo_facto, tab=tableau_ab, title),
                     ncol=2, nrow=2))
   }
@@ -76,6 +86,13 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
         x1 <- ggplot(table_tempo) + geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "white") + ylab("Estimateur") + ggtitle(paste(vect_param[tempo], "for abundance data")) + theme(axis.text.x = element_text(angle = 60, size=8), plot.title = element_text(size=10, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8))
       })
     }
+    ## ICI
+    if(plot==TRUE){
+      if(vect_param[j]==facteur){
+        plot(ggplot(table_tempo) + geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "white") + ylab("Estimateur") + ggtitle(paste(vect_param[j], "for abundance data")) + theme(axis.text.x = element_text(angle = 60, size=8), plot.title = element_text(size=10, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8)))
+      }
+    }
+
 
     table_interact <- rbind(table_interact, table_tempo)
 
