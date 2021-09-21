@@ -11,7 +11,7 @@
 
 
 
-fox_model <- function(table_Efox, graph_param, log=TRUE){
+fox_model <- function(table_Efox, graph_param, logarithmic=TRUE){
 
   #limits calculation
   upper_a <- max(table_Efox$IA, na.rm=T)*5
@@ -19,7 +19,7 @@ fox_model <- function(table_Efox, graph_param, log=TRUE){
   start_a <- (upper_a + lower_a)/2
   upper_b <- max(table_Efox$Efox, na.rm=T) * 3
 
-  if (log==TRUE){
+  if (logarithmic==TRUE){
     modelefox_IA <- nls(formula = log(IA) ~ log(a)-b*Efox, data=table_Efox, start = c(a = start_a , b = upper_b/2), algorithm = "port", lower = c(a = lower_a, b = 0), upper = c(a=upper_a, b = upper_b))
   } else {
     modelefox_IA <- nls(formula = IA ~ a*exp(-b*Efox), data=table_Efox, start = c(a = start_a , b = upper_b/2))

@@ -85,9 +85,10 @@ interaction_calculation <- function(data_table, proportion_table, glm_type, tab,
     tab_IA[i,2] <- final_estim
   }
 
-  if (glm_type == "pres/abs"){
-    tab_IA$V2 <- exp(tab_IA$V2)/(1+exp(tab_IA$V2))
-  }
+  #edit V0.2.5
+  #if (glm_type == "pres/abs"){
+    #tab_IA$V2 <- exp(tab_IA$V2)/(1+exp(tab_IA$V2))
+  #}
   if (glm_type == "abundance"){
     tab_IA$V2 <- exp(tab_IA$V2 + 0.5*VAR)
   }
