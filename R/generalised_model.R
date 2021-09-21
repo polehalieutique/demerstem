@@ -17,7 +17,6 @@
 
 generalised_model <- function(table_Efox, graph_param, vect_ini=c(10, -0.5, 1), vect_lower=c(0.001, -1, 0.01), vect_upper=c(100, 10, 9), warning_control = FALSE, max_iteration = 50){
 
-  #limits calculation
   upper_a <- max(table_Efox$IA, na.rm=T)*5
   lower_a <- max(table_Efox$IA, na.rm=T)*0.1
   start_a <- (upper_a + lower_a)/2
