@@ -1,17 +1,21 @@
-#' this function develop the Fox global model from IA and Efox series
+#' this function develop the generalised production model from IA and Efox series
 #'
 #'
-#' @param table_Efox  : table with IA and Efox
-#' @param graph_param : vector gathering the graphhics aestetics parameters (format : c(lengthEfox, title, upper_x, upper_y, upper_ybis))
-#' @param log         : by default, fit the model under log transformation of the AI. Else, fit without the log transformation (no start/limit)
+#' @param table_Efox      : table with IA and Efox
+#' @param graph_param     : vector gathering the graphhics aestetics parameters (format : c(lengthEfox, title, upper_x, upper_y, upper_ybis))
+#' @param log             : by default, fit the model under log transformation of the AI. Else, fit without the log transformation (no start/limit)
+#' @param vect_ini        : values of initialisation of the parameters a, b and p
+#' @param vect_lower      : values of lower limits of the parameters a, b and p
+#' @param vect_upper      : values of upper limits of the parameters a, b and p
+#' @param warning_control : if TRUE, the nls won't stop its process if too many warnings are made.
+#' @param max_iteration   : number of iteration that will be runned.
 #'
 #' @examples
 #'
-#' @export
+#' @export.
 
 
-
-fox_model <- function(table_Efox, graph_param, log=TRUE){
+generalised_model <- function(table_Efox, graph_param, vect_ini=c(10, -0.5, 1), vect_lower=c(0.001, -1, 0.01), vect_upper=c(100, 10, 9), warning_control = FALSE, max_iteration = 50){
 
   #limits calculation
   upper_a <- max(table_Efox$IA, na.rm=T)*5
@@ -19,54 +23,30 @@ fox_model <- function(table_Efox, graph_param, log=TRUE){
   start_a <- (upper_a + lower_a)/2
   upper_b <- max(table_Efox$Efox, na.rm=T) * 3
 
-  if (log==TRUE){
-    modelefox_IA <- nls(formula = log(IA) ~ log(a)-b*Efox, data=table_Efox, start = c(a = start_a , b = upper_b/2), algorithm = "port", lower = c(a = lower_a, b = 0), upper = c(a=upper_a, b = upper_b))
+
+  if (warning_control==TRUE){
+    modelefox_IA <- nls(formula = IA ~ (a+b*Efox)^(1/p), data=table_Efox, start = c(a = vect_ini[1] , b = vect_ini[2], p=vect_ini[3]), lower = c(a = vect_lower[1] , b=vect_lower[2], p = vect_lower[3]), upper = c(a = vect_upper[1], b=vect_upper[2], p = vect_upper[3]), algorithm = "port", nls.control(warnOnly = TRUE, maxiter = max_iteration))
   } else {
-    modelefox_IA <- nls(formula = IA ~ a*exp(-b*Efox), data=table_Efox, start = c(a = start_a , b = upper_b/2))
+    modelefox_IA <- nls(formula = IA ~ (a+b*Efox)^(1/p), data=table_Efox, start = c(a = vect_ini[1] , b = vect_ini[2], p=vect_ini[3]), lower = c(a = vect_lower[1] , b=vect_lower[2], p = vect_lower[3]), upper = c(a = vect_upper[1], b=vect_upper[2], p = vect_upper[3]), algorithm = "port", nls.control(maxiter = max_iteration))
   }
-  #modelefox_IA <- nls(formula = log(IA) ~ log(a)-b*Efox, data=table_Efox, start = c(a = start_a , b = upper_b/2), algorithm = "port", lower = c(a = lower_a, b = 0), upper = c(a=upper_a, b = upper_b))
-  #modelefox_IA <- nls(formula = IA ~ a*exp(-b*Efox), data=table_Efox, start = c(a = start_a , b = upper_b/2), algorithm = "port", lower = c(a = lower_a, b = 0), upper = c(a=upper_a, b = upper_b))
-  #modelefox_IA <- nls(formula = IA ~ a*exp(-b*Efox), data=table_Efox, start = c(a = start_a , b = upper_b/2))
+
 
   par_Efox <- as.vector(coef(modelefox_IA))
+  C_MSY <- -(par_Efox[3]/par_Efox[2])*((par_Efox[1]/(1+par_Efox[3]))^(1+(1/par_Efox[3])))*table_Efox$factEfox[1]
+  E_MSY <- -(par_Efox[1]/(par_Efox[2]*(1+(1/par_Efox[3]))))
 
-  # Calcul valeurs MSY / calculating MSY values
-
-  C_MSYfox <- (par_Efox[1]/(par_Efox[2]*exp(1)))*table_Efox$factEfox[1]
-  E_MSYfox <- (1/par_Efox[2])
-
-  # Intervalles de confiance / confidence interval
-  # ------------------------
-
-  #confint(modelefox_IA, level = 0.5)
-  #confint(modelefox_IA_Efox, level = 0.5)
-
-
-
-  # Un vecteur d'effort entre 0 et 12 par pas de 0.01 (pour les besoins du graphique, a adapter a votre etude)
-  # A vector of effort values between 0 and 12, for each 0.01 (for the graphs, adapt it to your study)
   mE_fox <- seq(0,as.numeric(graph_param[1]),0.01)
   annee_etude <- as.numeric(table_Efox$Year[1]):as.numeric(table_Efox$Year[nrow(table_Efox)])
 
-  #line_E <- par_E[1]*exp(-par_E[2]*mE_fox)
-  IA_Efox <- par_Efox[1]*exp(-par_Efox[2]*mE_fox)
-  log_IA_Efox <- log(par_Efox[1]) - par_Efox[2]*mE_fox
-  Y_Efox <- IA_Efox * mE_fox *table_Efox$factEfox[1]
-  table_Efox$IA_pred <- par_Efox[1]*exp(-par_Efox[2]*table_Efox$Efox)
-  table_Efox2 <- table_Efox
-
-  #plotFOX <- ggplot() + geom_line(aes(x=mE_fox, y=log_IA_Efox), color="blue")
-  #plotFOX <- plotFOX + geom_point(aes(x=table_Efox$Efox, y=log(table_Efox$IA)), color="blue")
-  #plotFOX <- plotFOX + ggtitle(paste(graph_param[2]))
-  #plotFOX <- plotFOX + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
-  #print(plotFOX)
+  IA_Efox <- (par_Efox[1]+par_Efox[2]*mE_fox)^(1/par_Efox[3])
+  #IA_Efox <- par_Efox[1]*exp(-par_Efox[2]*mE_fox)
+  #log_IA_Efox <- log(par_Efox[1]) - par_Efox[2]*mE_fox
 
   plotFOX_log <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="black")
   plotFOX_log <- plotFOX_log + geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black") + geom_path()
   plotFOX_log <- plotFOX_log + ggtitle(paste(graph_param[2]))
   plotFOX_log <- plotFOX_log + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
   print(plotFOX_log)
-
 
   plotFOX_log_test <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="red")
   plotFOX_log_test <- plotFOX_log_test + ggtitle(paste(graph_param[2]))
@@ -75,7 +55,13 @@ fox_model <- function(table_Efox, graph_param, log=TRUE){
   plotFOX_log_test <- plotFOX_log_test + geom_text(aes(x=table_Efox$Efox, y=table_Efox$IA, label=table_Efox$Year), hjust=0, vjust=0, size=2.5)
   print(plotFOX_log_test)
 
-  #?????
+
+  Y_Efox <- IA_Efox * mE_fox *table_Efox$factEfox[1]
+  #IA ~ (a+b*Efox)^(1/p)
+  table_Efox$IA_pred <- (par_Efox[1]+par_Efox[2]*table_Efox$Efox)^(1/par_Efox[3])
+  table_Efox2 <- table_Efox
+
+
   plotFOX2 <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="black")
   plotFOX2 <- plotFOX2 + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black") #E ou Efox? D.a dit de prendre E je crois
   plotFOX2 <- plotFOX2 + ggtitle(paste(graph_param[2]))
@@ -91,7 +77,6 @@ fox_model <- function(table_Efox, graph_param, log=TRUE){
 
 
 
-  #???
   plotFOX3 <- ggplot() + geom_line(aes(x=table_Efox$Year, y=table_Efox$IA_pred), color="black")
   plotFOX3 <- plotFOX3 + geom_point(aes(x=table_Efox$Year, y=table_Efox$IA), color="black") #E ou Efox? D.a dit de prendre E je crois
   plotFOX3 <- plotFOX3 + ggtitle(paste(graph_param[2]))
@@ -100,8 +85,8 @@ fox_model <- function(table_Efox, graph_param, log=TRUE){
 
 
 
-  names_values <- c("Coeff_a", "Coeff_b", "MSY_recalcule", "Emsy_recalcule")
-  results <- c(par_Efox[1], par_Efox[2], C_MSYfox, E_MSYfox)
+  names_values <- c("Coeff_a", "Coeff_b", "Coeff_p", "MSY_recalcule", "Emsy_recalcule")
+  results <- c(par_Efox[1], par_Efox[2], par_Efox[3], C_MSY, E_MSY)
   table_outputs <- rbind(names_values, results)
 
   print(table_outputs)
