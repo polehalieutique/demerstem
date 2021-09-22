@@ -3,10 +3,9 @@
 #' \code{mean_ai} gather the different AI series (/!\ MAX 5 SERIES) in one single table, standardise one mean AI series and plot several graphs
 #'
 #'
-#' @param nb_table        number of tables included in "..."
+#' @param data_IA         data table containing the year in the first column, and the different AI series on the following ones
 #' @param MOY             if TRUE, then mean_3years is run
 #' @param vect_year_elim  vector containing the years to delete. Else, empty vector c()
-#' @param ...             the different AI tables (max 5)
 #'
 #' @examples
 #' data(tableau_sc)
@@ -29,29 +28,9 @@
 #' @export
 
 
-mean_ai<-function(nb_table, MOY=TRUE, vect_year_elim, ...){
-  list_IA <- list(...)
-  list_year <- c()
-  for (i in 1:nb_table){
-    tempo_table <- as.data.frame(list_IA[i])
-    list_year <- c(list_year, tempo_table[,1])
-  }
-
-  min_year <- min(unlist(list_year))
-  #print(min_year)
-  max_year <- max(unlist(list_year))
-  #print(max_year)
-  vect_year <- c(min_year:max_year)
-
-  data_IA <- as.data.frame(vect_year)
-  colnames(data_IA) <- c('Year')
-  for (i in 1:length(list_IA)){
-    data_tempo <- as.data.frame(list_IA[i]) %>% dplyr::select(annee, EstimateurFinal, type)
-    type_tempo <- gsub(" ", "", paste("IA_",data_tempo$type[1]))
-    data_tempo <- data_tempo %>% dplyr::select(-type)
-    colnames(data_tempo) <- c("Year", type_tempo)
-    data_IA <- left_join(data_IA, data_tempo, by='Year')
-  }
+mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim){
+  # On rename la première colonne en "Year" (raison pratique, peut etre optimisé évidement)
+  names(data_IA)[1] <- 'Year'
 
   if (length(vect_year_elim)>0){
     print("on élimine les années du vect_year_elim")
@@ -68,7 +47,8 @@ mean_ai<-function(nb_table, MOY=TRUE, vect_year_elim, ...){
   print(t)
 
   #calcul standardisation sur années communes
-  data_IA$Any_NA <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) anyNA(x))
+  #data_IA$Any_NA <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) anyNA(x))
+  data_IA$Any_NA <- apply(data_IA, 1, function(x) anyNA(x))
 
   tab_moy <- data_IA %>% filter(Any_NA == FALSE)
   #tab_moy2 <- tab_moy %>% mutate(mean_IA_SC = sum(IA_SC)/nrow(tab_moy), mean_IA_PA = sum(IA_PA)/nrow(tab_moy), mean_IA_PI = sum(IA_PI)/nrow(tab_moy))
@@ -76,7 +56,8 @@ mean_ai<-function(nb_table, MOY=TRUE, vect_year_elim, ...){
     mean_tempo <- sum(tab_moy[,i])/nrow(tab_moy)
     data_IA[,i] <- data_IA[,i]/mean_tempo
   }
-  data_IA$mean_standard_AI <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) mean(x, na.rm = T))
+  #data_IA$mean_standard_AI <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) mean(x, na.rm = T))
+  data_IA$mean_standard_AI <- apply(data_IA[, c(-1, -ncol(data_IA))], 1, function(x) mean(x, na.rm = T))
   data_IA <- data_IA %>% dplyr::select(-Any_NA)
   IA_long<-reshape2::melt(data_IA,id.vars="Year")
   nb_col <- length(unique(as.factor(IA_long$variable)))

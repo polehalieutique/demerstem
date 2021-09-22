@@ -30,7 +30,7 @@ fox_effort_calculation <- function(data, catch_table, k, fish_power=0){
   #Pour faire fonctionner la suite, on enlève les NA sur E (editdu 28/06)
   table_IA <- table_IA %>% drop_na(E)
 
-  #facteur alpha de dérive des puissances de pêche.
+  #facteur alpha de dérive des puissances de pêche (c'est vraiment la?)
   for (i in 1:nrow(table_IA)){
     fact <- 1 + fish_power*(i-1)
     table_IA$E[i] <- table_IA$E[i] * fact
