@@ -27,17 +27,18 @@ delta_glm<-function(glm_pres_abs,glm_abundance, title, type){
   table_annee_final <- inner_join(table_finale1, table_finale2, by='modality') #Inner Join? Ou Left joint? Avec left on a des NA.
   table_annee_final <- table_annee_final %>% mutate(EstimateurFinal = corrected_estimates.x * corrected_estimates.y) %>% dplyr::select(modality, EstimateurFinal)
   #table_annee_final <- table_annee_final %>% mutate(annee = as.factor(substr(facteur, start = 6, stop = 9)))
-  colnames(table_annee_final) <- c("annee", "EstimateurFinal")
+  colnames(table_annee_final) <- c("annee", paste0("EstimateurFinal_",type))
 
   #g1<-ggplot(table_annee_final) + geom_bar(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec années en facteur")) + theme(axis.text.x = element_text(angle = 35)) #"IA pêche scientifique Guinée"
 
 
   #Plot avec Annee as numeric
   table_annee_final$annee <- as.numeric(as.character(table_annee_final$annee))
-  table_annee_final$type <- type
 
-  g2<-ggplot(table_annee_final) + geom_bar(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec annees en numérique"))
-  g3<-ggplot(table_annee_final) + geom_line(aes(x=annee, y=EstimateurFinal), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec annees en numérique")) + scale_y_continuous(limits=c(0, max(table_annee_final$EstimateurFinal))) #+ ylim(0,max(table_annee_final$EstimateurFinal)))
+  EstimateurFinal <- as.name(paste0("EstimateurFinal_",type))
+
+  g2 <- ggplot(table_annee_final) + geom_bar(aes_string(x='annee', y= paste0("EstimateurFinal_",type)), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec annees en numérique"))
+  g3 <- ggplot(table_annee_final) + geom_line(aes_string(x='annee', y= paste0("EstimateurFinal_",type)), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec annees en numérique")) + scale_y_continuous(limits=c(0, max(table_annee_final$EstimateurFinal))) #+ ylim(0,max(table_annee_final$EstimateurFinal)))
   #print(g1)
   print(g2)
   print(g3)
