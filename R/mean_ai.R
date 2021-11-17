@@ -40,7 +40,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim){
     }
   }
   #IA_long<-reshape2::melt(data_IA,id.vars="Year")
-  IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(list_IA)), names_to = "variable", values_to= "value")
+  IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(data_IA)), names_to = "variable", values_to= "value")
   t <- ggplot(IA_long) + geom_line(aes(x=Year, y=value, color=variable)) + geom_point(aes(x=Year, y=value, color=variable))
   t <- t + ylab("Indice d'Abondance")
 
@@ -59,7 +59,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim){
   #data_IA$mean_standard_AI <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) mean(x, na.rm = T))
   data_IA$mean_standard_AI <- apply(data_IA[, c(-1, -ncol(data_IA))], 1, function(x) mean(x, na.rm = T))
   data_IA <- data_IA %>% dplyr::select(-Any_NA)
-  IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(list_IA)), names_to = "variable", values_to= "value")
+  IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(data_IA)), names_to = "variable", values_to= "value")
   nb_col <- length(unique(as.factor(IA_long$variable)))
   palette <- brewer.pal(nb_col,"Set1") #Max = 9!
   palette[nb_col] <- "#000000"
@@ -70,12 +70,9 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim){
   #v <- v + geom_line(aes(x=data_IA$Year, y=data_IA$mean_standard_AI), col = "black") + geom_point(aes(x=data_IA$Year, y=data_IA$mean_standard_AI), col = "black")
   print(v)
 
-
-
   if (MOY == TRUE){
     data_IA <- mean_3years(data_IA)
-    IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(list_IA)), names_to = "variable", values_to= "value")
-
+    IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(data_IA)), names_to = "variable", values_to= "value")
     nb_col <- length(unique(as.factor(IA_long$variable)))
     palette <- brewer.pal(nb_col,"Set1") #Max = 9!
     palette[nb_col] <- "#000000"
