@@ -40,7 +40,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim){
     }
   }
   #IA_long<-reshape2::melt(data_IA,id.vars="Year")
-  IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(list_IA)), names_to = "variable", values_to= "values")
+  IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(list_IA)), names_to = "variable", values_to= "value")
   t <- ggplot(IA_long) + geom_line(aes(x=Year, y=value, color=variable)) + geom_point(aes(x=Year, y=value, color=variable))
   t <- t + ylab("Indice d'Abondance")
 
