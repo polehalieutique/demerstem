@@ -6,6 +6,7 @@
 #'
 #' @examples
 #'  data(data_weight_size)
+#'  data_weight_size <- na.omit(data_weight_size)
 #'  model_weight(data_weight_size)
 #'
 #' @export
