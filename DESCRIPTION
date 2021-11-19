@@ -28,6 +28,7 @@ Depends:
     stringr,
     coda,
     effects,
+    mixdist,
     ggpubr,
     RColorBrewer,
     R (>= 2.10)
