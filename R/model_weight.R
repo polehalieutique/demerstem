@@ -1,4 +1,4 @@
-#'  model_weight
+#'  Weight size relationship and plot
 #'
 #' \code{model_weight} estimates R_init
 #'
@@ -8,7 +8,6 @@
 #'  data(data_weight_size)
 #'  data_weight_size <- na.omit(data_weight_size)
 #'  model_weight(data_weight_size)
-#'
 #' @export
 
 model_weight <- function(data_weight) {

@@ -1,4 +1,4 @@
-#'  weight_size
+#'  Weight-size equation
 #'
 #' \code{weight_size} to plot size-weight relationship
 #'
