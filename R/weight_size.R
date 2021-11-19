@@ -8,6 +8,7 @@
 #' @examples
 #'  t <- 1
 #'  p <- c(0.005,3.16)
+#'  weight_size(t,p)
 #' @export
 
 weight_size <- function(t,p)
