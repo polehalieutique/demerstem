@@ -4,16 +4,14 @@
 \alias{mean_ai}
 \title{Mean of AI series}
 \usage{
-mean_ai(nb_table, MOY = TRUE, vect_year_elim, ...)
+mean_ai(data_IA, MOY = TRUE, vect_year_elim)
 }
 \arguments{
-\item{nb_table}{number of tables included in "..."}
+\item{data_IA}{data table containing the year in the first column, and the different AI series on the following ones}
 
 \item{MOY}{if TRUE, then mean_3years is run}
 
 \item{vect_year_elim}{vector containing the years to delete. Else, empty vector c()}
-
-\item{...}{the different AI tables (max 5)}
 }
 \description{
 \code{mean_ai} gather the different AI series (/!\ MAX 5 SERIES) in one single table, standardise one mean AI series and plot several graphs
