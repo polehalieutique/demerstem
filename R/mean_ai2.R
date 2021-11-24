@@ -1,6 +1,6 @@
 #' Mean of AI series
 #'
-#' \code{mean_ai} gather the different AI series (/!\ MAX 5 SERIES) in one single table, standardise one mean AI series and plot several graphs
+#' \code{mean_ai2} gather the different AI series (/!\ MAX 5 SERIES) in one single table, standardise one mean AI series and plot several graphs
 #'
 #'
 #' @param data_IA         data table containing the year in the first column, and the different AI series on the following ones
@@ -28,7 +28,7 @@
 #' @export
 
 
-mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim){
+mean_ai2<-function(data_IA, MOY=TRUE, vect_year_elim){
   # On rename la première colonne en "Year" (raison pratique, peut etre optimisé évidement)
   names(data_IA)[1] <- 'Year'
 
