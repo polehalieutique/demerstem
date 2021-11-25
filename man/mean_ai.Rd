@@ -4,7 +4,7 @@
 \alias{mean_ai}
 \title{Mean of AI series}
 \usage{
-mean_ai(data_IA, MOY = TRUE, vect_year_elim)
+mean_ai(data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other, fish_power)
 }
 \arguments{
 \item{data_IA}{data table containing the year in the first column, and the different AI series on the following ones}

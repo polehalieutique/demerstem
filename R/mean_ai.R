@@ -28,7 +28,7 @@
 #' @export
 
 
-mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim){
+mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_power){
   # On rename la première colonne en "Year" (raison pratique, peut etre optimisé évidement)
   names(data_IA)[1] <- 'Year'
 
@@ -48,17 +48,29 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim){
 
   #calcul standardisation sur années communes
   #data_IA$Any_NA <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) anyNA(x))
-  data_IA$Any_NA <- apply(data_IA, 1, function(x) anyNA(x))
+  data_int <- data_IA %>% dplyr::select(Year, ref)
+  for (k in 1:length(type_other)) {
+  data_IA_filter <- reshape2::melt(data_IA,id.vars="Year")
+  data_IA_filter <- data_IA_filter %>% filter(variable %in% c(ref, type_other[k]))
+  data_IA_filter <- data_IA_filter %>% pivot_wider(names_from = variable, values_from = value)
+  data_IA_filter$Any_NA <- apply(data_IA_filter, 1, function(x) anyNA(x))
 
-  tab_moy <- data_IA %>% filter(Any_NA == FALSE)
+  tab_moy <- data_IA_filter %>% filter(Any_NA == FALSE)
+  if(is.null(tab_moy)) {print('aucune annee en commun')}
   #tab_moy2 <- tab_moy %>% mutate(mean_IA_SC = sum(IA_SC)/nrow(tab_moy), mean_IA_PA = sum(IA_PA)/nrow(tab_moy), mean_IA_PI = sum(IA_PI)/nrow(tab_moy))
-  for (i in 2:(ncol(data_IA)-1)){
-    mean_tempo <- sum(tab_moy[,i])/nrow(tab_moy)
-    data_IA[,i] <- data_IA[,i]/mean_tempo
+  mean_tempo <- tab_moy %>%  pivot_longer(cols = c(ref, type_other[k])) %>% group_by(name) %>% dplyr::summarise(mean = mean(value))
+  data_IA_transit <- as.data.frame(data_IA %>% pivot_longer(cols = c(ref, type_other[k])) %>% filter(name==type_other[k])) %>% dplyr::select(Year,value)
+  mean_survey <- (as.numeric(mean_tempo %>% filter(name == ref) %>% dplyr::select(mean)))
+  mean_com <- as.numeric(mean_tempo %>% filter(name == type_other[k])%>% dplyr::select(mean))
+  data_IA_transit$value <- data_IA_transit$value * as.numeric(mean_survey)/as.numeric(mean_com)
+  data_IA <- full_join(data_int, data_IA_transit, by = "Year")
+  names(data_IA)[names(data_IA) == 'value'] <- type_other[k]
+  Annee.indice <- as.numeric(data_IA$Year)-min(as.numeric(data_IA$Year))+1
+  data_IA[,2+k] <- data_IA[,2+k]*1/(1+fish_power)^(Annee.indice-1)
   }
   #data_IA$mean_standard_AI <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) mean(x, na.rm = T))
   data_IA$mean_standard_AI <- apply(data_IA[, c(-1, -ncol(data_IA))], 1, function(x) mean(x, na.rm = T))
-  data_IA <- data_IA %>% dplyr::select(-Any_NA)
+  data_IA$mean_standard_AI <- apply(data_IA[, c(-1, -ncol(data_IA))], 1, function(x) mean(x, na.rm = T))
   IA_long<-reshape2::melt(data_IA,id.vars="Year")
   #IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(data_IA)), names_to = "variable", values_to= "value")
   nb_col <- length(unique(as.factor(IA_long$variable)))
@@ -89,5 +101,5 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim){
 
   return(data_IA)
 
-
 }
+
