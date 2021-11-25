@@ -69,6 +69,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
   data_IA[,2+k] <- data_IA[,2+k]*1/(1+fish_power)^(Annee.indice-1)
   }
   #data_IA$mean_standard_AI <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) mean(x, na.rm = T))
+  data_IA <- as.data.frame(data_IA)
   data_IA$mean_standard_AI <- apply(data_IA[, c(-1, -ncol(data_IA))], 1, function(x) mean(x, na.rm = T))
   data_IA$mean_standard_AI <- apply(data_IA[, c(-1, -ncol(data_IA))], 1, function(x) mean(x, na.rm = T))
   IA_long<-reshape2::melt(data_IA,id.vars="Year")
