@@ -48,19 +48,19 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
 
   #calcul standardisation sur années communes
   #data_IA$Any_NA <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) anyNA(x))
-  data_int <- data_IA %>% dplyr::select(Year, ref)
+  data_int <- data_IA %>% dplyr::select(Year, type_ref)
   for (k in 1:length(type_other)) {
   data_IA_filter <- reshape2::melt(data_IA,id.vars="Year")
-  data_IA_filter <- data_IA_filter %>% filter(variable %in% c(ref, type_other[k]))
+  data_IA_filter <- data_IA_filter %>% filter(variable %in% c(type_ref, type_other[k]))
   data_IA_filter <- data_IA_filter %>% pivot_wider(names_from = variable, values_from = value)
   data_IA_filter$Any_NA <- apply(data_IA_filter, 1, function(x) anyNA(x))
 
   tab_moy <- data_IA_filter %>% filter(Any_NA == FALSE)
   if(is.null(tab_moy)) {print('aucune annee en commun')}
   #tab_moy2 <- tab_moy %>% mutate(mean_IA_SC = sum(IA_SC)/nrow(tab_moy), mean_IA_PA = sum(IA_PA)/nrow(tab_moy), mean_IA_PI = sum(IA_PI)/nrow(tab_moy))
-  mean_tempo <- tab_moy %>%  pivot_longer(cols = c(ref, type_other[k])) %>% group_by(name) %>% dplyr::summarise(mean = mean(value))
-  data_IA_transit <- as.data.frame(data_IA %>% pivot_longer(cols = c(ref, type_other[k])) %>% filter(name==type_other[k])) %>% dplyr::select(Year,value)
-  mean_survey <- (as.numeric(mean_tempo %>% filter(name == ref) %>% dplyr::select(mean)))
+  mean_tempo <- tab_moy %>%  pivot_longer(cols = c(type_ref, type_other[k])) %>% group_by(name) %>% dplyr::summarise(mean = mean(value))
+  data_IA_transit <- as.data.frame(data_IA %>% pivot_longer(cols = c(type_ref, type_other[k])) %>% filter(name==type_other[k])) %>% dplyr::select(Year,value)
+  mean_survey <- (as.numeric(mean_tempo %>% filter(name == type_ref) %>% dplyr::select(mean)))
   mean_com <- as.numeric(mean_tempo %>% filter(name == type_other[k])%>% dplyr::select(mean))
   data_IA_transit$value <- data_IA_transit$value * as.numeric(mean_survey)/as.numeric(mean_com)
   data_IA <- full_join(data_int, data_IA_transit, by = "Year")
