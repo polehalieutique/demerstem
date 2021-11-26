@@ -72,6 +72,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
   data_IA$mean_standard_AI <- apply(as.data.frame(data_IA[, c(-1, -ncol(data_IA))]), 1, function(x) mean(x, na.rm = T))
   IA_long<-reshape2::melt(data_IA,id.vars="Year")
   #IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(data_IA)), names_to = "variable", values_to= "value")
+  IA_long$variable <- as.factor(IA_long$variable)
   nb_col <- length(unique(as.factor(IA_long$variable)))
   palette <- brewer.pal(nb_col,"Set1") #Max = 9!
   palette[nb_col] <- "#000000"
