@@ -11,8 +11,8 @@
 #' Mat_M <- rep(0.2, age)
 #' age <- length(Mat_M) # number of age class
 #' Mat_N2 <- rep(NA,age) # initial abundance
-#' nbflot <- length(Mat_C) # number of gear
-#' assign('nbflot', nbflot, envir=globalenv())
+#' nb_flot <- length(Mat_C) # number of gear
+#' assign('nb_flot', nb_flot, envir=globalenv())
 #' Mat_q <- Mat_C #initialisation des capturabilites par les captures
 #' indice <- 1 # age de recrutement
 #'
@@ -43,7 +43,7 @@
 #'     Mat_N2[indice+1] <- F_abundance(indice)
 #'     assign('Mat_N2', Mat_N2, envir=globalenv())
 #'   }
-#'   if (nbflot<2) {
+#'   if (nb_flot<2) {
 #'     Mat_F2[age,] # si 1 seul engin
 #'   }
 #'   else
@@ -57,10 +57,10 @@ F_abundance <- function(indice){
   res <- Mat_N2[1]*(Mat_R[indice+1]/Mat_R[1]) #calcul du R qui conduit à l'effectif age 1
   i <- 1
   for (j in indice :1){
-    if (nbflot<2){
-      res<-res*exp(-(Mat_q[i,]*Mat_E[j+1,])-Mat_M[j]) # N pour un seul métier
+    if (nb_flot<2){
+      res<-res*exp(-(Mat_q[i,]*Mat_E[j+1,])-Mat_M[j+1]) # N pour un seul métier, j+1 car on part de la dernière année, donc j+1 == A-1...
     }else{
-      res<-res*exp(-apply((Mat_q[i,]*Mat_E[j+1,]),1,sum)-Mat_M[j])  #  N pour pluri-métier
+      res<-res*exp(-apply((Mat_q[i,]*Mat_E[j+1,]),1,sum)-Mat_M[j+1])  #  N pour pluri-métier
     }
     i<-i+1
   }
