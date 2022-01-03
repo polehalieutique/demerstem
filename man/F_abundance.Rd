@@ -17,8 +17,8 @@ F_abundance(indice)
 Mat_M <- rep(0.2, age)
 age <- length(Mat_M) # number of age class
 Mat_N2 <- rep(NA,age) # initial abundance
-nbflot <- length(Mat_C) # number of gear
-assign('nbflot', nbflot, envir=globalenv())
+nb_flot <- length(Mat_C) # number of gear
+assign('nb_flot', nb_flot, envir=globalenv())
 Mat_q <- Mat_C #initialisation des capturabilites par les captures
 indice <- 1 # age de recrutement
 
@@ -49,7 +49,7 @@ for(compteur in 2:(age)){
     Mat_N2[indice+1] <- F_abundance(indice)
     assign('Mat_N2', Mat_N2, envir=globalenv())
   }
-  if (nbflot<2) {
+  if (nb_flot<2) {
     Mat_F2[age,] # si 1 seul engin
   }
   else
