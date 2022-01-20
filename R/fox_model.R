@@ -61,32 +61,40 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarith
   #plotFOX <- plotFOX + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
   #print(plotFOX)
 
+  table_Efox$title <- graph_param[2]
   plotFOX_log <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="black")
-  plotFOX_log <- plotFOX_log + geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black") + geom_path()
-  plotFOX_log <- plotFOX_log + ggtitle(paste(graph_param[2]))
-  plotFOX_log <- plotFOX_log + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
+  #plotFOX_log <- plotFOX_log + ggtitle(paste(graph_param[2]))
+  plotFOX_log <- plotFOX_log +
+    geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black") +
+    geom_path() +
+    facet_grid(~table_Efox$title) +
+    theme_nice()
+  #plotFOX_log <- plotFOX_log + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
   print(plotFOX_log)
 
 
   plotFOX_log_test <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="red")
-  plotFOX_log_test <- plotFOX_log_test + ggtitle(paste(graph_param[2]))
-  plotFOX_log_test <- plotFOX_log_test + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
-  plotFOX_log_test <- plotFOX_log_test + geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black") + geom_path(aes(x=table_Efox$Efox, y=table_Efox$IA), linetype="twodash")
-  plotFOX_log_test <- plotFOX_log_test + geom_text(aes(x=table_Efox$Efox, y=table_Efox$IA, label=table_Efox$Year), hjust=0, vjust=0, size=2.5)
+  plotFOX_log_test <- plotFOX_log_test +
+    geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black") +
+    geom_path(aes(x=table_Efox$Efox, y=table_Efox$IA), linetype="twodash")
+  plotFOX_log_test <- plotFOX_log_test +
+    geom_text(aes(x=table_Efox$Efox, y=table_Efox$IA, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=3) +
+    facet_grid(~table_Efox$title) +
+    theme_nice()
+  #plotFOX_log_test <- plotFOX_log_test + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
+
   print(plotFOX_log_test)
 
   #?????
   plotFOX2 <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="black")
-  plotFOX2 <- plotFOX2 + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black") #E ou Efox? D.a dit de prendre E je crois
-  plotFOX2 <- plotFOX2 + ggtitle(paste(graph_param[2]))
-  plotFOX2 <- plotFOX2 + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
+  plotFOX2 <- plotFOX2 + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black")+ facet_grid(~table_Efox$title) + theme_nice() #E ou Efox? D.a dit de prendre E je crois
+  #plotFOX2 <- plotFOX2 + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
   print(plotFOX2)
 
   plotFOX2_test <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="red")
-  plotFOX2_test <- plotFOX2_test + ggtitle(paste(graph_param[2]))
-  plotFOX2_test <- plotFOX2_test + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
+  #plotFOX2_test <- plotFOX2_test + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
   plotFOX2_test <- plotFOX2_test + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black") + geom_path(aes(x=table_Efox$E, y=table_Efox$Capture), linetype="twodash") #E ou Efox? D.a dit de prendre E je crois
-  plotFOX2_test <- plotFOX2_test + geom_text(aes(x=table_Efox$E, y=table_Efox$Capture, label=table_Efox$Year), hjust=0, vjust=0, size=2.5)
+  plotFOX2_test <- plotFOX2_test + geom_text(aes(x=table_Efox$E, y=table_Efox$Capture, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=3) + facet_grid(~table_Efox$title) + theme_nice()
   print(plotFOX2_test)
 
 
@@ -94,8 +102,8 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarith
   #???
   plotFOX3 <- ggplot() + geom_line(aes(x=table_Efox$Year, y=table_Efox$IA_pred), color="black")
   plotFOX3 <- plotFOX3 + geom_point(aes(x=table_Efox$Year, y=table_Efox$IA), color="black") #E ou Efox? D.a dit de prendre E je crois
-  plotFOX3 <- plotFOX3 + ggtitle(paste(graph_param[2]))
-  plotFOX3 <- plotFOX3 + xlim(table_Efox$Year[1], table_Efox$Year[nrow(table_Efox)]) + ylim(0,as.numeric(graph_param[4]))
+  plotFOX3 <- plotFOX3  + facet_grid(~table_Efox$title) + theme_nice()
+  #plotFOX3 <- plotFOX3 + xlim(table_Efox$Year[1], table_Efox$Year[nrow(table_Efox)]) + ylim(0,as.numeric(graph_param[4]))
   print(plotFOX3)
 
 
