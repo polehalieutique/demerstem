@@ -33,12 +33,12 @@
 #' t0 <- -0.7
 #' @export
 
-yield_recrut<- function(a, b, Linf, K, t0, age, Mat_F3, Mat_M, mf) {
+yield_recrut<- function(a, b, Linf, K, t0, list_age, Mat_F3, Mat_M, mf) {
   Mat_N2 <- matrix(NA, nrow = age, ncol = length(mf))
   Mat_Y <- matrix(NA, nrow = age, ncol = length(mf))
-  age.sim <- age #simulates ages
+  age.sim <- list_age #simulates ages
   Mat_W <- a *((Linf*(1-exp(-K*(age.sim-t0))))^b)/1000
-
+  age <- length(age.sim)
   Mat_N2[1,] <- 1
   for (i in 1:length(mf)){
     for (j in 2:age){
