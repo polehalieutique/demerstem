@@ -24,9 +24,6 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarith
   } else {
     modelefox_IA <- nls(formula = IA ~ a*exp(-b*Efox), data=table_Efox, start = c(a = start_a , b = upper_b/2))
   }
-  #modelefox_IA <- nls(formula = log(IA) ~ log(a)-b*Efox, data=table_Efox, start = c(a = start_a , b = upper_b/2), algorithm = "port", lower = c(a = lower_a, b = 0), upper = c(a=upper_a, b = upper_b))
-  #modelefox_IA <- nls(formula = IA ~ a*exp(-b*Efox), data=table_Efox, start = c(a = start_a , b = upper_b/2), algorithm = "port", lower = c(a = lower_a, b = 0), upper = c(a=upper_a, b = upper_b))
-  #modelefox_IA <- nls(formula = IA ~ a*exp(-b*Efox), data=table_Efox, start = c(a = start_a , b = upper_b/2))
 
   par_Efox <- as.vector(coef(modelefox_IA))
 
@@ -34,14 +31,6 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarith
 
   C_MSYfox <- (par_Efox[1]/(par_Efox[2]*exp(1)))*table_Efox$factEfox[1]
   E_MSYfox <- (1/par_Efox[2])
-
-  # Intervalles de confiance / confidence interval
-  # ------------------------
-
-  #confint(modelefox_IA, level = 0.5)
-  #confint(modelefox_IA_Efox, level = 0.5)
-
-
 
   # Un vecteur d'effort entre 0 et 12 par pas de 0.01 (pour les besoins du graphique, a adapter a votre etude)
   # A vector of effort values between 0 and 12, for each 0.01 (for the graphs, adapt it to your study)
@@ -62,10 +51,10 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarith
   #print(plotFOX)
 
   table_Efox$title <- graph_param[2]
-  plotFOX_log <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="black")
+  plotFOX_log <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="red", size = 1.1)
   #plotFOX_log <- plotFOX_log + ggtitle(paste(graph_param[2]))
   plotFOX_log <- plotFOX_log +
-    geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black") +
+    geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black", size = 1) +
     geom_path() +
     facet_grid(~table_Efox$title) +
     theme_nice()
@@ -73,10 +62,10 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarith
   print(plotFOX_log)
 
 
-  plotFOX_log_test <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="red")
+  plotFOX_log_test <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="red", size = 1.1)
   plotFOX_log_test <- plotFOX_log_test +
-    geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black") +
-    geom_path(aes(x=table_Efox$Efox, y=table_Efox$IA), linetype="twodash")
+    geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black", size = 1) +
+    geom_path(aes(x=table_Efox$Efox, y=table_Efox$IA), linetype="twodash", size = 1)
   plotFOX_log_test <- plotFOX_log_test +
     geom_text(aes(x=table_Efox$Efox, y=table_Efox$IA, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=3) +
     facet_grid(~table_Efox$title) +
@@ -86,15 +75,15 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarith
   print(plotFOX_log_test)
 
   #?????
-  plotFOX2 <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="black")
-  plotFOX2 <- plotFOX2 + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black")+ facet_grid(~table_Efox$title) + theme_nice() #E ou Efox? D.a dit de prendre E je crois
+  plotFOX2 <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="red", size = 1.1)
+  plotFOX2 <- plotFOX2 + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black", size = 1.3)+ facet_grid(~table_Efox$title) + labs(x = "mE") + theme_nice() #E ou Efox? D.a dit de prendre E je crois
   #plotFOX2 <- plotFOX2 + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
   print(plotFOX2)
 
-  plotFOX2_test <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="red")
+  plotFOX2_test <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="red", size = 1.1)
   #plotFOX2_test <- plotFOX2_test + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
-  plotFOX2_test <- plotFOX2_test + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black") + geom_path(aes(x=table_Efox$E, y=table_Efox$Capture), linetype="twodash") #E ou Efox? D.a dit de prendre E je crois
-  plotFOX2_test <- plotFOX2_test + geom_text(aes(x=table_Efox$E, y=table_Efox$Capture, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=3) + facet_grid(~table_Efox$title) + theme_nice()
+  plotFOX2_test <- plotFOX2_test + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black", size = 1) + geom_path(aes(x=table_Efox$E, y=table_Efox$Capture), linetype="twodash", size = 1) #E ou Efox? D.a dit de prendre E je crois
+  plotFOX2_test <- plotFOX2_test + geom_text(aes(x=table_Efox$E, y=table_Efox$Capture, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=3) + facet_grid(~table_Efox$title) + labs(x = "mE") + theme_nice()
   print(plotFOX2_test)
 
 
