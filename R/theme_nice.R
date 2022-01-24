@@ -1,6 +1,4 @@
-#'  Bayesian global model, on encapsule un modèle global générique dans la fonction
-#' @param tab_input mcmc list
-#' @param n_proj nombre d'annee de projection
+#'  A nice and smoothie theme
 #' @examples
 #'
 #' #Les données d'entrée
