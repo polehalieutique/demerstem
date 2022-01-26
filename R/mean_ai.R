@@ -45,7 +45,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
   IA_long<-reshape2::melt(data_IA,id.vars="Year")
   #IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(data_IA)), names_to = "variable", values_to= "value")
   t <- ggplot(IA_long) + geom_line(aes(x=Year, y=value, color=variable)) + geom_point(aes(x=Year, y=value, color=variable))
-  t <- t + ylab("Indices d'abondance")
+  t <- t + ylab("Indices d'abondance") + theme_nice()
 
   print(t)
 
@@ -87,7 +87,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
   #Plot des nouveaux IA standardisé à 1 / plot of the new AIs standardised
   v <- ggplot() + geom_line(aes(x=IA_long$Year, y=IA_long$value, color=IA_long$variable)) + geom_point(aes(x=IA_long$Year, y=IA_long$value, color=IA_long$variable))
   v <- v + ylab("Abundance indice") #+ scale_color_brewer(palette="Set1")
-  v <- v + scale_color_manual(values = palette) + facet_grid(~IA_long$title) + labs(x="Year", color = "Estimator")
+  v <- v + scale_color_manual(values = palette) + facet_grid(~IA_long$title) + labs(x="Year", color = "Estimator") + theme_nice()
   #v <- v + geom_line(aes(x=data_IA$Year, y=data_IA$mean_standard_AI), col = "black") + geom_point(aes(x=data_IA$Year, y=data_IA$mean_standard_AI), col = "black")
   print(v)
 
