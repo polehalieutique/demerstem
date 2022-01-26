@@ -51,47 +51,50 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarith
   #print(plotFOX)
 
   table_Efox$title <- graph_param[2]
-  plotFOX_log <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="red", size = 1.1)
+  plotFOX_log <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="blue", size = 1.1)
   #plotFOX_log <- plotFOX_log + ggtitle(paste(graph_param[2]))
   plotFOX_log <- plotFOX_log +
     geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black", size = 1) +
     geom_path() +
     facet_grid(~table_Efox$title) +
-    theme_nice()
+    geom_hline(yintercept= rep(table_Efox$IA[nrow(table_Efox)],nrow(table_Efox)), linetype="dashed", color = "red") +geom_vline(xintercept= rep(1,nrow(table_Efox)), linetype="dashed", color = "red") +
+    theme_nice() + labs(x = "mE", y = "Abundance indices")
   #plotFOX_log <- plotFOX_log + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
   print(plotFOX_log)
 
 
-  plotFOX_log_test <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="red", size = 1.1)
+  plotFOX_log_test <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="blue", size = 1.1)
   plotFOX_log_test <- plotFOX_log_test +
     geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black", size = 1) +
+    geom_hline(yintercept= rep(table_Efox$IA[nrow(table_Efox)],nrow(table_Efox)), linetype="dashed", color = "red") +geom_vline(xintercept= rep(1,nrow(table_Efox)), linetype="dashed", color = "red") +
     geom_path(aes(x=table_Efox$Efox, y=table_Efox$IA), linetype="twodash", size = 1)
   plotFOX_log_test <- plotFOX_log_test +
-    geom_text(aes(x=table_Efox$Efox, y=table_Efox$IA, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=3) +
-    facet_grid(~table_Efox$title) +
-    theme_nice()
+    geom_text(aes(x=table_Efox$Efox, y=table_Efox$IA, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=4) +    facet_grid(~table_Efox$title) +
+    theme_nice() + labs(x = "mE", y = "Abundance indices")
   #plotFOX_log_test <- plotFOX_log_test + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
 
   print(plotFOX_log_test)
 
-  #?????
-  plotFOX2 <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="red", size = 1.1)
-  plotFOX2 <- plotFOX2 + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black", size = 1.3)+ facet_grid(~table_Efox$title) + labs(x = "mE") + theme_nice() #E ou Efox? D.a dit de prendre E je crois
+  plotFOX2 <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="blue", size = 1.1)
+  plotFOX2 <- plotFOX2 + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black", size = 1.3)+ facet_grid(~table_Efox$title) + labs(x = "mE") +
+    geom_hline(yintercept= rep(table_Efox$Capture[nrow(table_Efox)], nrow(table_Efox)), linetype="dashed", color = "red") + geom_vline(xintercept= rep(table_Efox$E[nrow(table_Efox)],nrow(table_Efox)), linetype="dashed", color = "red") +
+    theme_nice() + labs(x = "mE", y = "Catch") # D.a dit de prendre E
   #plotFOX2 <- plotFOX2 + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
   print(plotFOX2)
 
-  plotFOX2_test <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="red", size = 1.1)
+  plotFOX2_test <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="blue", size = 1)
   #plotFOX2_test <- plotFOX2_test + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
-  plotFOX2_test <- plotFOX2_test + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black", size = 1) + geom_path(aes(x=table_Efox$E, y=table_Efox$Capture), linetype="twodash", size = 1) #E ou Efox? D.a dit de prendre E je crois
-  plotFOX2_test <- plotFOX2_test + geom_text(aes(x=table_Efox$E, y=table_Efox$Capture, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=3) + facet_grid(~table_Efox$title) + labs(x = "mE") + theme_nice()
+  plotFOX2_test <- plotFOX2_test + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black", size = 1) + geom_path(aes(x=table_Efox$E, y=table_Efox$Capture), linetype="twodash", size = 1.1) #E ou Efox? D.a dit de prendre E je crois
+  plotFOX2_test <- plotFOX2_test + geom_text(aes(x=table_Efox$E, y=table_Efox$Capture, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=4) +
+    geom_hline(yintercept= rep(table_Efox$Capture[nrow(table_Efox)], nrow(table_Efox)), linetype="dashed", color = "red") + geom_vline(xintercept= rep(table_Efox$E[nrow(table_Efox)],nrow(table_Efox)), linetype="dashed", color = "red") +
+    facet_grid(~table_Efox$title) + labs(x = "mE", y = "Catch") + theme_nice()
   print(plotFOX2_test)
 
 
-
-  #???
+  table_Efox$title <- paste0(table_Efox$title, "\n Abundance indices predicted vs observed")
   plotFOX3 <- ggplot() + geom_line(aes(x=table_Efox$Year, y=table_Efox$IA_pred), color="black")
   plotFOX3 <- plotFOX3 + geom_point(aes(x=table_Efox$Year, y=table_Efox$IA), color="black") #E ou Efox? D.a dit de prendre E je crois
-  plotFOX3 <- plotFOX3  + facet_grid(~table_Efox$title) + theme_nice()
+  plotFOX3 <- plotFOX3  + facet_grid(~table_Efox$title) + theme_nice() + labs(x = "Year", y = "Abundance indices" )
   #plotFOX3 <- plotFOX3 + xlim(table_Efox$Year[1], table_Efox$Year[nrow(table_Efox)]) + ylim(0,as.numeric(graph_param[4]))
   print(plotFOX3)
 
