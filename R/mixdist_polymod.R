@@ -68,27 +68,23 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
   # indice croissance pour VB dynamique
   data_freq <- data_freq %>% mutate(indice_croissance = case_when( month - month_recrue >= 0 ~ month - month_recrue,
                                                                    month - month_recrue < 0 ~ 12 - (month_recrue - month)))
-  if (step_time != 13) {
-    data_freq <- data_freq %>% mutate(quarter =  ceiling((indice_croissance+1)/(12/step_time)))
-    data_freq$step_time <- data_freq$quarter
-  }
-  else {data_freq$step_time <- data_freq$month}
 
-  #data_freq <- data_freq %>%  mutate(total = total * ctot)
+  data_freq <- data_freq %>% mutate(quarter =  ceiling((indice_croissance+1)/(12/step_time)))
+  data_freq$step_time <- data_freq$quarter
 
-  # mise en forme data pour décomposition polymodale avec mixdist
+  # preparing data for polymodal decomposition with mixdist
 
   for (i in sort(unique(data_freq$step_time))){
     data_count[[i]] <- rep(data_freq$lclass[data_freq$step_time==i],data_freq$total[data_freq$step_time==i])
     data_mix[[i]] <- mixgroup(data_count[[i]],breaks=c(length_min, seq(length_min + step_class, length_max - step_class, step_class), length_max), xname="lclass")
   }
-  if (step_time != 13) {
+
     ALK <- cbind(data.frame(matrix(0, nrow = length(data_mix[[1]]$lclass), ncol = 3,
                                    dimnames = list(NULL, c("lclass", "count", "prop_obs")))),
                  data.frame(matrix(0, nrow = length(data_mix[[1]]$lclass), ncol = (ngroup*step_time),
                                    dimnames = list(NULL, paste0("Age_", seq(1, ngroup + 1 - 1/step_time, by = 1/step_time))))))
     Matrice_Capture <- ALK
-  }
+
 
   for (i in sort(unique(data_freq$step_time))){
     print (i)
@@ -174,16 +170,11 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
 
   }
 
-
-
-
   if (step_time == 12) {
     Matrice_Capture <- as.data.frame(NULL)
     for (month in sort(unique(data_freq$step_time))) {
 
       ALK <- data_mix[[month]] %>%  mutate(prop_obs = count/sum(count, na.rm = T))
-
-
 
       for (u in 1:ngroup) {
         ALK <- cbind(ALK, data.frame(age = rep(0, length(ALK$lclass))))

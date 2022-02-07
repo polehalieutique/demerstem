@@ -15,9 +15,9 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
 
   R_pseudo_rectif_bis <-function(init) # init <- R_init
   {
-    Mat_F2 <<-Mat_C/Mat_Cage # attention, initialisation de F2 au ratio de chaque metier
+    Mat_F2 <<-Mat_C/Mat_Cage # initialisation of F2 as metier ratio
     indice <<-1
-    nb_flot <<- ncol(Mat_C) # nombre de flottilles
+    nb_flot <<- ncol(Mat_C) # fleet size
     Mat_N2[indice] <<-init
     Mat_F2[indice,] <<-Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
     # réallocation du F estimé pour chaque métier
@@ -56,7 +56,6 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
 
   MAT_N<<-rep(NA,age) # effectifs methode de Pope
   Mat_N2<<-rep(NA,age) # effectifs methode rectifiee
-  Mat_C <<- Mat_C
 
   Mat_C <<- Mat_C
   Mat_E <<- Mat_E
@@ -66,14 +65,29 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
   indice <<- 1 # age de recrutement
   optimize(F_pseudo_rectif_global,interval=c(Rinit/10,Rinit*10))$minimum
 
-  plot(Mat_Cage, xlab = "Age", ylab = "Catch (numbers)", type = "b", main= paste0("Catch at age - ", espece))
+  Mat_Cage_plot <- as.data.frame(Mat_Cage)[1]
+  Mat_Cage_plot$Age <- list_age
+  Mat_Cage_plot$title <- paste0("Catch at age - ", espece)
+  ggplot(data = Mat_Cage_plot, aes(x = Age, y = Mat_Cage)) + labs(x = "Age", y = "Catch") + geom_line(size = 1.01)+ geom_point() + theme_nice() + facet_grid(~title)
+
   print("Mat_F2")
   print(Mat_F2)
   Mat_F <- apply(Mat_F2,1,sum)
-  plot(Mat_F, xlab = "Age", ylab = "Fishing mortality (numbers)", type = "b", main= paste0("F at age - ", espece))
+
+  Mat_F_plot <- as.data.frame(Mat_F)
+  Mat_F_plot$Age <- list_age
+  Mat_F_plot$title <- paste0("F at age - ", espece)
+  ggplot(data = Mat_F_plot, aes(x = Age, y = Mat_F)) + labs(x = "Age", y = "Fishing mortality") + geom_line(size = 1)+ geom_point() + theme_nice() + facet_grid(~title)
+
+
   print("Mat_N2")
   print(Mat_N2)
-  plot(Mat_N2, xlab = "Age", ylab = "Abundance (numbers)", type = "b", main= paste0("Abundance at age - ", espece))
+
+  Mat_N2_plot <- as.data.frame(Mat_N2)
+  Mat_N2_plot$Age <- list_age
+  Mat_N2_plot$title <- paste0("Abdundance at age - ", espece)
+  ggplot(data = Mat_N2_plot, aes(x = Age, y = Mat_N2)) + labs(x = "Age", y = "Abundance") + geom_line(size = 1) + geom_point() + theme_nice() + facet_grid(~title)
+
 
   varFT<-seq(0.2,1,by=0.2)
   matF3<-as.data.frame(matrix(NA, nrow = age, ncol = length(varFT)))
@@ -98,16 +112,10 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
   }
   ylim_max <- max(matF3)+0.2
 
-  plot(matF3[,1], xlab = "Age", ylab = "Fishing mortality", type = "l", ylim = c(0,ylim_max), main="Variation of F at age for different FT ")
-
-  for (i in 2:length(varFT))
-  {
-    lines(matF3[,i], type = "l")
-  }
   matF3$Age <- c(1:age)
   matF3 <- matF3 %>% pivot_longer(cols = c(1:5), values_to = "Fishing_mortality", names_to = "FT")
   matF3$FT <- as.factor(matF3$FT)
-  theme_set(theme_bw())
-  ggplot(data = matF3, aes(x = Age, y = Fishing_mortality, color = FT)) + geom_line()
+  matF3$title <- "Variation of F at age for different FT"
+  ggplot(data = matF3, aes(x = Age, y = Fishing_mortality, color = FT)) + geom_line(size = 1.01) + theme_nice() + facet_grid(~title)
 
 }
