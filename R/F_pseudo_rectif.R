@@ -68,7 +68,8 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
   Mat_Cage_plot <- as.data.frame(Mat_Cage)[1]
   Mat_Cage_plot$Age <- list_age
   Mat_Cage_plot$title <- paste0("Catch at age - ", espece)
-  ggplot(data = Mat_Cage_plot, aes(x = Age, y = Mat_Cage)) + labs(x = "Age", y = "Catch") + geom_line(size = 1.01)+ geom_point() + theme_nice() + facet_grid(~title)
+  plot <- ggplot(data = Mat_Cage_plot, aes(x = Age, y = Mat_Cage)) + labs(x = "Age", y = "Catch") + geom_line(size = 1.01)+ geom_point() + theme_nice() + facet_grid(~title)
+  print(plot)
 
   print("Mat_F2")
   print(Mat_F2)
@@ -77,8 +78,8 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
   Mat_F_plot <- as.data.frame(Mat_F)
   Mat_F_plot$Age <- list_age
   Mat_F_plot$title <- paste0("F at age - ", espece)
-  ggplot(data = Mat_F_plot, aes(x = Age, y = Mat_F)) + labs(x = "Age", y = "Fishing mortality") + geom_line(size = 1)+ geom_point() + theme_nice() + facet_grid(~title)
-
+  plot <- ggplot(data = Mat_F_plot, aes(x = Age, y = Mat_F)) + labs(x = "Age", y = "Fishing mortality") + geom_line(size = 1)+ geom_point() + theme_nice() + facet_grid(~title)
+  print(plot)
 
   print("Mat_N2")
   print(Mat_N2)
@@ -86,8 +87,8 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
   Mat_N2_plot <- as.data.frame(Mat_N2)
   Mat_N2_plot$Age <- list_age
   Mat_N2_plot$title <- paste0("Abdundance at age - ", espece)
-  ggplot(data = Mat_N2_plot, aes(x = Age, y = Mat_N2)) + labs(x = "Age", y = "Abundance") + geom_line(size = 1) + geom_point() + theme_nice() + facet_grid(~title)
-
+  plot <- ggplot(data = Mat_N2_plot, aes(x = Age, y = Mat_N2)) + labs(x = "Age", y = "Abundance") + geom_line(size = 1) + geom_point() + theme_nice() + facet_grid(~title)
+  print(plot)
 
   varFT<-seq(0.2,1,by=0.2)
   matF3<-as.data.frame(matrix(NA, nrow = age, ncol = length(varFT)))
@@ -116,6 +117,6 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
   matF3 <- matF3 %>% pivot_longer(cols = c(1:5), values_to = "Fishing_mortality", names_to = "FT")
   matF3$FT <- as.factor(matF3$FT)
   matF3$title <- "Variation of F at age for different FT"
-  ggplot(data = matF3, aes(x = Age, y = Fishing_mortality, color = FT)) + geom_line(size = 1.01) + theme_nice() + facet_grid(~title)
-
+  plot <- ggplot(data = matF3, aes(x = Age, y = Fishing_mortality, color = FT)) + geom_line(size = 1.01) + theme_nice() + facet_grid(~title)
+  print(plot)
 }
