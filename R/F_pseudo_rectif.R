@@ -113,7 +113,7 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
   }
   ylim_max <- max(matF3)+0.2
 
-  matF3$Age <- c(1:age)
+  matF3$Age <- list_age
   matF3 <- matF3 %>% pivot_longer(cols = c(1:5), values_to = "Fishing_mortality", names_to = "FT")
   matF3$FT <- as.factor(matF3$FT)
   matF3$title <- "Variation of F at age for different FT"
