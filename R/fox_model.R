@@ -101,7 +101,7 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarith
 
 
   names_values <- c("Coeff_a", "Coeff_b", "MSY_recalcule", "Emsy_recalcule")
-  results <- c(par_Efox[1], par_Efox[2], C_MSYfox, E_MSYfox)
+  results <- round(c(par_Efox[1], par_Efox[2], C_MSYfox, E_MSYfox),2)
   table_outputs <- rbind(names_values, results)
 
   print(table_outputs)

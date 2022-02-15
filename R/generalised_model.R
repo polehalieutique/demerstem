@@ -97,7 +97,7 @@ generalised_model <- function(table_Efox, graph_param, vect_ini=c(10, -0.5, 1), 
 
 
   names_values <- c("Coeff_a", "Coeff_b", "Coeff_p", "MSY_recalcule", "Emsy_recalcule")
-  results <- c(par_Efox[1], par_Efox[2], par_Efox[3], C_MSY, E_MSY)
+  results <- round(c(par_Efox[1], par_Efox[2], par_Efox[3], C_MSY, E_MSY),2)
   table_outputs <- rbind(names_values, results)
 
   print(table_outputs)
