@@ -16,7 +16,7 @@
 #' @export
 
 
-delta_glm<-function(glm_pres_abs,glm_abundance, title, type){
+delta_glm <- function(glm_pres_abs,glm_abundance, title, type){
 
   table_finale1 <- glm_pres_abs %>% dplyr::select(modality, corrected_estimates)
   table_finale2 <- glm_abundance %>% dplyr::select(modality, corrected_estimates)
@@ -36,13 +36,13 @@ delta_glm<-function(glm_pres_abs,glm_abundance, title, type){
   table_annee_final$annee <- as.numeric(as.character(table_annee_final$annee))
 
   EstimateurFinal <- as.name(paste0("EstimateurFinal_",type))
-
-  g2 <- ggplot(table_annee_final) + geom_bar(aes_string(x='annee', y= paste0("EstimateurFinal_",type)), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec annees en numérique"))
-  g3 <- ggplot(table_annee_final) + geom_line(aes_string(x='annee', y= paste0("EstimateurFinal_",type)), stat="identity") + ylab("Indice d'Abondance") + ggtitle(paste(title, "avec annees en numérique")) + scale_y_continuous(limits=c(0, max(table_annee_final$EstimateurFinal))) #+ ylim(0,max(table_annee_final$EstimateurFinal)))
+  table_annee_final$title <- title
+  g2 <- ggplot(table_annee_final) + geom_bar(aes_string(x='annee', y= paste0("EstimateurFinal_",type)), stat="identity") + labs(x = "Year", y = "Abundance indices") + facet_grid(~title) + theme_nice()
+  g3 <- ggplot(table_annee_final) + geom_line(aes_string(x='annee', y= paste0("EstimateurFinal_",type)), stat="identity") + labs(x = "Year", y = "Abundance indices") + scale_y_continuous(limits=c(0, max(table_annee_final$EstimateurFinal))) + facet_grid(~title) + theme_nice()#+ ylim(0,max(table_annee_final$EstimateurFinal)))
   #print(g1)
   print(g2)
   print(g3)
-
+  table_annee_final$title <- NULL
   return (table_annee_final)
 }
 
