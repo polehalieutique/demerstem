@@ -23,7 +23,10 @@ method_shepherd(data_freq, K, L_inf, step_class, plot = FALSE)
 \code{method_shepherd} returns an estimation of growth parameters K and L_inf (growth coefficient and growth asymptotic length) from Von Bertallanfy equation and the value of objective function.
 }
 \examples{
- data(data_freqleau_sc)
- model_ai_plus(data_freqleau_sc, esp = "PSEUDOTOLITHUS ELONGATUS", effort = "auto", title = "SC", list_param = c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions =FALSE, limit=0.001, formula_select = "log(i_ab+0.0001) ~ strate + annee + saison")
-
+data(length_frequency)
+lmax <- 48 # choose lmax according to some bibliography
+K <- seq(0.33, 0.40, 0.01)
+L_inf <- seq(0.95*lmax, 1.05 * lmax, 0.01)
+step_class <- 1
+method_shepherd(data_freq, K, L_inf, step_class,  plot=F)
 }

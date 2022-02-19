@@ -16,7 +16,8 @@ model_ai_plus(
   limit,
   formula_select,
   plot = FALSE,
-  summary = FALSE
+  summary = FALSE,
+  force_interaction = FALSE
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ model_ai_plus(
 \item{plot}{FALSE by default. If TRUE, print the data presentation histograms}
 
 \item{summary}{FALSE by default. If TRUE, print the summary of the selected GLM}
+
+\item{force_interaction}{Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.}
 }
 \description{
 \code{model_ai_plus} runs the actions for the GLM modeling process on abundance data.

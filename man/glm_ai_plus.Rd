@@ -4,7 +4,13 @@
 \alias{glm_ai_plus}
 \title{Fit a Generalized Linear Models on abundance data}
 \usage{
-glm_ai_plus(tab, parameters, formula_select, summary = FALSE)
+glm_ai_plus(
+  tab,
+  parameters,
+  formula_select,
+  summary = FALSE,
+  force_interaction = FALSE
+)
 }
 \arguments{
 \item{tab}{table of abundance data, extracted from the output of table_pres_abs}
@@ -12,6 +18,8 @@ glm_ai_plus(tab, parameters, formula_select, summary = FALSE)
 \item{parameters}{list of parameters to test}
 
 \item{formula_select}{if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.}
+
+\item{force_interaction}{Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.}
 }
 \value{
 \code{glm_ai_plus} can either return the best GLM model based on AIC comparison, or return the outputs of the GLM based on the formula given in \emph{formula_select}

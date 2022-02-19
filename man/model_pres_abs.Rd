@@ -16,7 +16,9 @@ model_pres_abs(
   limit,
   formula_select,
   plot = FALSE,
-  summary = FALSE
+  summary = FALSE,
+  force_interaction = FALSE,
+  step_AIC = FALSE
 )
 }
 \arguments{
@@ -43,6 +45,8 @@ model_pres_abs(
 \item{plot}{FALSE by default. If TRUE, print the data presentation histograms}
 
 \item{summary}{FALSE by default. If TRUE, print the summary of the selected GLM}
+
+\item{force_interaction}{Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.}
 }
 \description{
 \code{model_pres_abs} runs the actions for the GLM modeling process on presence/absence data.

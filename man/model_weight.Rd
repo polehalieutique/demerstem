@@ -4,7 +4,7 @@
 \alias{model_weight}
 \title{Weight size relationship and plot}
 \usage{
-model_weight(data_weight)
+model_weight(data_weight, weigth, length)
 }
 \arguments{
 \item{data_weight}{data with weight and size vectors}

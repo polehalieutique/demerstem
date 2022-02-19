@@ -19,7 +19,7 @@ table_pres_abs(tab, esp, list_param, var_eff_list, espece_id, catch_col, limit)
 
 \item{catch_col}{exact name of the column indicating the catches}
 
-\item{limit}{percentage representing the limit value under which the modality is removed}
+\item{limit}{percentage representing the limit value under which a modality is removed}
 }
 \value{
 the function return a table from which we can select only the \emph{presence = 1} to get the abundance table
