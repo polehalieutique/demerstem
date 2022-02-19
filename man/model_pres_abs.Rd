@@ -16,9 +16,7 @@ model_pres_abs(
   limit,
   formula_select,
   plot = FALSE,
-  summary = FALSE,
-  force_interaction = FALSE,
-  step_AIC = FALSE
+  summary = FALSE
 )
 }
 \arguments{
