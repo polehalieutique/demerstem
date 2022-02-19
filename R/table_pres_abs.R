@@ -9,7 +9,7 @@
 #' @param var_eff_list  list of the possible fishing effort column
 #' @param espece_id     exact name of the column indicating the species
 #' @param catch_col     exact name of the column indicating the catches
-#' @param limit         percentage representing the limit value under which the modality is removed
+#' @param limit         percentage representing the limit value under which a modality is removed
 #'
 #' @return the function return a table from which we can select only the \emph{presence = 1} to get the abundance table
 #'
@@ -34,12 +34,12 @@ table_pres_abs <- function(tab, esp, list_param, var_eff_list, espece_id, catch_
   col.use <- names(tab)[(names(tab) %in% col_list)]
   tab <- tab[, col.use]
 
-  # Tableau avec seulement les presence
+  # Tableau avec seulement les presence : établie à partir des noms (si un nom d'espèce est décrit alors = présence), mais il peut y avoir une capture = 0 définie malgré tout
   espece_id <- names(tab)[(names(tab) %in% espece_id)]
   tab_posit <- tab %>% mutate(presence=as.numeric(tab[,espece_id] == esp)) %>% filter(presence==1)
 
 
-  # Calcul de l indice d_abondance
+  # Calcul de l indice d_abondance and we remove rows without effort.
   col_effort <- var_eff_list
   print(paste("effort = ", col_effort))
   print(paste(sum(is.na(tab_posit[,col_effort]) | tab_posit[,col_effort]==0),"sur", nrow(tab_posit),
@@ -80,7 +80,7 @@ table_pres_abs <- function(tab, esp, list_param, var_eff_list, espece_id, catch_
   print(paste("Total of", nrow(presabs), "stations with presence or absence data"))
 
 
-  # Enlever les modalites peu representees dans tableau_ab (representant par ex moins de 5% des donnees)
+  # Enlever les modalites peu representees dans tableau_ab (representant par ex moins de 0.5% des donnees)
   names_facteur <- names(tableau_ab)[(names(tableau_ab) %in% list_param)] #liste param = facteurs utilises pour le GLM
   tableau_ab2 <- moda_selection(tab, names_facteur, limit, ope_id2)
 
