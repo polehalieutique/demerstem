@@ -83,7 +83,7 @@ glm_pres_abs <- function (tab, parameters, formula_select, summary = FALSE)
 
   print(formula)
   print(summary(aov(Model)))
-  print(paste0( "% of varibality explained by each effect : ", round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)))
+  print(paste0( "% of variability explained by each effect : ", round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)))
 
   if (summary == TRUE) {
     print(summary(Model))

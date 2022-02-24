@@ -79,7 +79,7 @@ glm_ai_plus <- function(tab, parameters, formula_select, summary=FALSE, force_in
   Model <- glm(as.formula(formula) , family=gaussian, data=tab)
   print(paste0( "AIC = ",round(AIC(Model),3)))
   print(summary(aov(Model)))
-  print(paste0( "% of varibality explained by each effect : ", round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)))
+  print(paste0( "% of variability explained by each effect : ", round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)))
 
   if (summary == TRUE) {
     print(summary(Model))

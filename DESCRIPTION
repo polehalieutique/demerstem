@@ -24,7 +24,6 @@ Depends:
     MASS,
     tidyr,
     ggpubr,
-    rjags,
     stringr,
     coda,
     effects,
