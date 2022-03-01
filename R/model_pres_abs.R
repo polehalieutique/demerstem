@@ -24,24 +24,23 @@
 model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id, catch_col, interactions = FALSE, limit, formula_select, plot = FALSE, summary = FALSE) {
   print("SOUS-MODELE PRESENCE ABSENCE")
   tableau_pres <- table_pres_abs(tab, esp, list_param, var_eff_list, espece_id, catch_col, limit)
-  param <- list_param
-  facteur <- param[1]
+  parameters <- list_param
+  facteur <- parameters[1]
   if (plot == TRUE){
     tableau_pres$facteur=factor(tableau_pres[,facteur])
     print(ggplot(tableau_pres, aes(facteur, fill=factor(presence)))+geom_bar() +ggtitle(paste("presence/absence", facteur, title)) +
             theme(axis.text.x = element_text(angle = 60, size=9), plot.title = element_text(size=11, face="bold"), axis.title.x = element_text(size=9), axis.title.y = element_text(size=9), legend.title = element_text(size=9), legend.text = element_text(size=9)))
-    print(ggarrange(plotlist=lapply(param, pres_facto, tab=tableau_pres, title),
+    print(ggarrange(plotlist=lapply(parameters, pres_facto, tab=tableau_pres, title),
                     ncol=2, nrow=2, common.legend = TRUE, legend = "bottom"))
   }
 
-  for (i in 1:length(param)){
-    tableau_pres[,param[i]] <- as.factor(tableau_pres[,param[i]])
-    tableau_pres[,param[i]] <- droplevels(tableau_pres[,param[i]])
-    contrasts(tableau_pres[,param[i]]) <- contr.sum(levels(tableau_pres[,param[i]]))
+  for (i in 1:length(parameters)){
+    tableau_pres[,parameters[i]] <- as.factor(tableau_pres[,parameters[i]])
+    tableau_pres[,parameters[i]] <- droplevels(tableau_pres[,parameters[i]])
+    contrasts(tableau_pres[,parameters[i]]) <- contr.sum(levels(tableau_pres[,parameters[i]]))
   }
 
-  glm_presabs <- glm_pres_abs(tableau_pres, param, formula_select, summary)
-
+  glm_presabs <- glm_pres_abs(tableau_pres = tableau_pres, parameters, formula_select, summary)
   vect_param <- c(attr(glm_presabs$terms, "term.label"))
   table_interact <- c()
   table_pres <- as.data.frame(coef(summary(glm_presabs)))
@@ -98,14 +97,14 @@ model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id,
           variable2 <- interact_variables[[c(1,2)]]
 
           formula_interact <- paste(variable1,"*",variable2)
-          inter_glm <- effect(formula_interact, glm_presabs, se=TRUE) # Look after this sen may be wrong and be an issue /!|!\
+          inter_glm <- effect(formula_interact, glm_presabs, se=T) # Look after this sen may be wrong and be an issue /!|!\
           inter_glm<-as.data.frame(inter_glm)
           inter_glm[,1] <- factor(inter_glm[,1], levels=levels(tableau_pres[,variable1]))
           inter_glm[,2] <- factor(inter_glm[,2], levels=levels(tableau_pres[,variable2]))
 
           plot_inter_glm<-ggplot(data=inter_glm, aes(x=inter_glm[,1], y=fit, group=inter_glm[,2]))+
             geom_line(size=2, aes(color=inter_glm[,2]))+
-            geom_ribbon(aes(ymin=fit-se, ymax=fit+se,fill=inter_glm[,2]),alpha=.2)+
+            #geom_ribbon(aes(ymin=fit, ymax=fit,fill=inter_glm[,2]),alpha=.2)+
             labs(x = variable1,
                  y = "Predicted % of presence",
                  color = variable2, fill = variable2) +

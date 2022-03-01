@@ -42,10 +42,8 @@ table_pres_abs <- function(tab, esp, list_param, var_eff_list, espece_id, catch_
   # Calcul de l indice d_abondance and we remove rows without effort.
   col_effort <- var_eff_list
   print(paste("effort = ", col_effort))
-  print(paste(sum(is.na(tab_posit[,col_effort]) | tab_posit[,col_effort]==0),"sur", nrow(tab_posit),
-              "lignes avec effort nul ou NA")) # indiquer le nombre de donnees perdues
   print(paste(sum(is.na(tab_posit[,col_effort]) | tab_posit[,col_effort]==0),"over", nrow(tab_posit),
-              "lines with effort = 0 or NA"))
+              "lines with effort = 0 or NA")) # indicate number of data lost
 
   #calcul de la cpue
   tab_posit <- tab_posit %>% mutate(i_ab=tab_posit[,catch_col]/tab_posit[,col_effort])
@@ -56,15 +54,12 @@ table_pres_abs <- function(tab, esp, list_param, var_eff_list, espece_id, catch_
   names.use <- names(tab_posit)[(names(tab_posit) %in% ope_id)]
   tab_posit_old <- tab_posit
   tab_posit <- tab_posit_old %>% dplyr::group_by(across(names.use)) %>% dplyr::summarise(i_ab = sum(i_ab), .groups = 'drop') %>% ungroup() # RQ1
-  print(paste("passage de", nrow(tab_posit_old), "à", nrow(tab_posit), "presences en aggregeant par station ou operation"))
   print(paste("passing from", nrow(tab_posit_old), "lines to", nrow(tab_posit), "lines with presences, aggregating by station or fishing operation"))
   if (nrow(tab_posit) != nrow(tab_posit_old)){
-    print(paste("ATTENTION : vous n'êtes pas censé aggreger de nombreuses lignes ici. Prenez le temps de vérifier vos données"))
     print(paste("WARNING: you're not suppose to aggregate many lines. Please take the time to check your data"))
     print(paste("aggregation here with / agrégation ici avec i_ab = sum(i_ab)"))
   }
   tab_posit <- tab_posit %>% distinct()
-  print(paste(nrow(tab_posit), "stations selectionnees avec presence de", esp))
   print(paste(nrow(tab_posit), "stations selected with presence of", esp))
 
   tableau_ab <- as.data.frame(tab_posit) #tableau pour glm sous-modele positif
@@ -76,14 +71,12 @@ table_pres_abs <- function(tab, esp, list_param, var_eff_list, espece_id, catch_
   # Select unique + jointure tab_posit + ajout des 0 pour les absences
   presabs <- tab_stations %>% distinct() %>% left_join(tab_posit, by = ope_id2) %>% mutate(presence = replace_na(presence, 0))
   # table(presabs$presence)
-  print(paste("Total de", nrow(presabs), "stations catégorisées presence ou absence"))
   print(paste("Total of", nrow(presabs), "stations with presence or absence data"))
 
 
   # Enlever les modalites peu representees dans tableau_ab (representant par ex moins de 0.5% des donnees)
   names_facteur <- names(tableau_ab)[(names(tableau_ab) %in% list_param)] #liste param = facteurs utilises pour le GLM
   tableau_ab2 <- moda_selection(tab, names_facteur, limit, ope_id2)
-
   # On garde uniquement les modalités présentes dans tableau_ab2 (selon valeur limit)
   tableau_pres <- presabs %>% semi_join(tableau_ab2, by = names_facteur)
   nrow(tableau_pres)

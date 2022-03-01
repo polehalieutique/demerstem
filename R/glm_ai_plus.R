@@ -2,7 +2,7 @@
 #'
 #' \code{glm_ai_plus} returns the best GLM model possible for the abundance data, based on an AIC selection process (formula_select = "auto"). It runs the GLMs, plot the residuals analysis graphs and return the GLM outputs.
 #'
-#' @param tab             table of abundance data, extracted from the output of table_pres_abs
+#' @param tableau_ab             table of abundance data, extracted from the output of table_pres_abs
 #' @param parameters      list of parameters to test
 #' @param formula_select  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
 #' @param force_interaction Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.
@@ -24,9 +24,9 @@
 #' @export
 
 
-glm_ai_plus <- function(tab, parameters, formula_select, summary=FALSE, force_interaction = FALSE){
+glm_ai_plus <- function(tableau_ab, parameters, formula_select, summary=FALSE, force_interaction = FALSE){
   #passer les parametres en facteur
-  lapply(tab[,parameters], as.factor)
+  lapply(tableau_ab[,parameters], as.factor)
   #ecriture formule
   a <- paste(parameters[1], "+")
   for (i in 2 : (length(parameters)-1)){
@@ -36,15 +36,12 @@ glm_ai_plus <- function(tab, parameters, formula_select, summary=FALSE, force_in
   #test des interactions ordre2
   formula_log_inter <- paste("log(i_ab) ~ (", a,")^2")
 
-
   if (formula_select == "auto"){
-    print("selection stepAIC en partant du modele sature :")
     print("stepAIC selection starting with the full model :")
-    model_sature <- glm(formula = formula_log_inter, family=gaussian, data=tab)
+    model_sature <- glm(formula = formula_log_inter, family=gaussian, data=tableau_ab)
     test_sature <- stepAIC(model_sature, scope=(lower=~1)) #trace=TRUE
-    print("selection stepAIC en partant du modele min :")
     print("stepAIC selection starting with the minimal model :")
-    model_cst <- glm(formula = log(i_ab) ~ 1, family=gaussian, data=tab)
+    model_cst <- glm(formula = log(i_ab) ~ 1, family=gaussian, data=tableau_ab)
     test_cst <- stepAIC(model_cst, scope=(upper=paste("~ (", a,")^2"))) #trace=TRUE
 
     print(anova(test_sature, test_cst))
@@ -60,26 +57,27 @@ glm_ai_plus <- function(tab, parameters, formula_select, summary=FALSE, force_in
   }
   else {
     formula <- formula_select
-    Model <- glm(as.formula(formula), family = gaussian, data = tab)
   }
-
 
   # Print du modele sélectionné
   if (formula_select == "auto"){
-    print("Le modele sélectionné par optimisation statistique est le suivant :")
     print("The selected model by statistical optimisation is:")
   } else {
-    print("Le modele que vous avez sélectionné :")
     print("The model you selected:")
   }
   print(formula)
 
   # resume modele et graphiques residus
-  summary(Model)
-  Model <- glm(as.formula(formula) , family=gaussian, data=tab)
+  Model <- glm(as.formula(formula) , family=gaussian, data=tableau_ab)
   print(paste0( "AIC = ",round(AIC(Model),3)))
   print(summary(aov(Model)))
-  print(paste0( "% of variability explained by each effect : ", round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)))
+  print("% of variability explained by each effect : ")
+  table_var <- round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)
+  table_var[2] <- round((summary(aov(Model))[[1]][2])*100/(sum(summary(aov(Model))[[1]][2])-summary(aov(Model))[[1]][length(summary(aov(Model))[[1]][,2]),2]))
+  table_var[length(summary(aov(Model))[[1]][,2]),2] <- NA
+  names(table_var) <- c("% variance",paste0("||    % variance of explained (", 100 - table_var[length(summary(aov(Model))[[1]][,2]),1],"%)"))
+  names(table_var[2]) <- paste0("% variance of explained (",round(100 - table_var[length(parameters),1],1),"%)")
+  print.data.frame(table_var)
 
   if (summary == TRUE) {
     print(summary(Model))

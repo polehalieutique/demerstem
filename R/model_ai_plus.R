@@ -27,8 +27,8 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
   print("SOUS-MODELE ABONDANCE")
   tableau_pres <- table_pres_abs(tab, esp, list_param,  var_eff_list, espece_id, catch_col, limit)
   tableau_ab <- filter(tableau_pres, i_ab>0)
-  param <- list_param
-  facteur <- param[1]
+  parameters <- list_param
+  facteur <- parameters[1]
 
   if(plot==TRUE){
 
@@ -41,7 +41,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
             theme(axis.text.x = element_text(angle = 45)) +
             theme(axis.text.x = element_text(angle = 60, size=8), plot.title = element_text(size=11, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8)))
 
-    print(ggarrange(plotlist=lapply(param, moda_facto, tab=tableau_ab, title),
+    print(ggarrange(plotlist=lapply(parameters, moda_facto, tab=tableau_ab, title),
                     ncol=2, nrow=2, common.legend = TRUE, legend = "bottom"))
 
     requete <- tableau_ab %>% dplyr::group_by(facteur, annee) %>% dplyr::summarise(mean_ind_ab=mean(i_ab))
@@ -54,17 +54,17 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
             ylab("mean CPUE") +
             theme(legend.key.size = unit(0.4, "cm"), legend.title = element_text(size=7), legend.text = element_text(size=6)))
 
-    print(ggarrange(plotlist=lapply(param, evo_facto, tab=tableau_ab, title),
+    print(ggarrange(plotlist=lapply(parameters, evo_facto, tab=tableau_ab, title),
                     ncol=2, nrow=2))
   }
 
-  for (i in 1:length(param)){
-    tableau_ab[,param[i]] <- as.factor(tableau_ab[,param[i]])
-    tableau_ab[,param[i]] <- droplevels(tableau_ab[,param[i]])
-    contrasts(tableau_ab[,param[i]]) <- contr.sum(levels(tableau_ab[,param[i]]))
+  for (i in 1:length(parameters)){
+    tableau_ab[,parameters[i]] <- as.factor(tableau_ab[,parameters[i]])
+    tableau_ab[,parameters[i]] <- droplevels(tableau_ab[,parameters[i]])
+    contrasts(tableau_ab[,parameters[i]]) <- contr.sum(levels(tableau_ab[,parameters[i]]))
   }
 
-  glm_indice_ab <- glm_ai_plus(tableau_ab, param, formula_select, summary)
+  glm_indice_ab <- glm_ai_plus(tableau_ab = tableau_ab, parameters, formula_select, summary)
 
   VAR <- var(residuals(glm_indice_ab))
   vect_param <- c(attr(glm_indice_ab$terms, "term.label"))

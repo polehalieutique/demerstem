@@ -2,7 +2,7 @@
 #'
 #' \code{glm_pres_abs} returns the best GLM model possible for the presence/absence data, based on an AIC selection process (formula_select = "auto"). It runs the GLMs, plot the residuals analysis graphs and return the GLM outputs.
 #'
-#' @param tab             table of presence and absence data, coming as the output of table_pres_abs
+#' @param tableau_pres             table of presence and absence data, coming as the output of table_pres_abs
 #' @param parameters      list of parameters to test
 #' @param formula_select  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
 #' @param force_interaction Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.
@@ -25,10 +25,10 @@
 #' @export
 
 
-glm_pres_abs <- function (tab, parameters, formula_select, summary = FALSE)
+glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FALSE)
 {
   # parameters as factors
-  lapply(tab[,parameters], as.factor)
+  lapply(tableau_pres[,parameters], as.factor)
   # Preparation of factors
   a <- paste(parameters[1], "+")
   for (i in 2 : (length(parameters)-1)){
@@ -39,14 +39,12 @@ glm_pres_abs <- function (tab, parameters, formula_select, summary = FALSE)
 
 
   if (formula_select == "auto"){
-    print("selection stepAIC en partant du modele sature :")
     print("stepAIC selection starting with the full model :")
-    model_sature <- glm(formula = formula_inter, family=binomial, data=tab)
+    model_sature <- glm(formula = formula_inter, family=binomial, data=tableau_pres)
     test_sature <- stepAIC(model_sature, scope=(lower=~1)) #trace=TRUE
 
-    print("selection stepAIC en partant du modele min :")
     print("stepAIC selection starting with the minimal model :")
-    model_cst <- glm(formula = presence ~ 1, family=binomial, data=tab)
+    model_cst <- glm(formula = presence ~ 1, family=binomial, data=tableau_pres)
     test_cst <- stepAIC(model_cst, scope=(upper=paste("~ (", a,")^2"))) #trace=TRUE
 
     print(anova(test_sature, test_cst))
@@ -67,23 +65,26 @@ glm_pres_abs <- function (tab, parameters, formula_select, summary = FALSE)
 
     # Print du modele sélectionné
     if (formula_select == "auto"){
-      print("Le modele sélectionné par optimisation statistique est le suivant :")
       print("The statiscally selected model is :")
 
     } else {
-      print("Le modele que vous avez sélectionné :")
       print("The model you have selected :")
 
     }
 
-  Model <- glm(as.formula(formula), family=binomial, data=tab)
-  summary(Model)
-  anova(Model,test="Chi")
+  Model <- glm(as.formula(formula), family=binomial, data=tableau_pres)
+  print(formula)
   print(paste0( "AIC = ",round(AIC(Model),3)))
 
-  print(formula)
+
   print(summary(aov(Model)))
-  print(paste0( "% of variability explained by each effect : ", round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)))
+  print("% of variability explained by each effect : ")
+  table_var <- round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)
+  table_var[2] <- round((summary(aov(Model))[[1]][2])*100/(sum(summary(aov(Model))[[1]][2])-summary(aov(Model))[[1]][length(summary(aov(Model))[[1]][,2]),2]))
+  table_var[length(summary(aov(Model))[[1]][,2]),2] <- NA
+  names(table_var) <- c("% variance",paste0("||    % variance of explained (", 100 - table_var[length(summary(aov(Model))[[1]][,2]),1],"%)"))
+  names(table_var[2]) <- paste0("% variance of explained (",round(100 - table_var[length(parameters),1],1),"%)")
+  print.data.frame(table_var)
 
   if (summary == TRUE) {
     print(summary(Model))
