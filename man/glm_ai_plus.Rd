@@ -5,7 +5,7 @@
 \title{Fit a Generalized Linear Models on abundance data}
 \usage{
 glm_ai_plus(
-  tab,
+  tableau_ab,
   parameters,
   formula_select,
   summary = FALSE,
@@ -13,7 +13,7 @@ glm_ai_plus(
 )
 }
 \arguments{
-\item{tab}{table of abundance data, extracted from the output of table_pres_abs}
+\item{tableau_ab}{table of abundance data, extracted from the output of table_pres_abs}
 
 \item{parameters}{list of parameters to test}
 
