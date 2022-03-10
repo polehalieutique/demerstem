@@ -18,7 +18,8 @@ mixdist_polymod(
   month_recrue,
   get_lmsd = FALSE,
   plot = FALSE,
-  sigma_adjust = 0
+  sigma_adjust = 0,
+  age = 0
 )
 }
 \arguments{
