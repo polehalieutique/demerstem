@@ -47,7 +47,7 @@
 #'                 lmsd = lmsd, get_lmsd = T, plot = T)
 #' @export
 
-mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ngroup, step_class, step_time, month_recrue, get_lmsd = FALSE, plot = FALSE, sigma_adjust = 0){
+mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ngroup, step_class, step_time, month_recrue, get_lmsd = FALSE, plot = FALSE, sigma_adjust = 0, age = 0){
   print("Polymodal decomposition of length frequencies")
 
   data_mix <- as.list(list(NULL))
@@ -69,9 +69,9 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
   data_freq <- data_freq %>% mutate(indice_croissance = case_when( month - month_recrue >= 0 ~ month - month_recrue,
                                                                    month - month_recrue < 0 ~ 12 - (month_recrue - month)))
 
-  data_freq <- data_freq %>% mutate(quarter =  ceiling((indice_croissance+1)/(12/step_time)))
-  data_freq$step_time <- data_freq$quarter
-
+  #data_freq <- data_freq %>% mutate(quarter =  ceiling((indice_croissance+1)/(12/step_time)))
+  data_freq$step_time <-  ceiling((data_freq$indice_croissance+1)/(12/step_time))
+  print(unique(data_freq$step_time)) #should be the same as in original data for step_time = 12
   # preparing data for polymodal decomposition with mixdist
 
   for (i in sort(unique(data_freq$step_time))){
@@ -105,18 +105,18 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     if (step_time!=1 & step_time !=12) {
       if (i != max(data_freq$step_time)) {
         vb <- (seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
-                 seq(1 + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), by=1))/2
+                 seq(1 + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), by=1))/2  - age
       }
       else {
         vb <- (seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
-                 seq(1 + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), by=1))/2 + ((unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time) - (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time))
+                 seq(1 + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), by=1))/2 + ((unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time) - (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time))  - age
       }
     }
     if (step_time ==1)  {
-      vb <- seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) + 0.5
+      vb <- seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) + 0.5  - age
     }
     if (step_time==12) {
-      vb <- seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1)
+      vb <- seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, by=1)  - age
     }
     L <- L_inf*(1-exp(-K*(vb - t0)))
     print(vb)
@@ -136,9 +136,9 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     prop[[i]] <- mix[[i]]$parameters$pi
     sd[[i]] <- mix[[i]]$parameters$sigma
 
-    if (get_lmsd==T) {
-      sd_lm <- rbind(sd_lm, data.frame(sd = mix[[i]]$parameters$sigma, age = vb))
-    }
+    #if (get_lmsd==T) {
+      sd_lm <- rbind(sd_lm, data.frame(sd = mix[[i]]$parameters$sigma, age = vb, prop = prop[[i]]))
+    #}
     if(step_time!=12) {
       ALK[,1:3] <- data_mix[[i]] %>%  mutate(prop_obs = count/sum(count, na.rm = T)) # might be removed
       vect <- NULL
@@ -169,6 +169,8 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     #Matrice_Capture <- rbind(Matrice_Capture, t(as.matrix(ALK$count)) %*% as.matrix(ALK[,4:(4 + ngroup -1)]))
 
   }
+    print('')
+    print(sd_lm)
 
   if (step_time == 12) {
     Matrice_Capture <- as.data.frame(NULL)
@@ -232,5 +234,13 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
   assign("sd", sd, envir=globalenv())
   assign("mean", mean, envir=globalenv())
   assign("prop", prop, envir=globalenv())
-
+print('')
+  if (step_time!=12) {
+    Mat_C <- apply(Matrice_Capture[4:(4+ngroup*step_time-1)], 2, sum)
+  }
+  if (step_time == 12) {
+    Mat_C <- apply(Matrice_Capture[4:(4+ngroup-1)], 2, sum)#capture_trim[10] <- 1
+  }
+  Mat_C <- data.frame(Catch = Mat_C)
+  assign("Mat_C", Mat_C, envir=globalenv())
 }

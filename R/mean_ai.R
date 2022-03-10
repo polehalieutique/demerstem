@@ -55,7 +55,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
   for (k in 1:length(type_other)) { # we want to standardize given a reference (the survey) for the years in common : value * mean(survey_common_year)/mean(other[k]_common_year)
     #Annee.indice <- as.numeric(data_IA$Year) - min(as.numeric(data_IA$Year))+1
     Annee.indice <- as.numeric(data_IA$Year) - min(data_IA$Year[which(data_IA[,2+k]>0)]) + 1
-    data_IA[,2+k] <- data_IA[,2+k]*1/(1+fish_power[1])^(Annee.indice-1)
+    data_IA[,2+k] <- data_IA[,2+k]*1/(1+fish_power[k])^(Annee.indice-1)
     data_IA_filter <- reshape2::melt(data_IA,id.vars="Year")
     data_IA_filter <- data_IA_filter %>% filter(variable %in% c(type_ref, type_other[k]))
     data_IA_filter <- data_IA_filter %>% pivot_wider(names_from = variable, values_from = value)
