@@ -1,7 +1,7 @@
 Package: demerstem
 Type: Package
 Title: This package aims to falicitate Fish stock assessement for west african partners involved in the EU DEMERSTEM project
-Version: 0.2.8.6
+Version: 0.2.8.7
 Author: Pierre Calvy, Fabien Bourinet, Florian Quemper, Didier Gascuel et Jérôme Guitton
 Maintainer: Jérôme Guitton <jerome.guitton@agrocampus-ouest.fr>
 Description: Before modelling, this package provides functions to create abundance indice from artisanal, industrial or scientific fisheries using GLM models.
@@ -31,5 +31,7 @@ Depends:
     mixdist,
     ggpubr,
     RColorBrewer,
-    R (>= 2.10)
+    R (>= 2.10),
+    TropFishR, 
+    propagate
 VignetteBuilder: knitr
