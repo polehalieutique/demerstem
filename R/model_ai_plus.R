@@ -157,7 +157,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
           inter_glm<-as.data.frame(inter_glm)
           inter_glm[,1] <- factor(inter_glm[,1], levels=levels(tableau_ab[,variable1]))
           inter_glm[,2] <- factor(inter_glm[,2], levels=levels(tableau_ab[,variable2]))
-          inter_glm$title <- paste("Interaction plot - abundance \n ", attr(glm_presabs[[1]]$term, "term.labels")[j])
+          inter_glm$title <- paste("Interaction plot - abundance \n ", attr(glm_indice_ab[[1]]$term, "term.labels")[j])
 
           plot_6 <- ggplot(data=inter_glm, aes(x=inter_glm[,1], y=fit, group=inter_glm[,2])) +
             geom_line(size=2, aes(color=inter_glm[,2]))+
