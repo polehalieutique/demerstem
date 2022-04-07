@@ -80,7 +80,7 @@ model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id,
         tempo <- j
         x1 <- ggplot(table_tempo) +
           geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "grey") +
-          ylab("Estimation") +
+          ylab("% presence") +
           facet_grid(~title) +
           theme_bw() +
           theme(strip.text.x = element_text(face = "bold")) +
@@ -98,7 +98,7 @@ model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id,
       if(vect_param[j]==facteur){
         plot_3 <- ggplot(table_tempo) +
                geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "grey") +
-               ylab("Estimation") +
+               ylab("% presence") +
                facet_grid(~title) +
                theme_nice() +
                theme(axis.text.x = element_text(angle = 60, size=9),

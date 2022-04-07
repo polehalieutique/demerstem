@@ -33,7 +33,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
   if(plot==TRUE){
 
     tableau_ab$facteur=factor(tableau_ab[,facteur])
-    tableau_ab$title <- paste("Observation abundance - ", title, "\n", facteur)
+    tableau_ab$title <- paste("Observation density - ", title, "\n", facteur)
     plot_1 <- ggplot(tableau_ab, aes(facteur))+geom_bar() + facet_grid(~title) + theme_nice() +
       theme(axis.text.x = element_text(angle = 60, size=9),
             plot.title = element_text(size=11, face="bold"),
@@ -103,13 +103,13 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
       count <- count + 1
       table_tempo$modality <- as.factor(table_tempo$modality)
       table_tempo$modality <- ordered(table_tempo$modality, levels = levels(tableau_ab[,vect_param[j]]))
-      table_tempo$title <- paste0("Estimation - abundance - ", title, "\n", vect_param[j])
+      table_tempo$title <- paste0("Estimation - density - ", title, "\n", vect_param[j])
 
       list_plot[[j]] <- local({
         tempo <- j
         x1 <- ggplot(table_tempo) +
           geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "grey") +
-          ylab("Estimation") +
+          ylab("Density") +
           facet_grid(~title) +
           theme_bw() +
           theme(strip.text.x = element_text(face = "bold")) +
@@ -127,7 +127,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
       if(vect_param[j]==facteur){
         plot_5 <- ggplot(table_tempo) +
           geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "grey") +
-          ylab("Estimation") +
+          ylab("Density") +
           facet_grid(~title) +
           theme_nice() +
           theme(axis.text.x = element_text(angle = 60, size=9),
@@ -157,7 +157,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
           inter_glm<-as.data.frame(inter_glm)
           inter_glm[,1] <- factor(inter_glm[,1], levels=levels(tableau_ab[,variable1]))
           inter_glm[,2] <- factor(inter_glm[,2], levels=levels(tableau_ab[,variable2]))
-          inter_glm$title <- paste("Interaction plot - abundance \n ", attr(glm_indice_ab[[1]]$term, "term.labels")[j])
+          inter_glm$title <- paste("Interaction plot - density \n ", attr(glm_indice_ab[[1]]$term, "term.labels")[j])
 
 
           plot_6 <- ggplot(data=inter_glm, aes(x=inter_glm[,1], y=fit, group=inter_glm[,2])) +
@@ -165,7 +165,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
             geom_ribbon(aes(ymin=fit-se, ymax=fit+se,fill=inter_glm[,2]),alpha=.2)+
             facet_grid(~title) +
             labs(x = variable1,
-                 y = "Predicted abundance",
+                 y = "Predicted density",
                  color = variable2, fill = variable2) +
             theme_nice()+
             #theme(text = element_text(size=12),
@@ -188,7 +188,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
           plot_7 <- ggplot(data=inter_glm, aes(x=inter_glm[,1], y=fit, fill=inter_glm[,2])) +
             geom_bar(stat="identity", position=position_dodge()) +
             labs(x = variable1,
-                 y = "Predicted abundance",
+                 y = "Predicted density",
                  color = variable2, fill = variable2) +
             facet_grid(~title) +
             theme_nice() + theme(axis.text.x = element_text(angle = 30, size=8),
