@@ -15,6 +15,16 @@
 
 moda_facto <- function (tab, facteur, titre){
   tab$facteur=factor(tab[,facteur])
-  ggplot(tab, aes(facteur))+ geom_bar() + ggtitle(paste(facteur, titre)) + ylab("nombre de donnees") + theme(axis.text.x = element_text(angle = 45)) +
-    theme(axis.text.x = element_text(angle = 60, size=8), plot.title = element_text(size=10, face="bold"), axis.title.x = element_text(size=8), axis.title.y = element_text(size=8), legend.title = element_text(size=8), legend.text = element_text(size=8))
+  tab$title <- paste("Observations - Abundance ", title, "\n", facteur)
+  ggplot(tab, aes(facteur)) +
+    geom_bar() +
+    facet_grid(~title)+
+    theme_bw() +
+    ylab("count") +
+    theme(axis.text.x = element_text(angle = 60, size=9),
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(size=9),
+          legend.title = element_text(size=10),
+          legend.text = element_text(size=10),
+          plot.title = element_text(size=10, face="bold"))
 }

@@ -79,6 +79,36 @@ glm_ai_plus <- function(tableau_ab, parameters, formula_select, summary=FALSE, f
   names(table_var[2]) <- paste0("% variance of explained (",round(100 - table_var[length(parameters),1],1),"%)")
   print.data.frame(table_var)
 
+  table_var <- summary(aov(Model))[[1]][1]
+  table_var[2] <- round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)
+  table_var[3] <- round((summary(aov(Model))[[1]][2])*100/(sum(summary(aov(Model))[[1]][2])-summary(aov(Model))[[1]][length(summary(aov(Model))[[1]][,2]),2]))
+  table_var[length(summary(aov(Model))[[1]][,2]),3] <- NA
+  table_var[4] <- summary(aov(Model))[[1]][5]
+  table_var[5] <- summary(aov(Model))[[1]][5]
+  for ( k in 1:(dim(table_var[4])[1]-1)) {
+    print(table_var[k,4])
+    if(summary(aov(Model))[[1]][k,5]< 1) {table_var[k,4] <- "< 1"
+    table_var[k,5] <- " "}
+
+    if(summary(aov(Model))[[1]][k,5]< 0.1) {table_var[k,4] <- "< 0.1"
+    table_var[k,5] <- "."}
+
+    if(summary(aov(Model))[[1]][k,5]< 0.05) {table_var[k,4] <- "< 0.05"
+    table_var[k,5] <- "*"}
+
+    if(summary(aov(Model))[[1]][k,5]< 0.01) {table_var[k,4] <- "< 0.01"
+    table_var[k,5] <- "**"}
+
+    if(summary(aov(Model))[[1]][k,5]< 0.001) {table_var[k,4] <- "< 0.001"
+    table_var[k,5] <- "***"}
+  }
+
+  names(table_var) <- c("Df",
+                        "% variance",
+                        paste0("% variance of explained (", 100 - table_var[length(summary(aov(Model))[[1]][,2]),2],"%)"),
+                        "P-value",
+                        "signif.")
+
   if (summary == TRUE) {
     print(summary(Model))
     summary(Model)
@@ -91,7 +121,7 @@ glm_ai_plus <- function(tableau_ab, parameters, formula_select, summary=FALSE, f
     qqline(res1)
     plot(Model, 4)
   }
-  return(Model)
+  return(list(Model, summary(aov(Model)), table_var))
 }
 
 
