@@ -105,7 +105,7 @@ glm_ai_plus <- function(tableau_ab, parameters, formula_select, summary=FALSE, f
 
   names(table_var) <- c("Df",
                         "% variance",
-                        paste0("% variance of explained (", 100 - table_var[length(summary(aov(Model))[[1]][,2]),2],"%)"),
+                        paste0("% of explained (", 100 - table_var[length(summary(aov(Model))[[1]][,2]),2],"%)"),
                         "P-value",
                         "signif.")
 
