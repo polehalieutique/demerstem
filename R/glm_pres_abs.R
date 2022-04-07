@@ -93,7 +93,7 @@ glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FA
   table_var[4] <- summary(aov(Model))[[1]][5]
   table_var[5] <- summary(aov(Model))[[1]][5]
 for ( k in 1:(dim(table_var[4])[1]-1)) {
-  print(table_var[k,4])
+
   if(summary(aov(Model))[[1]][k,5]< 1) {table_var[k,4] <- "< 1"
   table_var[k,5] <- " "}
 
