@@ -54,8 +54,8 @@ new_delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list
   Table_Pred <- expand.grid(c(tibble))
   results <- Table_Pred
 
-  Table_Pred$i_ab <- exp(predict.glm(glm_indice_ab,results , type = "r", se = T)$fit + 0.5*((predict.glm(glm_indice_ab,results , type = "r", se = T)$se.fit)^2))
-  Table_Pred$pres <- predict.glm(glm_presabs,results , type = "r", se = T)$fit
+  Table_Pred$i_ab <- exp(predict.glm(glm_indice_ab[[1]], results , type = "r", se = T)$fit + 0.5*((predict.glm(glm_indice_ab[[1]],results , type = "r", se = T)$se.fit)^2))
+  Table_Pred$pres <- predict.glm(glm_presabs[[1]],results , type = "r", se = T)$fit
 
 
 
@@ -91,8 +91,9 @@ new_delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list
   #print(g3)
   # g3 <- ggplot(final_predict) + geom_line(size = 1.1, aes(color = zone, x=annee, y= mean_year), stat="identity") + labs(x = "Year", y = "Abundance indices") + scale_y_continuous(limits=c(0, max(final_predict$mean_year))) + facet_grid(~title) + theme_nice()#+ ylim(0,max(table_annee_final$EstimateurFinal)))
   print(g3)
+  list_graph <- list(g1,g3)
   final_predict$title <- NULL
-  return (list(final_predict,Table_Pred))
+  return (list(final_predict,Table_Pred, list_graph))
 
 }
 

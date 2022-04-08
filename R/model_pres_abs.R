@@ -129,7 +129,7 @@ model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id,
           inter_glm<-as.data.frame(inter_glm)
           inter_glm[,1] <- factor(inter_glm[,1], levels=levels(tableau_pres[,variable1]))
           inter_glm[,2] <- factor(inter_glm[,2], levels=levels(tableau_pres[,variable2]))
-          inter_glm$title <- paste("Interaction plot - pres/abs \n ", attr(glm_presabs[[1]]$term, "term.labels")[j])
+          inter_glm$title <- paste("Interaction - pres/abs \n ", attr(glm_presabs[[1]]$term, "term.labels")[j])
 
           plot_4 <- ggplot(data=inter_glm, aes(x=inter_glm[,1], y=fit, group=inter_glm[,2])) +
             geom_line(size=2, aes(color=inter_glm[,2]))+
