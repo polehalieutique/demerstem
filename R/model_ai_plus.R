@@ -34,7 +34,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
 
     tableau_ab$facteur=factor(tableau_ab[,facteur])
     tableau_ab$title <- paste("Observation density - ", title, "\n", facteur)
-    plot_1 <- ggplot(tableau_ab, aes(facteur), fill = 'blue')+geom_bar() + facet_grid(~title) + theme_nice() +
+    plot_1 <- ggplot(tableau_ab, aes(facteur))+geom_bar(fill = '#00BFC4') + facet_grid(~title) + theme_nice() +
       theme(axis.text.x = element_text(angle = 60, size=9),
             plot.title = element_text(size=11, face="bold"),
             axis.title.x = element_blank(),
