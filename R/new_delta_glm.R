@@ -66,7 +66,7 @@ new_delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list
 
   Table_Pred$estimation <- Table_Pred$i_ab * Table_Pred$pres
   for (k in 1:length(repartition)) {
-    Table_Pred <- Table_Pred %>%  full_join(repartition[[k]], by = colnames(repartition[[k]])[1])
+    Table_Pred <- Table_Pred %>%  full_join(repartition[[k]])
     Table_Pred$estimation <- Table_Pred$estimation * Table_Pred$proportion
     Table_Pred$proportion <- NULL
   }

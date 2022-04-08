@@ -110,6 +110,7 @@ for ( k in 1:(dim(table_var[4])[1]-1)) {
   table_var[k,5] <- "***"}
 }
 
+
   names(table_var) <- c("Df",
                         "% variance",
                         paste0("% of explained (", 100 - table_var[length(summary(aov(Model))[[1]][,2]),2],"%)"),
