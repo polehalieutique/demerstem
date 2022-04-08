@@ -160,9 +160,9 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
           inter_glm$title <- paste("Interaction - density \n ", attr(glm_indice_ab[[1]]$term, "term.labels")[j])
 
 
-          plot_6 <- ggplot(data=inter_glm, aes(x=inter_glm[,1], y=fit, group=inter_glm[,2])) +
+          plot_6 <- ggplot(data=inter_glm, aes(x=inter_glm[,1], y=exp(fit+0.5*VAR), group=inter_glm[,2])) +
             geom_line(size=2, aes(color=inter_glm[,2]))+
-            geom_ribbon(aes(ymin=fit-se, ymax=fit+se,fill=inter_glm[,2]),alpha=.2)+
+            geom_ribbon(aes(ymin=exp(fit+0.5*VAR) - exp(se + 0.5*VAR), ymax=exp(fit+0.5*VAR) + exp(se + 0.5*VAR),fill=inter_glm[,2]),alpha=.2)+
             facet_grid(~title) +
             labs(x = variable1,
                  y = "Predicted density",
@@ -185,7 +185,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
 
           list_graph[[length(list_graph) + 1]] <- list(plot_6)
 
-          plot_7 <- ggplot(data=inter_glm, aes(x=inter_glm[,1], y=fit, fill=inter_glm[,2])) +
+          plot_7 <- ggplot(data=inter_glm, aes(x=inter_glm[,1], y=exp(fit+0.5*VAR), fill=inter_glm[,2])) +
             geom_bar(stat="identity", position=position_dodge()) +
             labs(x = variable1,
                  y = "Predicted density",
