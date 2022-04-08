@@ -16,7 +16,7 @@
 moda_facto <- function (tab, facteur, titre){
   tab$facteur=factor(tab[,facteur])
   tab$title <- paste("Observations - Abundance ", title, "\n", facteur)
-  ggplot(tab, aes(facteur), color = 'blue') +
+  ggplot(tab, aes(facteur), fill = 'blue') +
     geom_bar() +
     facet_grid(~title)+
     theme_bw() +
