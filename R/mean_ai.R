@@ -55,7 +55,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
     labs(x="year", color = "Variable") +
     theme_nice()
 
-  list_graph[[length(list_graph) + 1]] <- t
+  list_graph[[length(list_graph) + 1]] <- list(t)
   #calcul standardisation sur années communes
   #data_IA$Any_NA <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) anyNA(x))
   data_int <- data_IA %>% dplyr::select(year, type_ref)
@@ -102,7 +102,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
     labs(x="year", color = "Variable") +
     theme_nice()
   #v <- v + geom_line(aes(x=data_IA$year, y=data_IA$mean_standard_AI), col = "black") + geom_point(aes(x=data_IA$year, y=data_IA$mean_standard_AI), col = "black")
-  list_graph[[length(list_graph) + 1]] <- v
+  list_graph[[length(list_graph) + 1]] <- list(v)
   if (MOY == TRUE){
     data_IA <- mean_3years(data_IA)
     IA_long<-reshape2::melt(data_IA,id.vars="year")
@@ -123,7 +123,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
       labs(x="year", color = "Variable" ) +
       theme_nice()
     #s <- s + geom_line(aes(x=data_IA$year, y=data_IA$mean_standard_AI_cor), col = "black") + geom_point(aes(x=data_IA$year, y=data_IA$mean_standard_AI_cor), col = "black")
-    list_graph[[length(list_graph) + 1]] <- s
+    list_graph[[length(list_graph) + 1]] <- list(s)
   }
 
   return(list(data_IA, list_graph))

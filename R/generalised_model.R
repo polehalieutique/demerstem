@@ -59,7 +59,7 @@ generalised_model <- function(table_Efox, graph_param, vect_ini=c(10, -0.5, 1), 
     geom_hline(yintercept= rep(table_Efox$IA[nrow(table_Efox)],nrow(table_Efox)), linetype="dashed", color = "red") +geom_vline(xintercept= rep(1,nrow(table_Efox)), linetype="dashed", color = "red") +
     theme_nice() + labs(x = "mE", y = "Abundance indices")
   #plotGEN_log <- plotGEN_log + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
-  list_graph[[length(list_graph) + 1]] <- plotGEN_log
+  list_graph[[length(list_graph) + 1]] <- list(plotGEN_log)
 
 
 
@@ -74,7 +74,7 @@ generalised_model <- function(table_Efox, graph_param, vect_ini=c(10, -0.5, 1), 
     theme_nice() + labs(x = "mE", y = "Abundance indices")
   #plotGEN_log_2 <- plotGEN_log_2 + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
 
-  list_graph[[length(list_graph) + 1]] <- plotGEN_log_2
+  list_graph[[length(list_graph) + 1]] <- list(plotGEN_log_2)
 
 
 
@@ -83,7 +83,7 @@ generalised_model <- function(table_Efox, graph_param, vect_ini=c(10, -0.5, 1), 
     geom_hline(yintercept= rep(table_Efox$Capture[nrow(table_Efox)], nrow(table_Efox)), linetype="dashed", color = "red") + geom_vline(xintercept= rep(table_Efox$E[nrow(table_Efox)],nrow(table_Efox)), linetype="dashed", color = "red") +
     theme_nice() + labs(x = "mE", y = "Catch") # D.a dit de prendre E
   #plotGEN_3 <- plotGEN_3 + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
-  list_graph[[length(list_graph) + 1]] <- plotGEN_3
+  list_graph[[length(list_graph) + 1]] <- list(plotGEN_3)
 
   plotGEN_4 <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="blue", size = 1)
   #+ geom_ribbon(data=interval_confidence, aes(x=Efox, ymin=prod_low, ymax= prod_up), alpha=0.15, inherit.aes=F, fill="blue")
@@ -92,7 +92,7 @@ generalised_model <- function(table_Efox, graph_param, vect_ini=c(10, -0.5, 1), 
   plotGEN_4 <- plotGEN_4 + geom_text(aes(x=table_Efox$E, y=table_Efox$Capture, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=4) +
     geom_hline(yintercept= rep(table_Efox$Capture[nrow(table_Efox)], nrow(table_Efox)), linetype="dashed", color = "red") + geom_vline(xintercept= rep(table_Efox$E[nrow(table_Efox)],nrow(table_Efox)), linetype="dashed", color = "red") +
     facet_grid(~table_Efox$title) + labs(x = "mE", y = "Catch") + theme_nice()
-  list_graph[[length(list_graph) + 1]] <- plotGEN_4
+  list_graph[[length(list_graph) + 1]] <- list(plotGEN_4)
 
 
   table_Efox$title <- paste0(table_Efox$title, "\n Abundance indices predicted vs observed")
@@ -100,7 +100,7 @@ generalised_model <- function(table_Efox, graph_param, vect_ini=c(10, -0.5, 1), 
   plotGEN_5 <- plotGEN_5 + geom_point(aes(x=table_Efox$Year, y=table_Efox$IA), color="black") #E ou Efox? D.a dit de prendre E je crois
   plotGEN_5 <- plotGEN_5  + facet_grid(~table_Efox$title) + theme_nice() + labs(x = "Year", y = "Abundance indices" )
   #plotGEN_5 <- plotGEN_5 + xlim(table_Efox$Year[1], table_Efox$Year[nrow(table_Efox)]) + ylim(0,as.numeric(graph_param[4]))
-  list_graph[[length(list_graph) + 1]] <- plotGEN_5
+  list_graph[[length(list_graph) + 1]] <- list(plotGEN_5)
 
 
 
