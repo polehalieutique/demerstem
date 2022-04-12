@@ -28,7 +28,6 @@ glm_ai_plus <- function(tableau_ab, parameters, formula_select, summary=FALSE, f
   #passer les parametres en facteur
   lapply(tableau_ab[,parameters], as.factor)
   #ecriture formule
-
   a <- paste(parameters[1], "+")
   for (i in 2 : (length(parameters)-1)){
     a <- paste(a, parameters[i], "+")}

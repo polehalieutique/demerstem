@@ -22,7 +22,7 @@
 #' @export
 
 model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id, catch_col, interactions = FALSE, limit, formula_select, plot = FALSE, summary = FALSE) {
-  list_graph<- list(NULL)
+  list_graph<- NULL
   print("SOUS-MODELE PRESENCE ABSENCE")
   tableau_pres <- table_pres_abs(tab, esp, list_param, var_eff_list, espece_id, catch_col, limit)
   parameters <- list_param
@@ -37,11 +37,9 @@ model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id,
                   axis.title.y = element_text(size=9),
                   legend.title = element_text(size=10),
                   legend.text = element_text(size=10))
-    print(plot_1)
-    list_graph[[1]] <- list(plot_1)
+    list_graph[[length(list_graph) + 1]] <- list(plot_1)
     plot_2 <- ggarrange(plotlist=lapply(parameters, pres_facto, tab=tableau_pres, title),
                     ncol=2, nrow=2, common.legend = TRUE, legend = "bottom")
-    print(plot_2)
     list_graph[[length(list_graph) + 1]] <- list(plot_2)
   }
 
@@ -152,7 +150,6 @@ model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id,
                   legend.title = element_text(size=8),
                   legend.text = element_text(size=8))
 
-          print(plot_4)
 
           list_graph[[length(list_graph) + 1]] <- list(plot_4)
 
@@ -168,15 +165,12 @@ model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id,
                                axis.title.y = element_text(size=8),
                                legend.title = element_text(size=8),
                                legend.text = element_text(size=8))
-          print(plot_5)
           list_graph[[length(list_graph) + 1]] <- list(plot_5)
         }
       }
     }
   }
   plot_6 <- ggarrange(plotlist=list_plot, ncol=2, nrow=2, common.legend = TRUE, legend = "bottom")
-  if (plot ==T) {print(plot_3)}
-  print(plot_6)
   list_graph[[length(list_graph) + 1]] <- list(plot_6)
   return(list(table_interact, glm_presabs, list_graph))
 }
