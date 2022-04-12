@@ -126,7 +126,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
     list_graph[[length(list_graph) + 1]] <- s
   }
 
-  return(data_IA, list_graph)
+  return(list(data_IA, list_graph))
 
 }
 

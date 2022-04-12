@@ -110,7 +110,7 @@ generalised_model <- function(table_Efox, graph_param, vect_ini=c(10, -0.5, 1), 
 
   print(table_outputs)
 
-  return(table_outputs, list_graph)
+  return(list(table_outputs, list_graph))
 
 }
 
