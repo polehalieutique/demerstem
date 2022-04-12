@@ -23,7 +23,7 @@
 #' @export
 
 model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id, catch_col, interactions=FALSE, limit , formula_select, plot = FALSE, summary = FALSE, force_interaction = FALSE){
-  list_graph<- list(NULL)
+  list_graph<- NULL
   print("SOUS-MODELE ABONDANCE")
   tableau_pres <- table_pres_abs(tab, esp, list_param,  var_eff_list, espece_id, catch_col, limit)
   tableau_ab <- filter(tableau_pres, i_ab>0)
@@ -41,12 +41,10 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
             axis.title.y = element_text(size=9),
             legend.title = element_text(size=10),
             legend.text = element_text(size=10))
-    print(plot_1)
-    list_graph[[1]] <- list(plot_1)
+    list_graph[[length(list_graph) + 1]] <- list(plot_1)
 
     plot_2 <- ggarrange(plotlist=lapply(parameters, moda_facto, tab=tableau_ab, title),
                         ncol=2, nrow=2, common.legend = TRUE, legend = "bottom")
-    print(plot_2)
     list_graph[[length(list_graph) + 1]] <- list(plot_2)
 
     requete <- tableau_ab %>% dplyr::group_by(facteur, annee) %>% dplyr::summarise(mean_ind_ab=mean(i_ab))
@@ -66,11 +64,11 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
             ylab("mean CPUE") +
             theme(legend.key.size = unit(0.4, "cm"), legend.title = element_text(size=7), legend.text = element_text(size=6))
     list_graph[[length(list_graph) + 1]] <- list(plot_3)
-    print(plot_3)
+
     plot_4 <- ggarrange(plotlist=lapply(parameters, evo_facto, tab=tableau_ab, title),
                     ncol=2, nrow=2)
     list_graph[[length(list_graph) + 1]] <- list(plot_4)
-    print(plot_4)
+
   }
 
   for (i in 1:length(parameters)){
@@ -181,7 +179,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
                   legend.title = element_text(size=8),
                   legend.text = element_text(size=8))
 
-          print(plot_6)
+
 
           list_graph[[length(list_graph) + 1]] <- list(plot_6)
 
@@ -197,15 +195,15 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
                                  axis.title.y = element_text(size=8),
                                  legend.title = element_text(size=8),
                                  legend.text = element_text(size=8))
-          print(plot_7)
+
           list_graph[[length(list_graph) + 1]] <- list(plot_7)
         }
       }
     }
   }
-  if (plot ==T) {print(plot_5)}
+
   plot_8 <- ggarrange(plotlist=list_plot, ncol=2, nrow=2, common.legend = TRUE, legend = "bottom")
   list_graph[[length(list_graph) + 1]] <- list(plot_8)
-  print(plot_8)
+
   return(list(table_interact, glm_indice_ab, list_graph))
 }
