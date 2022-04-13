@@ -71,18 +71,18 @@ new_delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list
     Table_Pred$proportion <- NULL
   }
   final_predict <- Table_Pred %>% group_by(annee) %>%  summarise(mean_year = mean(estimation))
-  names(final_predict)[names(final_predict) == 'mean_year'] <- paste0("EstimateurFinal_",data_type)
+  names(final_predict)[names(final_predict) == 'mean_year'] <- data_type
   final_predict <- as.data.frame(final_predict)
 
   #Plot avec Annee as numeric
   final_predict$annee <- as.numeric(as.character(final_predict$annee))
 
-  EstimateurFinal <- as.name(paste0("EstimateurFinal_",data_type))
+  EstimateurFinal <- as.name(data_type)
   final_predict$title <- title
-  g1 <- ggplot(final_predict) + geom_bar(aes_string(x='annee', y= paste0("EstimateurFinal_",data_type)), stat="identity") + labs(x = "Year", y = "Abundance indices") + facet_grid(~title) + theme_nice()
+  g1 <- ggplot(final_predict) + geom_bar(aes_string(x='annee', y= paste0(data_type)), stat="identity") + labs(x = "Year", y = "Abundance indices") + facet_grid(~title) + theme_nice()
   #g2 <- ggplot(final_predict) + geom_line(size = 1, aes_string(x='annee', y= paste0("EstimateurFinal_",data_type)), stat="identity") + labs(x = "Year", y = "Abundance indices") + scale_y_continuous(limits=c(0, max(final_predict[,2]))) + facet_grid(~title) + theme_nice()#+ ylim(0,max(table_annee_final$EstimateurFinal)))
   g3 <- ggplot(final_predict) + geom_line(aes_string(x = "annee",
-                                                     y = paste0("EstimateurFinal_", data_type)), stat = "identity") +
+                                                     y = paste0(data_type)), stat = "identity") +
     labs(x = "Year", y = "Abundance indices") + scale_y_continuous(limits = c(0,
                                                                               max(final_predict[,2]))) + facet_grid(~title) +
     theme_nice()

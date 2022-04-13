@@ -48,11 +48,9 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
   IA_long_1$title <- "Abundance indices - raw data"
   t <- ggplot(IA_long_1) +
     geom_line(aes(x=year, y=value, color=variable)) +
-    geom_point(aes(x=year, y=value, color=variable))
-  t <- t +
-    ylab("Abundance indices") +
-    facet_grid(~IA_long_1$title) +
-    labs(x="year", color = "Variable") +
+    geom_point(aes(x=year, y=value, color=variable)) +
+    facet_grid(~title) +
+    labs(x="Year", y = "Abundance indices", color = "Variable") +
     theme_nice()
 
   list_graph[[length(list_graph) + 1]] <- list(t)
@@ -83,7 +81,7 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
   }
   data_IA <- data_int
   #data_IA$mean_standard_AI <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) mean(x, na.rm = T))
-  data_IA$mean_standard_AI <- apply(as.data.frame(data_IA[,-1]), 1, function(x) mean(x, na.rm = T)) # mean of all colomns
+  data_IA$AI_standard <- apply(as.data.frame(data_IA[,-1]), 1, function(x) mean(x, na.rm = T)) # mean of all colomns
   IA_long_2<-reshape2::melt(data_IA,id.vars="year")
   #IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(data_IA)), names_to = "variable", values_to= "value")
   IA_long_2$variable <- as.factor(IA_long_2$variable)
@@ -92,14 +90,12 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
   palette <- brewer.pal(nb_col,"Set1") #Max = 9!
   palette[nb_col] <- "#000000"
   #Plot des nouveaux IA standardisé à 1 / plot of the new AIs standardised
-  v <- ggplot() +
-    geom_line(aes(x=IA_long_2$year, y=IA_long_2$value, color=IA_long_2$variable)) +
-    geom_point(aes(x=IA_long_2$year, y=IA_long_2$value, color=IA_long_2$variable))
-  v <- v + ylab("Abundance indice") #+ scale_color_brewer(palette="Set1")
-  v <- v +
+  v <- ggplot(IA_long_2) +
+    geom_line(aes(x=year, y=value, color=variable)) +
+    geom_point(aes(x=year, y=value, color=variable)) +
     scale_color_manual(values = palette) +
-    facet_grid(~IA_long_2$title) +
-    labs(x="year", color = "Variable") +
+    facet_grid(~title) +
+    labs(x="Year", y ="Abundance indices", color = "Variable") +
     theme_nice()
   #v <- v + geom_line(aes(x=data_IA$year, y=data_IA$mean_standard_AI), col = "black") + geom_point(aes(x=data_IA$year, y=data_IA$mean_standard_AI), col = "black")
   list_graph[[length(list_graph) + 1]] <- list(v)
@@ -113,14 +109,12 @@ mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_
     palette[nb_col] <- "#000000"
 
     #Plot des nouveaux IA standardisé à 1 / plot of the new AIs standardised
-    s <- ggplot() +
-      geom_line(aes(x=IA_long_3$year, y=IA_long_3$value, color=IA_long_3$variable)) +
-      geom_point(aes(x=IA_long_3$year, y=IA_long_3$value, color=IA_long_3$variable))
-    s <- s + ylab("Abundance indice") #+ scale_color_brewer(palette="Set1")
-    s <- s +
+    s <- ggplot(IA_long_3) +
+      geom_line(aes(x=year, y=value, color=variable)) +
+      geom_point(aes(x=year, y=value, color=variable)) +
       scale_color_manual(values = palette) +
-      facet_wrap(~IA_long_3$title) +
-      labs(x="year", color = "Variable" ) +
+      facet_wrap(~title) +
+      labs(x="Year", y ="Abundance indices", color = "Variable" ) +
       theme_nice()
     #s <- s + geom_line(aes(x=data_IA$year, y=data_IA$mean_standard_AI_cor), col = "black") + geom_point(aes(x=data_IA$year, y=data_IA$mean_standard_AI_cor), col = "black")
     list_graph[[length(list_graph) + 1]] <- list(s)

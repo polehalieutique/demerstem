@@ -27,6 +27,7 @@
 
 glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FALSE)
 {
+
   # parameters as factors
   lapply(tableau_pres[,parameters], as.factor)
   # Preparation of factors

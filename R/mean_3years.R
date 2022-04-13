@@ -15,11 +15,11 @@
 
 
 mean_3years <- function(data){
-  data$mean_standard_AI_cor[1] <- mean(c(data$mean_standard_AI[1], data$mean_standard_AI[1], data$mean_standard_AI[2]), na.rm=T)
+  data$AI_cor[1] <- mean(c(data$AI_standard[1], data$AI_standard[1], data$AI_standard[2]), na.rm=T)
   z <- nrow(data)
-  data$mean_standard_AI_cor[z] <- mean(c(data$mean_standard_AI[z], data$mean_standard_AI[z], data$mean_standard_AI[z-1]), na.rm=T)
+  data$AI_cor[z] <- mean(c(data$AI_standard[z], data$AI_standard[z], data$AI_standard[z-1]), na.rm=T)
   for (i in 2:(nrow(data)-1)){
-    data$mean_standard_AI_cor[i] <- mean(c(data$mean_standard_AI[i-1], data$mean_standard_AI[i], data$mean_standard_AI[i+1]), na.rm=T)
+    data$AI_cor[i] <- mean(c(data$AI_standard[i-1], data$AI_standard[i], data$AI_standard[i+1]), na.rm=T)
 
   }
 
