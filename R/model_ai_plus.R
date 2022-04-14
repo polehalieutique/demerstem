@@ -56,7 +56,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
             theme_nice() +
             facet_grid(~title) +
       theme(axis.text.x = element_text(angle = 60, size=9),
-            plot.title = element_text(size=11, face="bold"),
+            strip.text.x = element_text(face = "bold"),
             axis.title.x = element_blank(),
             axis.title.y = element_text(size=9),
             legend.title = element_text(size=10),

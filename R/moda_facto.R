@@ -1,7 +1,7 @@
 #'  nombre de donnees par modalite de chaque parametre
 #' @param tab tableau de données
 #' @param facteur facteurs
-
+#' @param title title
 #' @examples
 #' PA #
 #' tableau_pa_pres <- indice_ab_pres (tableau_pa, "commercial", "auto", esp="BOBO", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, seuil=0.005)
@@ -12,7 +12,7 @@
 
 #' @export
 
-moda_facto <- function (tab, facteur){
+moda_facto <- function (tab, facteur, title){
   tab$facteur=factor(tab[,facteur])
   tab$title <- paste("Observations - Abundance ", title, "\n", facteur)
   ggplot(tab, aes(facteur)) +
