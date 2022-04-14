@@ -4,12 +4,14 @@
 \alias{moda_facto}
 \title{nombre de donnees par modalite de chaque parametre}
 \usage{
-moda_facto(tab, facteur)
+moda_facto(tab, facteur, title)
 }
 \arguments{
 \item{tab}{tableau de données}
 
 \item{facteur}{facteurs}
+
+\item{title}{title}
 }
 \description{
 nombre de donnees par modalite de chaque parametre
