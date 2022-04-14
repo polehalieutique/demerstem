@@ -88,33 +88,35 @@ glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FA
   print.data.frame(table_var)
 
   table_var <- summary(aov(Model))[[1]][1]
-  table_var[2] <- round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)
-  table_var[3] <- round((summary(aov(Model))[[1]][2])*100/(sum(summary(aov(Model))[[1]][2])-summary(aov(Model))[[1]][length(summary(aov(Model))[[1]][,2]),2]))
-  table_var[length(summary(aov(Model))[[1]][,2]),3] <- NA
-  table_var[4] <- summary(aov(Model))[[1]][5]
+  table_var[1] <- row.names(table_var)
+  table_var[2] <- summary(aov(Model))[[1]][1]
+  table_var[3] <- round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)
+  table_var[4] <- round((summary(aov(Model))[[1]][2])*100/(sum(summary(aov(Model))[[1]][2])-summary(aov(Model))[[1]][length(summary(aov(Model))[[1]][,2]),2]))
+  table_var[length(summary(aov(Model))[[1]][,2]),4] <- NA
   table_var[5] <- summary(aov(Model))[[1]][5]
-for ( k in 1:(dim(table_var[4])[1]-1)) {
+  table_var[6] <- summary(aov(Model))[[1]][5]
+for ( k in 1:(dim(table_var[5])[1]-1)) {
 
-  if(summary(aov(Model))[[1]][k,5]< 1) {table_var[k,4] <- "< 1"
-  table_var[k,5] <- " "}
+  if(summary(aov(Model))[[1]][k,5]< 1) {table_var[k,5] <- "< 1"
+  table_var[k,6] <- " "}
 
-  if(summary(aov(Model))[[1]][k,5]< 0.1) {table_var[k,4] <- "< 0.1"
-  table_var[k,5] <- "."}
+  if(summary(aov(Model))[[1]][k,5]< 0.1) {table_var[k,5] <- "< 0.1"
+  table_var[k,6] <- "."}
 
-  if(summary(aov(Model))[[1]][k,5]< 0.05) {table_var[k,4] <- "< 0.05"
-  table_var[k,5] <- "*"}
+  if(summary(aov(Model))[[1]][k,5]< 0.05) {table_var[k,5] <- "< 0.05"
+  table_var[k,6] <- "*"}
 
-  if(summary(aov(Model))[[1]][k,5]< 0.01) {table_var[k,4] <- "< 0.01"
-  table_var[k,5] <- "**"}
+  if(summary(aov(Model))[[1]][k,5]< 0.01) {table_var[k,5] <- "< 0.01"
+  table_var[k,6] <- "**"}
 
-  if(summary(aov(Model))[[1]][k,5]< 0.001) {table_var[k,4] <- "< 0.001"
-  table_var[k,5] <- "***"}
+  if(summary(aov(Model))[[1]][k,5]< 0.001) {table_var[k,5] <- "< 0.001"
+  table_var[k,6] <- "***"}
 }
 
 
-  names(table_var) <- c("Df",
+  names(table_var) <- c("Effect", "Df",
                         "% variance",
-                        paste0("% of explained (", 100 - table_var[length(summary(aov(Model))[[1]][,2]),2],"%)"),
+                        paste0("% of explained (", 100 - table_var[length(summary(aov(Model))[[1]][,2]),3],"%)"),
                         "P-value",
                         "signif.")
 
