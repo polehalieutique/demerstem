@@ -78,7 +78,7 @@ model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id,
         tempo <- j
         x1 <- ggplot(table_tempo) +
           geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "grey") +
-          ylab("% presence") +
+          ylab("probability of presence") +
           facet_grid(~title) +
           theme_bw() +
           theme(strip.text.x = element_text(face = "bold")) +
@@ -96,7 +96,7 @@ model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id,
       if(vect_param[j]==facteur){
         plot_3 <- ggplot(table_tempo) +
                geom_bar(aes(x=modality, y=corrected_estimates), stat="identity", color = "black", fill = "grey") +
-               ylab("% presence") +
+               ylab("probability of presence") +
                facet_grid(~title) +
                theme_nice() +
                theme(axis.text.x = element_text(angle = 60, size=9),
@@ -134,7 +134,7 @@ model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id,
             geom_ribbon(aes(ymin=fit-se, ymax=fit+se,fill=inter_glm[,2]),alpha=.2)+
             facet_grid(~title) +
             labs(x = variable1,
-                 y = "Predicted % of presence",
+                 y = "Predicted probability of presence",
                  color = variable2, fill = variable2) +
             theme_nice()+
             #theme(text = element_text(size=12),
@@ -156,7 +156,7 @@ model_pres_abs <- function(tab, esp, title, list_param, var_eff_list, espece_id,
           plot_5 <- ggplot(data=inter_glm, aes(x=inter_glm[,1], y=fit, fill=inter_glm[,2])) +
             geom_bar(stat="identity", position=position_dodge()) +
             labs(x = variable1,
-                 y = "Predicted % of presence",
+                 y = "Predicted probability of presence",
                  color = variable2, fill = variable2) +
             facet_grid(~title) +
             theme_nice() + theme(axis.text.x = element_text(angle = 30, size=8),
