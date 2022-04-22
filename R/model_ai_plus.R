@@ -85,6 +85,9 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
   table_ab <- as.data.frame(coef(summary(glm_indice_ab[[1]])))
   list_plot <- c()
   count <- 0
+  plot_interac_1 <- NULL
+  plot_interac_2 <- NULL
+  inter_glm <- NULL
   for (j in 1:length(vect_param)){
     table_tempo <- as.data.frame(dummy.coef(glm_indice_ab[[1]])[j+1])
     table_tempo$namemodality <- rownames(table_tempo)
@@ -146,62 +149,56 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
       object <- gregexpr(pattern =':',as.character(attr(glm_indice_ab[[1]]$term, "term.labels"))[j])
       if (length(object)>0){
         if(as.numeric(object)>0){
-          interact_variables <- strsplit(as.character(attr(glm_indice_ab[[1]]$term, "term.labels"))[j], ":")
-          variable1 <- interact_variables[[c(1,1)]]
-          variable2 <- interact_variables[[c(1,2)]]
+          k <- k +1
+          interact_variables <- strsplit(as.character(attr(glm_presabs[[1]]$term,
+                                                           "term.labels"))[j], ":")
+          variable1 <- interact_variables[[c(1, 1)]]
+          variable2 <- interact_variables[[c(1, 2)]]
+          formula_interact <- paste(variable1, "*",
+                                    variable2)
+          inter_glm[[k]] <- list(effect(formula_interact, glm_presabs[[1]],
+                                        se = T))
+          inter_glm[[k]] <- as.data.frame(inter_glm[[k]])
+          inter_glm[[k]][, 1] <- factor(inter_glm[[k]][, 1], levels = levels(tableau_pres[,
+                                                                                          variable1]))
+          inter_glm[[k]][, 2] <- factor(inter_glm[[k]][, 2], levels = levels(tableau_pres[,
+                                                                                          variable2]))
+          inter_glm[[k]]$title <- paste("Interaction - pres/abs \n ",
+                                        attr(glm_presabs[[1]]$term, "term.labels")[j])
 
-          formula_interact <- paste(variable1,":",variable2)
-          inter_glm <- effect(formula_interact, glm_indice_ab[[1]], se=TRUE)
-          inter_glm<-as.data.frame(inter_glm)
-          inter_glm[,1] <- factor(inter_glm[,1], levels=levels(tableau_ab[,variable1]))
-          inter_glm[,2] <- factor(inter_glm[,2], levels=levels(tableau_ab[,variable2]))
-          inter_glm$title <- paste("Interaction - density \n ", attr(glm_indice_ab[[1]]$term, "term.labels")[j])
-
-
-          plot_6 <- ggplot(data=inter_glm, aes(x=inter_glm[,1], y=exp(fit+0.5*VAR), group=inter_glm[,2])) +
-            geom_line(size=2, aes(color=inter_glm[,2]))+
-            geom_ribbon(aes(ymin=exp(fit+0.5*VAR) - exp(se + 0.5*VAR), ymax=exp(fit+0.5*VAR) + exp(se + 0.5*VAR),fill=inter_glm[,2]),alpha=.2)+
+          plot_interac_1[[k]] <- local({k <- k
+          ggplot(data = inter_glm[[k]], aes(x = inter_glm[[k]][,
+                                                               1], y = fit, group = inter_glm[[k]][, 2])) +
+            geom_line(size = 2, aes(color = inter_glm[[k]][,
+                                                           2])) +
+            geom_ribbon(aes(ymin = fit - se, ymax = fit + se, fill = inter_glm[[k]][, 2]), alpha = 0.2) +
             facet_grid(~title) +
-            labs(x = variable1,
-                 y = "Predicted density",
-                 color = variable2, fill = variable2) +
-            theme_nice()+
-            #theme(text = element_text(size=12),
-            #legend.text = element_text(size=12),
-            #legend.direction = "horizontal",
-            #panel.grid.major = element_blank(),
-            #panel.grid.minor = element_blank(),
-            #legend.position="top")
-            theme(axis.text.x = element_text(angle = 60, size=8),
-                  plot.title = element_text(size=10, face="bold"),
+            labs(x = variable1, y = "Predicted % of presence", color = variable2, fill = variable2) + theme_nice() +
+            theme(axis.text.x = element_text(angle = 60, size = 8),
+                  plot.title = element_text(size = 10, face = "bold"),
                   axis.title.x = element_blank(),
-                  axis.title.y = element_text(size=8),
-                  legend.title = element_text(size=8),
-                  legend.text = element_text(size=8))
+                  axis.title.y = element_text(size = 8),
+                  legend.title = element_text(size = 8),
+                  legend.text = element_text(size = 8))})
 
 
-
-          list_graph[[length(list_graph) + 1]] <- list(plot_6)
-
-          plot_7 <- ggplot(data=inter_glm, aes(x=inter_glm[,1], y=exp(fit+0.5*VAR), fill=inter_glm[,2])) +
-            geom_bar(stat="identity", position=position_dodge()) +
-            labs(x = variable1,
-                 y = "Predicted density",
-                 color = variable2, fill = variable2) +
-            facet_grid(~title) +
-            theme_nice() + theme(axis.text.x = element_text(angle = 30, size=8),
-                                 plot.title = element_text(size=10, face="bold"),
-                                 axis.title.x = element_blank(),
-                                 axis.title.y = element_text(size=8),
-                                 legend.title = element_text(size=8),
-                                 legend.text = element_text(size=8))
-
-          list_graph[[length(list_graph) + 1]] <- list(plot_7)
+          plot_interac_2[[k]] <- local({k <- k
+          ggplot(data = inter_glm[[k]], aes(x = inter_glm[[k]][,
+                                                               1], y = fit, fill = inter_glm[[k]][, 2])) + geom_bar(stat = "identity",
+                                                                                                                    position = position_dodge()) + labs(x = variable1,
+                                                                                                                                                        y = "Predicted % of presence", color = variable2,
+                                                                                                                                                        fill = variable2) + facet_grid(~title) +
+            theme_nice() + theme(axis.text.x = element_text(angle = 30,
+                                                            size = 8), plot.title = element_text(size = 10,
+                                                                                                 face = "bold"), axis.title.x = element_blank(),
+                                 axis.title.y = element_text(size = 8), legend.title = element_text(size = 8),
+                                 legend.text = element_text(size = 8))})
         }
       }
     }
   }
-
+  list_graph[[length(list_graph) + 1]] <- list(plot_interac_1)
+  list_graph[[length(list_graph) + 1]] <- list(plot_interac_2)
   plot_8 <- ggarrange(plotlist=list_plot, ncol=2, nrow=2, common.legend = TRUE, legend = "bottom")
   list_graph[[length(list_graph) + 1]] <- list(plot_8)
 
