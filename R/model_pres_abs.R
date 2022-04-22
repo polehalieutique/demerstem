@@ -21,7 +21,7 @@
 #' glm_pres <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions = FALSE, limit=0.0001, formula_select = "presence ~ strate + annee + saison")
 #' @export
 
-function (tab, esp, title, list_param, var_eff_list, espece_id,
+model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id,
           catch_col, interactions = FALSE, limit, formula_select,
           plot = FALSE, summary = FALSE)
 {

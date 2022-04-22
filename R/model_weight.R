@@ -26,7 +26,11 @@ model_weight <- function(data_weight, a= 0.05, b=2.5) {
 
   pred = data.frame(l = seq(0,max(data_weight$length)+1 ,1), w = fun(a = coef(M1)[1], b = coef(M1)[2], seq(0, max(data_weight$length)+1 , 1)))
   data_weight$title <- "Size-Weight relationships"
-  plot_1 <- ggplot(data = data_weight) + geom_point(aes(x = length, y = weight), color = "blue") + geom_line(data = pred, aes(x=l, y =w), col = 'red', size = 1.2) + facet_grid(~title) + theme(axis.title = element_text(size = 20, face= "bold")) + theme_nice() + labs(x = "Weight (g)", y = "Length (cm)")
+  plot_1 <- ggplot(data = data_weight) + geom_point(aes(x = length, y = weight), color = "blue") +
+    geom_line(data = pred, aes(x=l, y =w), col = 'red', size = 1.2) +
+    facet_grid(~title) + theme_nice() +
+    theme(axis.text = element_text(size = 11, color = "black"),
+          axis.title = element_text(size = 11, face= "bold", color = "black")) +  labs(y = "Weight (g)", x = "Length (cm)")
 
   a <- coef(M1)[1]
   b <- coef(M1)[2]

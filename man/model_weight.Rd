@@ -4,10 +4,14 @@
 \alias{model_weight}
 \title{Weight size relationship and plot}
 \usage{
-model_weight(data_weight, weigth, length)
+model_weight(data_weight, a = 0.05, b = 2.5)
 }
 \arguments{
 \item{data_weight}{data with weight and size vectors}
+
+\item{a}{initialisation of a (set at 0.05)}
+
+\item{b}{initialisation of b (set at 2.5)}
 }
 \description{
 \code{model_weight} estimates R_init
