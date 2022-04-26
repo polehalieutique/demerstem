@@ -166,6 +166,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
             labs(x = variable1,
                  y = "Predicted density",
                  color = variable2, fill = variable2) +
+            facet_grid(~title) +
             theme_nice()+
             #theme(text = element_text(size=12),
             #legend.text = element_text(size=12),
