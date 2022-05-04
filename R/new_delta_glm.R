@@ -65,7 +65,7 @@ new_delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list
   # results %>% group_by(annee) %>%  summarise(mean_year = mean(i_ab)) %>%  ggplot() + geom_bar( aes(x = annee, y = mean_year), stat = 'identity')
 
   Table_Pred$estimation <- Table_Pred$i_ab * Table_Pred$pres
-  if (repartition !=0) {
+  if (is.list(repartition)==T) {
   for (k in 1:length(repartition)) {
     Table_Pred <- Table_Pred %>%  full_join(repartition[[k]])
     Table_Pred$estimation <- Table_Pred$estimation * Table_Pred$proportion
