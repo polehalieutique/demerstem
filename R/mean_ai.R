@@ -28,99 +28,123 @@
 #' @export
 
 
-mean_ai<-function(data_IA, MOY=TRUE, vect_year_elim, type_ref, type_other, fish_power, title){
-  # On rename la première colonne en "year" (raison pratique, peut etre optimisé évidemment)
+mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
+                     fish_power, title)
+{
   list_graph <- NULL
-  names(data_IA)[1] <- 'year'
+  names(data_IA)[1] <- "year"
   data_IA <- data_IA %>% dplyr::select(year, type_ref, all_of(type_other))
   data_IA <- arrange(data_IA, by_group = year)
   if (length(fish_power) != length(type_other)) {
     fish_power <- rep(fish_power, length(type_other))
   }
-  if (length(vect_year_elim)>0){
-    print(paste0("year(s) ",vect_year_elim," have been removed"))
-    for (i in 1:length(vect_year_elim)){
+  if (length(vect_year_elim) > 0) {
+    print(paste0("year(s) ", vect_year_elim, " have been removed"))
+    for (i in 1:length(vect_year_elim)) {
       data_IA <- subset(data_IA, !(year == as.numeric(vect_year_elim[i])))
     }
   }
-  IA_long_1 <-reshape2::melt(data_IA,id.vars="year")
-  #IA_long_1 <- data_IA %>%  pivot_longer(cols = c(2:length(data_IA)), names_to = "variable", values_to= "value")
-  IA_long_1$title <- "Abundance indices - raw data"
-  t <- ggplot(IA_long_1) +
-    geom_line(aes(x=year, y=value, color=variable)) +
-    geom_point(aes(x=year, y=value, color=variable)) +
-    facet_grid(~title) +
-    labs(x="Year", y = "Abundance indices", color = "Variable") +
-    theme_nice()
 
-  list_graph[[length(list_graph) + 1]] <- list(t)
-  #calcul standardisation sur années communes
-  #data_IA$Any_NA <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) anyNA(x))
   data_int <- data_IA %>% dplyr::select(year, type_ref)
-  for (k in 1:length(type_other)) { # we want to standardize given a reference (the survey) for the years in common : value * mean(survey_common_year)/mean(other[k]_common_year)
-    #Annee.indice <- as.numeric(data_IA$year) - min(as.numeric(data_IA$year))+1
-    Annee.indice <- as.numeric(data_IA$year) - min(data_IA$year[which(data_IA[,2+k]>0)]) + 1
-    data_IA[,2+k] <- data_IA[,2+k]*1/(1+fish_power[k])^(Annee.indice-1)
-    data_IA_filter <- reshape2::melt(data_IA,id.vars="year")
-    data_IA_filter <- data_IA_filter %>% filter(variable %in% c(type_ref, type_other[k]))
-    data_IA_filter <- data_IA_filter %>% pivot_wider(names_from = variable, values_from = value)
-    data_IA_filter$Any_NA <- apply(data_IA_filter, 1, function(x) anyNA(x))
+  for (k in 1:length(type_other)) {
+    fish_power_0 <- fish_power * 0
+    data_IA_0 <- data_IA
+    Annee.indice <- as.numeric(data_IA_0$year) - min(data_IA_0$year[which(data_IA_0[,
+                                                                                    2 + k] > 0)]) + 1
+    data_IA_0[, 2 + k] <- data_IA_0[, 2 + k] * 1/(1 + fish_power_0[k])^(Annee.indice -
+                                                                          1)
+    data_IA_0_filter <- reshape2::melt(data_IA_0, id.vars = "year")
+    data_IA_0_filter <- data_IA_0_filter %>% filter(variable %in%
+                                                      c(type_ref, type_other[k]))
+    data_IA_0_filter <- data_IA_0_filter %>% pivot_wider(names_from = variable,
+                                                         values_from = value)
+    data_IA_0_filter$Any_NA <- apply(data_IA_0_filter, 1, function(x) anyNA(x))
+    tab_moy <- data_IA_0_filter %>% filter(Any_NA == FALSE)
+    if (is.null(tab_moy)) {
+      print("no common years")
+    }
+    mean_tempo <- tab_moy %>% pivot_longer(cols = c(type_ref,
+                                                    type_other[k])) %>% group_by(name) %>% dplyr::summarise(mean = mean(value))
+    data_IA_0_transit <- as.data.frame(data_IA_0 %>% pivot_longer(type_other[k]) %>%
+                                         dplyr::select(year, value))
+    mean_survey <- (as.numeric(mean_tempo %>% filter(name ==
+                                                       type_ref) %>% dplyr::select(mean)))
+    mean_com <- as.numeric(mean_tempo %>% filter(name ==
+                                                   type_other[k]) %>% dplyr::select(mean))
+    data_IA_0_transit$value <- data_IA_0_transit$value * as.numeric(mean_survey)/as.numeric(mean_com)
+    data_int_0 <- full_join(data_int_0, data_IA_0_transit, by = "year")
+    names(data_int_0)[names(data_int) == "value"] <- type_other[k]
+  }
 
-    tab_moy <- data_IA_filter %>% filter(Any_NA == FALSE) # get years in common
-    if(is.null(tab_moy)) {print('no common years')}
-    #tab_moy2 <- tab_moy %>% mutate(mean_IA_SC = sum(IA_SC)/nrow(tab_moy), mean_IA_PA = sum(IA_PA)/nrow(tab_moy), mean_IA_PI = sum(IA_PI)/nrow(tab_moy))
-    mean_tempo <- tab_moy %>%  pivot_longer(cols = c(type_ref, type_other[k])) %>% group_by(name) %>% dplyr::summarise(mean = mean(value)) # mean by group
-    data_IA_transit <- as.data.frame(data_IA %>% pivot_longer(type_other[k]) %>% dplyr::select(year,value))
-    mean_survey <- (as.numeric(mean_tempo %>% filter(name == type_ref) %>% dplyr::select(mean)))
-    mean_com <- as.numeric(mean_tempo %>% filter(name == type_other[k])%>% dplyr::select(mean))
+  data_IA_0 <- data_int_0
+  data_IA_0[,c(2:ncol(data_IA_0))] <- data_IA_0[,c(2:ncol(data_IA_0))]/data_IA_0$SC[1]
+  IA_long_2 <- reshape2::melt(data_IA_0, id.vars = "year")
+  IA_long_2$variable <- as.factor(IA_long_2$variable)
+  IA_long_2$title <- title
+
+  plot_standard <- ggplot(IA_long_2) +
+    geom_line(aes(x = year, y = value, color = variable)) +
+    geom_point(aes(x = year, y = value, color = variable)) +
+    facet_grid(~title) + labs(x = "Year", y = "Abundance indices", color = "Variable") + theme_nice()
+
+  list_graph[[length(list_graph) + 1]] <- list(plot_standard)
+
+  for (k in 1:length(type_other)) {
+    Annee.indice <- as.numeric(data_IA$year) - min(data_IA$year[which(data_IA[,
+                                                                              2 + k] > 0)]) + 1
+    data_IA[, 2 + k] <- data_IA[, 2 + k] * 1/(1 + fish_power[k])^(Annee.indice -
+                                                                    1)
+    data_IA_filter <- reshape2::melt(data_IA, id.vars = "year")
+    data_IA_filter <- data_IA_filter %>% filter(variable %in%
+                                                  c(type_ref, type_other[k]))
+    data_IA_filter <- data_IA_filter %>% pivot_wider(names_from = variable,
+                                                     values_from = value)
+    data_IA_filter$Any_NA <- apply(data_IA_filter, 1, function(x) anyNA(x))
+    tab_moy <- data_IA_filter %>% filter(Any_NA == FALSE)
+    if (is.null(tab_moy)) {
+      print("no common years")
+    }
+    mean_tempo <- tab_moy %>% pivot_longer(cols = c(type_ref,
+                                                    type_other[k])) %>% group_by(name) %>% dplyr::summarise(mean = mean(value))
+    data_IA_transit <- as.data.frame(data_IA %>% pivot_longer(type_other[k]) %>%
+                                       dplyr::select(year, value))
+    mean_survey <- (as.numeric(mean_tempo %>% filter(name ==
+                                                       type_ref) %>% dplyr::select(mean)))
+    mean_com <- as.numeric(mean_tempo %>% filter(name ==
+                                                   type_other[k]) %>% dplyr::select(mean))
     data_IA_transit$value <- data_IA_transit$value * as.numeric(mean_survey)/as.numeric(mean_com)
     data_int <- full_join(data_int, data_IA_transit, by = "year")
-    names(data_int)[names(data_int) == 'value'] <- type_other[k]
-
-
+    names(data_int)[names(data_int) == "value"] <- type_other[k]
   }
   data_IA <- data_int
-  #data_IA$mean_standard_AI <- apply(data_IA[, grep("IA", names(data_IA))], 1, function(x) mean(x, na.rm = T))
-  data_IA$AI_standard <- apply(as.data.frame(data_IA[,-1]), 1, function(x) mean(x, na.rm = T)) # mean of all colomns
-  IA_long_2<-reshape2::melt(data_IA,id.vars="year")
-  #IA_long <- data_IA %>%  pivot_longer(cols = c(2:length(data_IA)), names_to = "variable", values_to= "value")
+  data_IA$AI_standard <- apply(as.data.frame(data_IA[, -1]),
+                               1, function(x) mean(x, na.rm = T))
+  data_IA[,c(2:ncol(data_IA))] <- data_IA[,c(2:ncol(data_IA))]/data_IA$SC[1]
+  IA_long_2 <- reshape2::melt(data_IA, id.vars = "year")
   IA_long_2$variable <- as.factor(IA_long_2$variable)
   IA_long_2$title <- title
   nb_col <- length(unique(as.factor(IA_long_2$variable)))
-  palette <- brewer.pal(nb_col,"Set1") #Max = 9!
+  palette <- brewer.pal(nb_col, "Set1")
   palette[nb_col] <- "#000000"
-  #Plot des nouveaux IA standardisé à 1 / plot of the new AIs standardised
-  v <- ggplot(IA_long_2) +
-    geom_line(aes(x=year, y=value, color=variable)) +
-    geom_point(aes(x=year, y=value, color=variable)) +
-    scale_color_manual(values = palette) +
-    facet_grid(~title) +
-    labs(x="Year", y ="Abundance indices", color = "Variable") +
-    theme_nice()
-  #v <- v + geom_line(aes(x=data_IA$year, y=data_IA$mean_standard_AI), col = "black") + geom_point(aes(x=data_IA$year, y=data_IA$mean_standard_AI), col = "black")
+  v <- ggplot(IA_long_2) + geom_line(aes(x = year, y = value,
+                                         color = variable)) + geom_point(aes(x = year, y = value,
+                                                                             color = variable)) + scale_color_manual(values = palette) +
+    facet_grid(~title) + labs(x = "Year", y = "Abundance indices",
+                              color = "Variable") + theme_nice()
   list_graph[[length(list_graph) + 1]] <- list(v)
-  if (MOY == TRUE){
+  if (MOY == TRUE) {
     data_IA <- mean_3years(data_IA)
-    IA_long_3<-reshape2::melt(data_IA,id.vars="year")
+    IA_long_3 <- reshape2::melt(data_IA, id.vars = "year")
     IA_long_3$title <- title
-    #IA_long_3 <- data_IA %>%  pivot_longer(cols = c(2:length(data_IA)), names_to = "variable", values_to= "value")
     nb_col <- length(unique(as.factor(IA_long_3$variable)))
-    palette <- brewer.pal(nb_col,"Set1") #Max = 9!
+    palette <- brewer.pal(nb_col, "Set1")
     palette[nb_col] <- "#000000"
-
-    #Plot des nouveaux IA standardisé à 1 / plot of the new AIs standardised
-    s <- ggplot(IA_long_3) +
-      geom_line(aes(x=year, y=value, color=variable)) +
-      geom_point(aes(x=year, y=value, color=variable)) +
-      scale_color_manual(values = palette) +
-      facet_wrap(~title) +
-      labs(x="Year", y ="Abundance indices", color = "Variable" ) +
-      theme_nice()
-    #s <- s + geom_line(aes(x=data_IA$year, y=data_IA$mean_standard_AI_cor), col = "black") + geom_point(aes(x=data_IA$year, y=data_IA$mean_standard_AI_cor), col = "black")
+    s <- ggplot(IA_long_3) + geom_line(aes(x = year, y = value,
+                                           color = variable)) + geom_point(aes(x = year, y = value,
+                                                                               color = variable)) + scale_color_manual(values = palette) +
+      facet_wrap(~title) + labs(x = "Year", y = "Abundance indices",
+                                color = "Variable") + theme_nice()
     list_graph[[length(list_graph) + 1]] <- list(s)
   }
-
   return(list(data_IA, list_graph))
-
 }
-

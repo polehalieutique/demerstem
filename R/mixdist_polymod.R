@@ -12,6 +12,7 @@
 #' @param   lmsd            just for this one
 #' @param   ngroup          number of age class
 #' @param   step_class      length step between two length class
+#' @param   age             if G0 exploited => age = 1
 #'
 #' @examples
 #'  data(freq_landings)
@@ -25,6 +26,7 @@
 #' t0_landings <- -0.22
 #' a <- 0.005
 #' b <- 3.16
+#'
 #'
 #' data_freq <- data_freq %>%  mutate(weight_sampling = total_sampling * a*lclass^b/1000)
 #' #data_catch_month <- data.frame(Wtot = rep(c(1000,2000,3000,5000,1000,3000),4), year = rep(rep(c(2000,2001),3),4), month = rep(seq(1:12),2))
@@ -45,6 +47,7 @@
 #'                 step_class = 1, step_time = 4, ngroup = 3, month_recrue = 3,
 #'                 fix_mu = fixmu, fix_sigma = fixsigma, sigma_adjust = 0,
 #'                 lmsd = lmsd, get_lmsd = T, plot = T)
+#'
 #' @export
 
 mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ngroup, step_class, step_time, month_recrue, get_lmsd = FALSE, plot = FALSE, sigma_adjust = 0, age = 0){
@@ -72,8 +75,8 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
   #data_freq <- data_freq %>% mutate(quarter =  ceiling((indice_croissance+1)/(12/step_time)))
   data_freq$step_time <-  ceiling((data_freq$indice_croissance+1)/(12/step_time))
   print(unique(data_freq$step_time)) #should be the same as in original data for step_time = 12
-  # preparing data for polymodal decomposition with mixdist
 
+  # preparing data for polymodal decomposition with mixdist package
   for (i in sort(unique(data_freq$step_time))){
     data_count[[i]] <- rep(data_freq$lclass[data_freq$step_time==i],data_freq$total[data_freq$step_time==i])
     data_mix[[i]] <- mixgroup(data_count[[i]],breaks=c(length_min, seq(length_min + step_class, length_max - step_class, step_class), length_max), xname="lclass")
@@ -101,7 +104,7 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
       prop[[i]] <- NULL
       sd[[i]] <- NULL
     }
-    ### Computation of mean lengths Lt
+    ### Computation of mean lengths Lt, at the mean time between 2 step_time
     if (step_time!=1 & step_time !=12) {
       if (i != max(data_freq$step_time)) {
         vb <- (seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
@@ -158,7 +161,7 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
       }
 
       ALK[,vect] <- t(apply(ALK[,vect], 1, function(i) i/sum(i)))
-      ALK_trim <- apply(ALK[,4:(3+ngroup)], 1, sum)
+      #ALK_trim <- apply(ALK[,4:(3+ngroup)], 1, sum)
 
       Matrice_Capture[,vect] <- data_mix[[i]]$count * ALK[,vect]
 

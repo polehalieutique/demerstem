@@ -13,13 +13,14 @@
 
 F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
 
+  # Get Mat_F
   R_pseudo_rectif_bis <-function(init) # init <- R_init
   {
-    Mat_F2 <<-Mat_C/Mat_Cage # initialisation of F2 as metier ratio
+    Mat_F2 <<-Mat_C/Mat_Cage # initialisation of F2 as metier ratio (= 1 if only one metier/fleet)
     indice <<-1
     nb_flot <<- ncol(Mat_C) # fleet size
     Mat_N2[indice] <<-init
-    Mat_F2[indice,] <<-Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
+    Mat_F2[indice,] <<-Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum # Get F as (C_obs - C_th) is small small
     # réallocation du F estimé pour chaque métier
     Mat_q[indice,] <<-Mat_F2[indice,]/Mat_E[1,]
     Mat_N2[indice+1] <<-F_abundance(indice)
@@ -49,6 +50,7 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
     res
   }
 
+  # get Rinit estimation to restrict iterations to an intervall [Rinit; 10*Rinit]
   FT_pope <- 0.2
   Mat_Cage <<- apply(Mat_C,1,sum) # somme des captures de chaque flottille
   VPA_Pope(FT_pope, age, Mat_Cage, Mat_M) # Returns Mat_F
@@ -63,7 +65,7 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
   Mat_M <<- Mat_M
   Mat_q <<- Mat_C #initialisation des capturabilites par les captures
   indice <<- 1 # age de recrutement
-  optimize(F_pseudo_rectif_global,interval=c(Rinit/10,Rinit*10))$minimum
+  optimize(F_pseudo_rectif_global,interval=c(Rinit/10,Rinit*10))$minimum # Get Mat_F as FT = 0.2
 
   Mat_Cage_plot <- as.data.frame(Mat_Cage)[1]
   Mat_Cage_plot$Age <- list_age
@@ -95,6 +97,7 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
   colnames(matF3) <- varFT
   R_init<-rep(NA,length(varFT))
 
+  # Repeat for different values of F (0 -> 1)
   for (i in 1:length(varFT)) {
     VPA_Pope(varFT[i], age, Mat_Cage, Mat_M)
     R_init[i]<-Mat_N[1]
