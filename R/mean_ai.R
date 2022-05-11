@@ -72,8 +72,8 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
     mean_com <- as.numeric(mean_tempo %>% filter(name ==
                                                    type_other[k]) %>% dplyr::select(mean))
     data_IA_0_transit$value <- data_IA_0_transit$value * as.numeric(mean_survey)/as.numeric(mean_com)
-    data_int_0 <- full_join(data_int_0, data_IA_0_transit, by = "year")
-    names(data_int_0)[names(data_int) == "value"] <- type_other[k]
+    data_int_0 <- full_join(data_int, data_IA_0_transit, by = "year")
+    names(data_int_0)[names(data_int_0) == "value"] <- type_other[k]
   }
 
   data_IA_0 <- data_int_0
