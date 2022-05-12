@@ -41,6 +41,8 @@ mixdist_polymod(
 
 \item{step_class}{length step between two length class}
 
+\item{age}{if G0 exploited => age = 1}
+
 \item{title}{fraction of the title in the plots}
 }
 \description{
@@ -58,6 +60,7 @@ L_landings <- 50.4
 t0_landings <- -0.22
 a <- 0.005
 b <- 3.16
+
 
 data_freq <- data_freq \%>\%  mutate(weight_sampling = total_sampling * a*lclass^b/1000)
 #data_catch_month <- data.frame(Wtot = rep(c(1000,2000,3000,5000,1000,3000),4), year = rep(rep(c(2000,2001),3),4), month = rep(seq(1:12),2))
@@ -78,4 +81,5 @@ mixdist_polymod(data_freq, K = K_landings, L_inf = L_landings, t0 = t0_landings,
                 step_class = 1, step_time = 4, ngroup = 3, month_recrue = 3,
                 fix_mu = fixmu, fix_sigma = fixsigma, sigma_adjust = 0,
                 lmsd = lmsd, get_lmsd = T, plot = T)
+
 }
