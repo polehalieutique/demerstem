@@ -180,5 +180,5 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
   plot_6 <- ggarrange(plotlist = list_plot, ncol = 2, nrow = 2,
                       common.legend = TRUE, legend = "bottom")
   list_graph[[length(list_graph) + 1]] <- list(plot_6)
-  return(list(table_interact, glm_presabs, list_graph))
+  return(list(glm_presabs[[3]], list_graph))
 }

@@ -207,5 +207,5 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
   plot_8 <- ggarrange(plotlist = list_plot, ncol = 2, nrow = 2,
                       common.legend = TRUE, legend = "bottom")
   list_graph[[length(list_graph) + 1]] <- list(plot_8)
-  return(list(table_interact, glm_indice_ab, list_graph))
+  return(list(glm_indice_ab[[3]], list_graph))
 }

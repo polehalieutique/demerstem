@@ -11,7 +11,7 @@
 
 
 
-fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarithmic=TRUE){
+fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, log=TRUE){
   list_graph <- NULL
   #limits calculation
   upper_a <- max(table_Efox$IA, na.rm=T)*a_start
@@ -25,14 +25,17 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarith
     modelefox_IA <- nls(formula = IA ~ a*exp(-b*Efox), data=table_Efox, start = c(a = start_a , b = upper_b/2))
   }
 
-  # x <- seq(0, graph_param[1], length = length(table_Efox$Efox))
-  # interval_confidence <- predictNLS(modelefox_IA, newdata=data.frame(Efox = x), interval="confidence", alpha=0.05, nsim=10000)$summary %>% mutate(Efox = x)
-  #
-  # if (logarithmic ==T) {
-  #   interval_confidence$`Sim.2.5%` <- exp(interval_confidence$`Sim.2.5%` )
-  #   interval_confidence$`Sim.97.5%` <- exp(interval_confidence$`Sim.97.5%` )
-  # }
+  x <- seq(0, graph_param[1], length = length(table_Efox$Efox))
+  interval_confidence <- predictNLS(modelefox_IA, newdata=data.frame(Efox = x), interval="confidence", alpha=0.05, nsim=10000)$summary %>% mutate(Efox = x)
 
+  if (log ==T) {
+    interval_confidence$`Sim.2.5%` <- exp(interval_confidence$`Sim.2.5%`)
+    interval_confidence$`Sim.97.5%` <- exp(interval_confidence$`Sim.97.5%`)
+  }
+else {
+  interval_confidence$`Sim.2.5%` <- interval_confidence$`Sim.2.5%`
+  interval_confidence$`Sim.97.5%` <- interval_confidence$`Sim.97.5%`
+}
   par_Efox <- as.vector(coef(modelefox_IA))
 
   # Calcul valeurs MSY / calculating MSY values
@@ -49,9 +52,16 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarith
   IA_Efox <- par_Efox[1]*exp(-par_Efox[2]*mE_fox)
   log_IA_Efox <- log(par_Efox[1]) - par_Efox[2]*mE_fox
   Y_Efox <- IA_Efox * mE_fox *table_Efox$factEfox[1]
-  # interval_confidence$prod_low <- interval_confidence$`Sim.2.5%` * x *table_Efox$factEfox[1]
-  # interval_confidence$prod_up <- interval_confidence$`Sim.97.5%` * x *table_Efox$factEfox[1]
-  table_Efox$IA_pred <- par_Efox[1]*exp(-par_Efox[2]*table_Efox$Efox)
+  interval_confidence$prod_low <- interval_confidence$`Sim.2.5%` * x *table_Efox$factEfox[1]
+  interval_confidence$prod_up <- interval_confidence$`Sim.97.5%` * x *table_Efox$factEfox[1]
+  if (log ==T) {
+    table_Efox$IA_pred <- c(NA, exp(predict(modelefox_IA)))
+  }
+  else {
+    table_Efox$IA_pred <- c(NA,predict(modelefox_IA))
+  }
+
+
   table_Efox2 <- table_Efox
 
   #plotFOX <- ggplot() + geom_line(aes(x=mE_fox, y=log_IA_Efox), color="blue")
@@ -61,60 +71,62 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, logarith
   #print(plotFOX)
 
   table_Efox$title <- graph_param[2]
-  plotFOX_log <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="blue", size = 1.1)
-  #plotFOX_log <- plotFOX_log + ggtitle(paste(graph_param[2]))
-  plotFOX_log <- plotFOX_log +
+  plotFOX_U <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="blue", size = 1.1)
+  #plotFOX_U <- plotFOX_U + ggtitle(paste(graph_param[2]))
+
+  plotFOX_U <- plotFOX_U +
     geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black", size = 1) +
     facet_grid(~table_Efox$title) +
-    #geom_ribbon(data=interval_confidence, aes(x=Efox, ymin=`Sim.2.5%`, ymax= `Sim.97.5%`), alpha=0.15, inherit.aes=F, fill="blue") +
+    geom_ribbon(data=interval_confidence, aes(x=Efox, ymin=`Sim.2.5%`, ymax= `Sim.97.5%`), alpha = 0.15, inherit.aes=F, fill="blue") +
     geom_path() +
     geom_hline(yintercept= rep(table_Efox$IA[nrow(table_Efox)],nrow(table_Efox)), linetype="dashed", color = "red") +geom_vline(xintercept= rep(1,nrow(table_Efox)), linetype="dashed", color = "red") +
     theme_nice() + labs(x = "mE", y = "Abundance indices")
-  #plotFOX_log <- plotFOX_log + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
-  list_graph[[length(list_graph) + 1]] <- list(plotFOX_log)
+  #plotFOX_U <- plotFOX_U + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
+  list_graph[[length(list_graph) + 1]] <- list(plotFOX_U)
 
 
-  plotFOX_log_2 <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="blue", size = 1.1)
-  plotFOX_log_2 <- plotFOX_log_2 +
+  plotFOX_U2 <- ggplot() + geom_line(aes(x=mE_fox, y=IA_Efox), color="blue", size = 1.1)
+  plotFOX_U2 <- plotFOX_U2 +
     geom_point(aes(x=table_Efox$Efox, y=table_Efox$IA), color="black", size = 1) +
-    #geom_ribbon(data=interval_confidence, aes(x=Efox, ymin=`Sim.2.5%`, ymax= `Sim.97.5%`), alpha=0.15, inherit.aes=F, fill="blue") +
+    geom_ribbon(data=interval_confidence, aes(x=Efox, ymin=`Sim.2.5%`, ymax= `Sim.97.5%`), alpha=0.15, inherit.aes=F, fill="blue") +
     geom_hline(yintercept= rep(table_Efox$IA[nrow(table_Efox)],nrow(table_Efox)), linetype="dashed", color = "red") +geom_vline(xintercept= rep(1,nrow(table_Efox)), linetype="dashed", color = "red") +
     geom_path(aes(x=table_Efox$Efox, y=table_Efox$IA), linetype="twodash", size = 1)
-  plotFOX_log_2 <- plotFOX_log_2 +
+  plotFOX_U2 <- plotFOX_U2 +
     geom_text(aes(x=table_Efox$Efox, y=table_Efox$IA, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=4) +  facet_grid(~table_Efox$title) +
     theme_nice() + labs(x = "mE", y = "Abundance indices")
-  #plotFOX_log_2 <- plotFOX_log_2 + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
-  list_graph[[length(list_graph) + 1]] <- list(plotFOX_log_2)
+  #plotFOX_U2 <- plotFOX_U2 + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[4]))
+  list_graph[[length(list_graph) + 1]] <- list(plotFOX_U2)
 
-  plotFOX2 <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="blue", size = 1.1)
-  plotFOX2 <- plotFOX2 + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black", size = 1.3)+ facet_grid(~table_Efox$title) + labs(x = "mE") +
-    #geom_ribbon(data=interval_confidence, aes(x=Efox, ymin=prod_low, ymax= prod_up), alpha=0.15, inherit.aes=F, fill="blue") +
+  plotFOX_Y <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="blue", size = 1.1)
+  plotFOX_Y <- plotFOX_Y + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black", size = 1.3)+ facet_grid(~table_Efox$title) + labs(x = "mE") +
+    geom_ribbon(data=interval_confidence, aes(x=Efox, ymin=prod_low, ymax= prod_up), alpha = 0.15, inherit.aes=F, fill="blue") +
     geom_hline(yintercept= rep(table_Efox$Capture[nrow(table_Efox)], nrow(table_Efox)), linetype="dashed", color = "red") + geom_vline(xintercept= rep(table_Efox$E[nrow(table_Efox)],nrow(table_Efox)), linetype="dashed", color = "red") +
     theme_nice() + labs(x = "mE", y = "Catch") # D.a dit de prendre E
-  #plotFOX2 <- plotFOX2 + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
-  list_graph[[length(list_graph) + 1]] <- list(plotFOX2)
+  #plotFOX_Y <- plotFOX_Y + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
+  list_graph[[length(list_graph) + 1]] <- list(plotFOX_Y)
 
-  plotFOX2_2 <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="blue", size = 1) #+ geom_ribbon(data=interval_confidence, aes(x=Efox, ymin=prod_low, ymax= prod_up), alpha=0.15, inherit.aes=F, fill="blue")
+  plotFOX_Y2 <- ggplot() + geom_line(aes(x=mE_fox, y=Y_Efox), color="blue", size = 1) + geom_ribbon(data=interval_confidence, aes(x=Efox, ymin=prod_low, ymax= prod_up), alpha=0.15, inherit.aes=F, fill="blue")
 
-  #plotFOX2_2 <- plotFOX2_2 + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
-  plotFOX2_2 <- plotFOX2_2 + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black", size = 1) + geom_path(aes(x=table_Efox$E, y=table_Efox$Capture), linetype="twodash", size = 1.1) #E ou Efox? D.a dit de prendre E je crois
-  plotFOX2_2 <- plotFOX2_2 + geom_text(aes(x=table_Efox$E, y=table_Efox$Capture, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=4) +
+  #plotFOX_Y2 <- plotFOX_Y2 + xlim(0,as.numeric(graph_param[3])) + ylim(0,as.numeric(graph_param[5]))
+  plotFOX_Y2 <- plotFOX_Y2 + geom_point(aes(x=table_Efox$E, y=table_Efox$Capture), color="black", size = 1) + geom_path(aes(x=table_Efox$E, y=table_Efox$Capture), linetype="twodash", size = 1.1) #E ou Efox? D.a dit de prendre E je crois
+  plotFOX_Y2 <- plotFOX_Y2 + geom_text(aes(x=table_Efox$E, y=table_Efox$Capture, label=stringi::stri_sub(table_Efox$Year,3,4)), hjust=-0.5, vjust=0, size=4) +
+    geom_ribbon(data=interval_confidence, aes(x=Efox, ymin=prod_low, ymax= prod_up), alpha = 0.15, inherit.aes=F, fill="blue") +
     geom_hline(yintercept= rep(table_Efox$Capture[nrow(table_Efox)], nrow(table_Efox)), linetype="dashed", color = "red") + geom_vline(xintercept= rep(table_Efox$E[nrow(table_Efox)],nrow(table_Efox)), linetype="dashed", color = "red") +
     facet_grid(~table_Efox$title) + labs(x = "mE", y = "Catch") + theme_nice()
-  list_graph[[length(list_graph) + 1]] <- list(plotFOX2_2)
+  list_graph[[length(list_graph) + 1]] <- list(plotFOX_Y2)
 
 
   table_Efox$title <- paste0(table_Efox$title, "\n Abundance indices predicted vs observed")
-  plotFOX3 <- ggplot() + geom_line(aes(x=table_Efox$Year, y=table_Efox$IA_pred), color="black")
-  plotFOX3 <- plotFOX3 + geom_point(aes(x=table_Efox$Year, y=table_Efox$IA), color="black") #E ou Efox? D.a dit de prendre E je crois
-  plotFOX3 <- plotFOX3  + facet_grid(~table_Efox$title) + theme_nice() + labs(x = "Year", y = "Abundance indices" )
-  #plotFOX3 <- plotFOX3 + xlim(table_Efox$Year[1], table_Efox$Year[nrow(table_Efox)]) + ylim(0,as.numeric(graph_param[4]))
-  list_graph[[length(list_graph) + 1]] <- list(plotFOX3)
+  plotFOX_pred <- ggplot() + geom_line(aes(x=table_Efox$Year, y=table_Efox$IA_pred), color="black")
+  plotFOX_pred <- plotFOX_pred + geom_point(aes(x=table_Efox$Year, y=table_Efox$IA), color="black") #E ou Efox? D.a dit de prendre E je crois
+  plotFOX_pred <- plotFOX_pred  + facet_grid(~table_Efox$title) + theme_nice() + labs(x = "Year", y = "Abundance indices" )
+  #plotFOX_pred <- plotFOX_pred + xlim(table_Efox$Year[1], table_Efox$Year[nrow(table_Efox)]) + ylim(0,as.numeric(graph_param[4]))
+  list_graph[[length(list_graph) + 1]] <- list(plotFOX_pred)
 
-
-
-  names_values <- c("Coeff_a", "Coeff_b", "MSY_recalcule", "Emsy_recalcule")
-  results <- round(c(par_Efox[1], par_Efox[2], C_MSYfox, E_MSYfox),2)
+if (log == T) {AIC <- AIC(modelefox_IA) + 2*sum(log(table_Efox$IA))}
+else {AIC <- AIC(modelefox_IA)}
+  names_values <- c("Coeff_a", "Coeff_b", "MSY_recalcule", "Emsy_recalcule", "AIC")
+  results <- round(c(par_Efox[1], par_Efox[2], C_MSYfox, E_MSYfox, AIC),2)
   table_outputs <- rbind(names_values, results)
 
   print(table_outputs)
