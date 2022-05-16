@@ -25,6 +25,7 @@ Depends:
     tidyr,
     ggpubr,
     base,
+    rjags,
     stringr,
     coda,
     effects,
