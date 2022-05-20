@@ -4,7 +4,18 @@
 \alias{bgm}
 \title{Bayesian global model, on encapsule un modèle global générique dans la fonction}
 \usage{
-bgm(tab_input, min_c, max_c, Er, CVr, CV_Cobs, CV_Iobs, n_proj = 0)
+bgm(
+  model_file,
+  tab_input,
+  min_c,
+  max_c,
+  Er,
+  CVr,
+  CV_Cobs,
+  CV_Iobs,
+  n_proj = 0,
+  GEN = F
+)
 }
 \arguments{
 \item{tab_input}{mcmc list}
