@@ -61,8 +61,8 @@ bgm_output_2<- function (mcmc,data,n_proj=0,multiple=FALSE){
   # ---------------------------------------------------
 
 
-  dim1 <- mcmc.table[,'K']
-  dim2 <- mcmc.table[,'r']
+  dim1 <- list(mcmc.table[,'K'], var_name = "K")
+  dim2 <- list(mcmc.table[,'r'], var_name = "r")
 
   def.par <- par(no.readonly = TRUE)
   #windows()
@@ -175,9 +175,9 @@ bgm_output_2<- function (mcmc,data,n_proj=0,multiple=FALSE){
   mtext(y.label, line = 2, side = 2, cex = size.text)
 
   q_B_MSY <- quantile(mcmc.table$B_MSY,probs=c(0.05,0.5,0.95))
-  abline(h=q_B_MSY[2], col = "green", lty=4, lwd = 3)
-  abline(h=q_B_MSY[1], col = "green", lty=4, lwd = 1)
-  abline(h=q_B_MSY[3], col = "green", lty=4, lwd = 1)
+  abline(h=q_B_MSY[2], col = "gray10", lty=4, lwd = 3)
+  abline(h=q_B_MSY[1], col = "gray30", lty=4, lwd = 1)
+  abline(h=q_B_MSY[3], col = "gray30", lty=4, lwd = 1)
 
   par(def.par)
 }

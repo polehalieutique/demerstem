@@ -72,9 +72,8 @@ effectiveSize(var.mcmc)
 # Plot trace of ALL variables in var.mcmc-
 # windows()
 # plot(var.mcmc, trace = TRUE, density = FALSE)
-
-#windows()
-par(mfrow=c(3,3))
+op <- par(oma=c(1,1,1,1))
+par(mfrow=c(1,3))
 traceplot(mcmc[,'K'],ylab="K")
 traceplot(mcmc[,'r'],ylab="r")
 traceplot(mcmc[,'C_MSY'],ylab="C_MSY")
@@ -111,10 +110,11 @@ traceplot(mcmc[,'B[20]'],ylab="B[20]")
 # plot(var.mcmc, trace = FALSE, density = TRUE)
 
 #windows()
-par(mfrow=c(3,3))
+par(mfrow=c(2,3))
 densplot(mcmc[,'K'],ylab="K")
 densplot(mcmc[,'r'],ylab="r")
 densplot(mcmc[,'C_MSY'],ylab="C_MSY")
+densplot(mcmc[,'B_MSY'],ylab="B_MSY")
 if (multiple)
 {
 densplot(mcmc[,'q1'],ylab="q1")
@@ -153,24 +153,37 @@ dim(mcmc.table)
 # Plot density from the mcmc.table
 
 #windows()
-par(mfrow = c(2,3))
-plot(density(mcmc.table$'K'))
-plot(density(mcmc.table$'r'))
-plot(density(mcmc.table$'C_MSY'))
-if (multiple)
-{
-plot(density(mcmc.table$'q1'))
-  plot(density(mcmc.table$'q2'))
-  plot(density(mcmc.table$'q3'))
-}
-else
-{
-  plot(density(mcmc.table$'q'))
+# par(mfrow = c(2,3))
+# plot(density(mcmc.table$'K'))
+# plot(density(mcmc.table$'r'))
+# plot(density(mcmc.table$'C_MSY'))
+# if (multiple)
+# {
+# plot(density(mcmc.table$'q1'))
+#   plot(density(mcmc.table$'q2'))
+#   plot(density(mcmc.table$'q3'))
+# }
+# else
+# {
+#   plot(density(mcmc.table$'q'))
+#
+# }
+# plot(density(mcmc.table$'sigma2p'))
 
-}
-plot(density(mcmc.table$'sigma2p'))
-
-
+# ------------------------------------------------------------------------------------
+# Estimation of Risk
+# ------------------------------------------------------------------------------------
+par(mfrow = c(2,2))
+var = "risk"
+var.mcmc = mcmc[,which(substr(varnames(mcmc),1,nchar(var)+1)==paste(var,"[",sep=""))]
+varnames(var.mcmc)
+risk <- summary(var.mcmc)$statistics[,1]
+Year <- data$Year[seq(1,length(risk))]
+risk <- data.frame(Year = Year, risk = risk)
+#windows()
+risk$title <- "risk"
+plot(ggplot(data = risk) + geom_line(data = risk, aes(x= Year, y = risk, group = 1), col = 'red') +
+  theme_nice() + facet_grid(.~title))
 
 # --------------------------------------------------------------------------
 # Basic Boxplot of time series
@@ -203,25 +216,14 @@ x<-mcmc.table[,which(substr(colnames(mcmc.table),1,nchar(variable)+1)==paste(var
 names(x)<-data$Year[seq(1,length(names(x)))]
 
 
-x %>%pivot_longer(cols=names(x), names_to = "Year") %>%
-  ggplot() + geom_boxplot(aes(x=Year,y=value),outlier.size=0.5,outlier.colour = 'grey')+
-  theme(axis.text.x = element_text(angle=90))+
-  ggtitle(title)->g[[i]]
+x %>% pivot_longer(cols=names(x), names_to = "Year") %>% mutate(title = title) %>%
+  ggplot() + geom_boxplot(aes(x=as.numeric(Year),y=value, group = Year),outlier.size=0.5,outlier.colour = 'grey') +
+    #geom_line(data = risk, aes(x= Year, y = risk, group = 1), col = 'red') +
+  labs(x = "Year") +theme_nice() + facet_grid(.~title) ->g[[i]]
 
 }
 
 print(ggarrange(plotlist=g, widths = c(2,2)))
 
-
-# ------------------------------------------------------------------------------------
-# Estimation of Risk
-# ------------------------------------------------------------------------------------
-
-var = "risk"
-var.mcmc = mcmc[,which(substr(varnames(mcmc),1,nchar(var)+1)==paste(var,"[",sep=""))]
-varnames(var.mcmc)
-risk <- summary(var.mcmc)$statistics[,1]
-#windows()
-plot(1:length(risk),risk, type = "l", col = "red")
 
 }

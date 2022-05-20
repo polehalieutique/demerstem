@@ -14,15 +14,12 @@
 
 #' @export
 
-bgm<- function (tab_input,min_c,max_c,Er,CVr,CV_Cobs,CV_Iobs,n_proj=0){
+bgm <- function (model_file, tab_input,min_c,max_c,Er,CVr,CV_Cobs,CV_Iobs,n_proj=0,GEN = F){
 
   # Load the model
   # ----------------------------------------
 
   # Load the model, written in a .txt file
-
-  model_file<-paste0(path.package("demerstem"), "/model_BiomProd_WithScenario_JAGS.txt")
-
   source(model_file)
 
   # Write the model specification into a virtual text file with name "model", to be found by JAGS
@@ -44,13 +41,14 @@ model <- textConnection(model_JAGS)
 
 
   # Needed to build the equilibrium curve
-  B_e <- seq(from = 0, to = 1500, by = 50)
+  B_e <- seq(0, max_c/5, length = 50)
+  mE <- seq(0, max(tab_input$E, na.rm = T)+1, length = 50)
   n_equi <- length(B_e)
 
   # Format data as a list to be read in JAGS
 
   data <- list("I_obs" = tab_input$I, "C_obs" = tab_input$C, "n_obs" = n_obs, "n_proj" = n_proj,
-               "B_e" = B_e, "n_equi" = n_equi, "Year"=Year,"min_c"=min_c,"max_c"=max_c,"Er"=Er,"CVr"=CVr,"CV_Cobs"=CV_Cobs,"CV_Iobs"=CV_Iobs)
+               "B_e" = B_e, "n_equi" = n_equi, "Year"=Year,"min_c"=min_c,"max_c"=max_c, "mE" = mE) #,"Er"=Er,"CVr"=CVr
 
 
   # MCMC options
@@ -80,14 +78,22 @@ model <- textConnection(model_JAGS)
   # ---------------------------------------------------------------------
 
   # Variable to store
-
-  monitor <- c( "B", "h", "D", "C",
-                "r", "r_p", "K", "K_p", "q", "sigma2p",
-                "C_MSY", "C_MSY_p", "B_MSY", "h_MSY",
+if (GEN == T) {
+  monitor <- c( "B", "h", "D", "C", "I",
+                "r", "r_p", "K", "K_p", "p", "p_p", "q", "sigma2p",
+                "C_MSY", "C_MSY_p", "B_MSY", "E_MSY", "h_MSY", "F_MSY",
                 "risk", "Over_C","Over_h",
-                "C_e",
+                "C_e", "Y_e",
                 "I_pred", "C_pred")
-
+}
+  else{
+    monitor <- c( "B", "h", "D", "C", "I",
+                  "r", "r_p", "K", "K_p", "q", "sigma2p",
+                  "C_MSY", "C_MSY_p", "B_MSY","E_MSY", "h_MSY", "F_MSY",
+                  "risk", "Over_C","Over_h",
+                  "C_e", "Y_e",
+                  "I_pred", "C_pred")
+  }
   # Compile the model, create a model object with the name "model.compiled.jags" and adapt the MCMC samplers
   # with n.adapt iterations
 

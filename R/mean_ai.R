@@ -45,6 +45,7 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
     }
   }
 
+  data_int_0 <- data_IA %>% dplyr::select(year, type_ref)
   data_int <- data_IA %>% dplyr::select(year, type_ref)
   for (k in 1:length(type_other)) {
     fish_power_0 <- fish_power * 0
@@ -72,12 +73,12 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
     mean_com <- as.numeric(mean_tempo %>% filter(name ==
                                                    type_other[k]) %>% dplyr::select(mean))
     data_IA_0_transit$value <- data_IA_0_transit$value * as.numeric(mean_survey)/as.numeric(mean_com)
-    data_int_0 <- full_join(data_int, data_IA_0_transit, by = "year")
+    data_int_0 <- full_join(data_int_0, data_IA_0_transit, by = "year")
     names(data_int_0)[names(data_int_0) == "value"] <- type_other[k]
   }
 
   data_IA_0 <- data_int_0
-  data_IA_0[,c(2:ncol(data_IA_0))] <- data_IA_0[,c(2:ncol(data_IA_0))]/data_IA_0$SC[1]
+  #data_IA_0[,c(2:ncol(data_IA_0))] <- data_IA_0[,c(2:ncol(data_IA_0))]/dplyr::first(na.omit(data_IA_0[, type_ref]))[1]
   IA_long_2 <- reshape2::melt(data_IA_0, id.vars = "year")
   IA_long_2$variable <- as.factor(IA_long_2$variable)
   IA_long_2$title <- title
@@ -87,7 +88,7 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
     geom_point(aes(x = year, y = value, color = variable)) +
     facet_grid(~title) + labs(x = "Year", y = "Abundance indices", color = "Variable") + theme_nice()
 
-  list_graph[[length(list_graph) + 1]] <- list(plot_standard)
+  list_graph[[length(list_graph) + 1]] <- plot_standard
 
   for (k in 1:length(type_other)) {
     Annee.indice <- as.numeric(data_IA$year) - min(data_IA$year[which(data_IA[,
@@ -119,7 +120,7 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
   data_IA <- data_int
   data_IA$AI_standard <- apply(as.data.frame(data_IA[, -1]),
                                1, function(x) mean(x, na.rm = T))
-  data_IA[,c(2:ncol(data_IA))] <- data_IA[,c(2:ncol(data_IA))]/data_IA$SC[1]
+  #data_IA[,c(2:ncol(data_IA))] <- data_IA[,c(2:ncol(data_IA))]/dplyr::first(na.omit(data_IA[, type_ref]))[1]
   IA_long_2 <- reshape2::melt(data_IA, id.vars = "year")
   IA_long_2$variable <- as.factor(IA_long_2$variable)
   IA_long_2$title <- title
@@ -131,7 +132,7 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
                                                                              color = variable)) + scale_color_manual(values = palette) +
     facet_grid(~title) + labs(x = "Year", y = "Abundance indices",
                               color = "Variable") + theme_nice()
-  list_graph[[length(list_graph) + 1]] <- list(v)
+  list_graph[[length(list_graph) + 1]] <- v
   if (MOY == TRUE) {
     data_IA <- mean_3years(data_IA)
     IA_long_3 <- reshape2::melt(data_IA, id.vars = "year")
@@ -144,7 +145,7 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
                                                                                color = variable)) + scale_color_manual(values = palette) +
       facet_wrap(~title) + labs(x = "Year", y = "Abundance indices",
                                 color = "Variable") + theme_nice()
-    list_graph[[length(list_graph) + 1]] <- list(s)
+    list_graph[[length(list_graph) + 1]] <- s
   }
   return(list(data_IA, list_graph))
 }

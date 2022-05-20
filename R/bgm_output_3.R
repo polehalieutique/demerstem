@@ -48,7 +48,7 @@ bgm_output_3<- function (mcmc,data,n_proj=0,multiple=FALSE){
            xlim = c(x.min,x.max), ylim = c(y.min,y.max),
            at = 1, outpch = NA, boxwex = box.size, col = 1)
   for (i in 2:n-1) {
-    boxplot(X[,i], xaxt = "n", yaxt = "n", at = i, add = T, outpch = NA, boxwex = box.size, col = i) }
+    boxplot(X[,i], xaxt = "n", yaxt = "n", at = i, add = T, outpch = NA, boxwex = box.size) }
 
   points(x=x.min:(x.max-1),y=rep(line.y,n),col="red",type="l",lty=2,lwd="1")
   axis(side =1, at=1:n, labels = Year, las=3, cex.axis=size.labels)
@@ -57,9 +57,9 @@ bgm_output_3<- function (mcmc,data,n_proj=0,multiple=FALSE){
   mtext(y.label, line = 2.5, side = 2, cex = size.text)
 
   q_h_MSY <- quantile(mcmc.table$h_MSY,probs=c(0.05,0.5,0.95))
-  abline(h=q_h_MSY[2], col = "green", lty=4, lwd = 3)
-  abline(h=q_h_MSY[1], col = "green", lty=4, lwd = 1)
-  abline(h=q_h_MSY[3], col = "green", lty=4, lwd = 1)
+  abline(h=q_h_MSY[2], col = "gray10", lty=4, lwd = 3)
+  abline(h=q_h_MSY[1], col = "gray30", lty=4, lwd = 1)
+  abline(h=q_h_MSY[3], col = "gray30", lty=4, lwd = 1)
 
   par(def.par)
 }
