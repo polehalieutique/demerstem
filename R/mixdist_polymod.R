@@ -107,33 +107,35 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     ### Computation of mean lengths Lt, at the mean time between 2 step_time
     if (step_time!=1 & step_time !=12) {
       if (i != max(data_freq$step_time)) {
-        vb <- (seq(age + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
-                 seq(age + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), by=1))/2
+        vb <- (seq(age + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup - 1 + age + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
+                 seq(age + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), ngroup - 1 + age  + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), by=1))/2
       }
       else {
-        vb <- (seq(age + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
-                 seq(age + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), by=1))/2 + ((unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time) - (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time))
+        vb <- (seq(age + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup - 1 + age + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
+                 seq(age + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), ngroup - 1 + age + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), by=1))/2 + ((unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time) - (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time))
       }
     }
     if (step_time ==1)  {
-      vb <- seq(age + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) + 0.5
+      vb <- seq(age + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup - 1 + age + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) + 0.5
     }
     if (step_time==12) {
-      vb <- seq(age + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, by=1)
+      vb <- seq(age + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, ngroup - 1 + age + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, by=1)
     }
     L <- L_inf*(1-exp(-K*(vb - t0)))
     print(vb)
     print(L)
     if (get_lmsd == F){
       sigma <- predict(lmsd, data.frame(age = vb)) + sigma_adjust # for sigma
+      param <- mixparam(L,sigma)
+      mix[[i]] <- mix(data_mix[[i]], param, dist="norm", emsteps=100, mixconstr(conmu="MFX", fixmu= fix_mu,
+                                                                                consigma="SFX", fixsigma=fix_sigma))#fitting function
     }
     else {
-      sigma <- rep(5, ngroup)
+      param <- mixparam(L)
+      mix[[i]] <- mix(data_mix[[i]], param, dist="norm", emsteps=100, mixconstr(conmu="MFX", fixmu= fix_mu,
+                                                                                consigma="NONE", fixsigma=fix_sigma))#fitting function
     }
-    param <- mixparam(L,sigma)
 
-    mix[[i]] <- mix(data_mix[[i]], param, dist="norm", emsteps=100, mixconstr(conmu="MFX", fixmu= fix_mu,
-                                                                              consigma="SFX", fixsigma=fix_sigma))#fitting function
     #plot(mixpagrus4)
     mean[[i]] <- mix[[i]]$parameters$mu
     prop[[i]] <- mix[[i]]$parameters$pi
