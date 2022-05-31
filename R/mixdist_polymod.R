@@ -142,7 +142,7 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     sd[[i]] <- mix[[i]]$parameters$sigma
 
     #if (get_lmsd==T) {
-      sd_lm <- rbind(sd_lm, data.frame(sd = mix[[i]]$parameters$sigma, age = vb, prop = prop[[i]]), L = L)
+      sd_lm <- rbind(sd_lm, data.frame(sd = mix[[i]]$parameters$sigma, age = vb, prop = prop[[i]], L))
     #}
     if(step_time!=12) {
       ALK[,1:3] <- data_mix[[i]] %>%  mutate(prop_obs = count/sum(count, na.rm = T)) # might be removed
