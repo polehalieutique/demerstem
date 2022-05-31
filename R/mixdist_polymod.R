@@ -85,7 +85,7 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     ALK <- cbind(data.frame(matrix(0, nrow = length(data_mix[[1]]$lclass), ncol = 3,
                                    dimnames = list(NULL, c("lclass", "count", "prop_obs")))),
                  data.frame(matrix(0, nrow = length(data_mix[[1]]$lclass), ncol = (ngroup*step_time),
-                                   dimnames = list(NULL, paste0("Age_", seq(1 + age, ngroup + 1 - 1/step_time, by = 1/step_time))))))
+                                   dimnames = list(NULL, paste0("Age_", seq(age, ngroup + 1 - 1/step_time, by = 1/step_time))))))
     Matrice_Capture <- ALK
 
 
@@ -184,7 +184,7 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
       for (u in 1:ngroup) {
         ALK <- cbind(ALK, data.frame(age = rep(0, length(ALK$lclass))))
       }
-      names(ALK)[4:ncol(ALK)]<- paste0(rep("Age_"), 1 + age:ngroup)
+      names(ALK)[4:ncol(ALK)]<- paste0(rep("Age_"), age:ngroup)
 
       for (k in 1:ngroup) {
         for (l in 1:length(ALK$lclass)) {
