@@ -41,7 +41,7 @@ mixdist_polymod(
 
 \item{step_class}{length step between two length class}
 
-\item{age}{if G0 exploited => age = 1}
+\item{age}{## May be removed}
 
 \item{title}{fraction of the title in the plots}
 }
