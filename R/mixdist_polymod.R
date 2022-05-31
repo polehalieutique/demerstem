@@ -107,19 +107,19 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     ### Computation of mean lengths Lt, at the mean time between 2 step_time
     if (step_time!=1 & step_time !=12) {
       if (i != max(data_freq$step_time)) {
-        vb <- (seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
-                 seq(1 + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), by=1))/2  + age
+        vb <- (seq((unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
+                 seq((unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), by=1))/2  + age
       }
       else {
-        vb <- (seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
-                 seq(1 + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), by=1))/2 + ((unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time) - (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time))  + age
+        vb <- (seq((unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
+                 seq((unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), by=1))/2 + ((unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time) - (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time))  + age
       }
     }
     if (step_time ==1)  {
-      vb <- seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) + 0.5  + age
+      vb <- seq((unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) + 0.5  + age
     }
     if (step_time==12) {
-      vb <- seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, by=1)  + age
+      vb <- seq((unique(data_freq$step_time[data_freq$step_time == i])-1)/12, ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, by=1)  + age
     }
     L <- L_inf*(1-exp(-K*(vb - t0)))
     print(vb)
