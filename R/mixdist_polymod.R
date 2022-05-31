@@ -133,7 +133,7 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     else {
       param <- mixparam(L)
       mix[[i]] <- mix(data_mix[[i]], param, dist="norm", emsteps=100, mixconstr(conmu="MFX", fixmu= fix_mu,
-                                                                                consigma="NONE", fixsigma=fix_sigma))#fitting function
+                                                                                consigma="NONE"))#fitting function
     }
 
     #plot(mixpagrus4)
