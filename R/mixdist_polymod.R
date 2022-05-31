@@ -12,7 +12,7 @@
 #' @param   lmsd            just for this one
 #' @param   ngroup          number of age class
 #' @param   step_class      length step between two length class
-#' @param   age             if G0 exploited => age = 1
+#' @param   age             ## May be removed
 #'
 #' @examples
 #'  data(freq_landings)
@@ -85,7 +85,7 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     ALK <- cbind(data.frame(matrix(0, nrow = length(data_mix[[1]]$lclass), ncol = 3,
                                    dimnames = list(NULL, c("lclass", "count", "prop_obs")))),
                  data.frame(matrix(0, nrow = length(data_mix[[1]]$lclass), ncol = (ngroup*step_time),
-                                   dimnames = list(NULL, paste0("Age_", seq(1-age, ngroup + 1 - 1/step_time, by = 1/step_time))))))
+                                   dimnames = list(NULL, paste0("Age_", seq(1 + age, ngroup + 1 - 1/step_time, by = 1/step_time))))))
     Matrice_Capture <- ALK
 
 
@@ -108,18 +108,18 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     if (step_time!=1 & step_time !=12) {
       if (i != max(data_freq$step_time)) {
         vb <- (seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
-                 seq(1 + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), by=1))/2  - age
+                 seq(1 + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i+1])-1)/max(data_freq$step_time), by=1))/2  + age
       }
       else {
         vb <- (seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) +
-                 seq(1 + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), by=1))/2 + ((unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time) - (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time))  - age
+                 seq(1 + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time), by=1))/2 + ((unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time) - (unique(data_freq$step_time[data_freq$step_time == i-1])-1)/max(data_freq$step_time))  + age
       }
     }
     if (step_time ==1)  {
-      vb <- seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) + 0.5  - age
+      vb <- seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/max(data_freq$step_time), by=1) + 0.5  + age
     }
     if (step_time==12) {
-      vb <- seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, by=1)  - age
+      vb <- seq(1 + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, ngroup + (unique(data_freq$step_time[data_freq$step_time == i])-1)/12, by=1)  + age
     }
     L <- L_inf*(1-exp(-K*(vb - t0)))
     print(vb)
@@ -184,7 +184,7 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
       for (u in 1:ngroup) {
         ALK <- cbind(ALK, data.frame(age = rep(0, length(ALK$lclass))))
       }
-      names(ALK)[4:ncol(ALK)]<- paste0(rep("Age_"), 1-age:ngroup)
+      names(ALK)[4:ncol(ALK)]<- paste0(rep("Age_"), 1 + age:ngroup)
 
       for (k in 1:ngroup) {
         for (l in 1:length(ALK$lclass)) {
