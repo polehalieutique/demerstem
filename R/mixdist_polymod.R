@@ -239,13 +239,21 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
   assign("sd", sd, envir=globalenv())
   assign("mean", mean, envir=globalenv())
   assign("prop", prop, envir=globalenv())
+  assign("data_count", data_count, envir=globalenv())
 print('')
+
   if (step_time!=12) {
     Mat_C <- apply(Matrice_Capture[4:(4+ngroup*step_time-1)], 2, sum)
   }
   if (step_time == 12) {
-    Mat_C <- apply(Matrice_Capture[4:(4+ngroup-1)], 2, sum)#capture_trim[10] <- 1
+    Mat_C <- apply(Matrice_Capture[4:(4+ngroup-1)], 2, sum) #capture_trim[10] <- 1
   }
   Mat_C <- data.frame(Catch = Mat_C)
+
+  for (k in 1:length(Mat_C)) {
+    if (Mat_C[k]==0) {
+      Mat_C[k] <- 1
+    }
+  }
   assign("Mat_C", Mat_C, envir=globalenv())
 }
