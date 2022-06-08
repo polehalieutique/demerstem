@@ -239,7 +239,7 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
   assign("sd", sd, envir=globalenv())
   assign("mean", mean, envir=globalenv())
   assign("prop", prop, envir=globalenv())
-  assign("data_count", data_count, envir=globalenv())
+
 print('')
 
   if (step_time!=12) {
@@ -256,4 +256,5 @@ print('')
     }
   }
   assign("Mat_C", Mat_C, envir=globalenv())
+  assign("data_count", data_count, envir=globalenv())
 }
