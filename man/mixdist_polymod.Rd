@@ -15,7 +15,7 @@ mixdist_polymod(
   ngroup,
   step_class,
   step_time,
-  month_recrue,
+  month_recrue = 1,
   get_lmsd = FALSE,
   plot = FALSE,
   sigma_adjust = 0,
