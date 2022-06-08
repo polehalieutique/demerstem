@@ -21,7 +21,7 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
     nb_flot <<- ncol(Mat_C) # fleet size
     Mat_N2[indice] <<-init
     Mat_F2[indice,] <<-Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum # Get F as (C_obs - C_th) is small small
-    # réallocation du F estimé pour chaque métier
+    # reallocating estimated F by fishery/gear
     Mat_q[indice,] <<-Mat_F2[indice,]/Mat_E[1,]
     Mat_N2[indice+1] <<-F_abundance(indice)
 
@@ -30,7 +30,9 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M) {
       indice <<- compteur
       Mat_F2[indice,] <<- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
       Mat_q[indice,] <<- Mat_F2[indice,]/Mat_E[1,]
-      if (indice<age) Mat_N2[indice+1] <<- F_abundance(indice)
+      if (indice<age) {
+        Mat_N2[indice+1] <<- F_abundance(indice)
+      }
     }
     #on renvoie la somme
     if (nb_flot < 2)
