@@ -33,7 +33,7 @@
 #' t0 <- -0.7
 #' @export
 
-yield_recrut<- function(a, b, Linf, K, t0, list_age, Mat_F3, Mat_M, mf) {
+yield_recrut<- function(a, b, Linf, K, t0, list_age, Mat_F3, Mat_M, mf, F0.1 = F) {
   Mat_N2 <- matrix(NA, nrow = age, ncol = length(mf))
   Mat_Y <- matrix(NA, nrow = age, ncol = length(mf))
   age.sim <- list_age #simulates ages
@@ -61,8 +61,20 @@ yield_recrut<- function(a, b, Linf, K, t0, list_age, Mat_F3, Mat_M, mf) {
   mtext("Yield per recruit",side=2,line=2.5)
   box()
   abline(v=1, h= Mat_Ytot[match(1,mf)] , col = 'red', lwd = 1)
-  abline(v= mf[match(max(Mat_Ytot), Mat_Ytot)], h= max(Mat_Ytot) , col = 'red', lwd = 1, lty = 2)
-  legend(legend = c("Present", "Maximization effort"),col = c("red","red"), lty = c(1,2), lwd = c(1,1), x = "bottomright", cex = 1, bty ="n")
+  if (F0.1 == F) {
+    abline(v= mf[match(max(Mat_Ytot), Mat_Ytot)], h= max(Mat_Ytot) , col = 'red', lwd = 1, lty = 2)
+    legend(legend = c("Present", "Maximization effort"),col = c("red","red"), lty = c(1,2), lwd = c(1,1), x = "bottomright", cex = 1, bty ="n")
+
+    }
+  else {
+    res <- (round((Mat_Ytot[match(mf[2]-mf[1],mf)]) / (mf[2]-mf[1]), digit = 2))/10
+    Mat_Ytot_B <- Mat_Ytot[-1]
+    Mat_Ytot_A <- Mat_Ytot[-(length(mf))]
+    diff <- (Mat_Ytot_B - Mat_Ytot_A) / (mf[2]-mf[1])
+    abline(h= Mat_Ytot[which.min(abs(diff - res))+1], v= mf[which.min(abs(diff - res))+1] , col = 'red', lwd = 1, lty = 2)
+    legend(legend = c("Present", "F0.1"),col = c("red","red"), lty = c(1,2), lwd = c(1,1), x = "bottomright", cex = 1, bty ="n")
+  }
+
 
   B4 <- as.data.frame(Mat_N2) * Mat_W
   Btot <- apply(B4,2,sum)

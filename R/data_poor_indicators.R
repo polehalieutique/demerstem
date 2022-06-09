@@ -4,19 +4,28 @@
 #'
 #' @param   Catch_IA          data with weight and size vectors
 #' @param   L_inf
-#' @param   year
-#' @param   plot
+#' @param   year              Year of interest you want to study and for which will be calculated 'f'
+#' @param   plot              if TRUE, plot all the years
 #' @examples
 #'  data(data_weight_size)
 #'  model_weight(data_weight_size)
 #'
 #' @export
 
-data_poor_indicators <- function(Catch_IA, L_inf, year, plot = F) {
-  Catch_IA <- Catch_IA[order(Catch_IA$annee),]
+data_poor_indicators <- function(data_freq, Catch_IA = NA, L_inf, year = NA, plot = T) {
+
+  plotlist <- list()
+
+  if(is.na(year) ==T){
+    year <-  max(data_freq$year)
+  }
+
+  if (is.na(Catch_IA) != T) {
+    Catch_IA <- Catch_IA[order(Catch_IA$annee),]
+  }
 
   data_indice <- data.frame()
-
+  data_frequency <- data_freq
   for (k in sort(unique(data_frequency$year))) {
     data_freq <- data_frequency %>% filter(year==k) %>% group_by(lclass, year) %>% dplyr::summarise(frequence = sum(frequence, na.rm = T))
 
@@ -38,9 +47,12 @@ data_poor_indicators <- function(Catch_IA, L_inf, year, plot = F) {
     }
 
     if (plot == T) {
-      plot(ggplot(data = data_freq, aes(x = lclass/L_inf, y = frequence/sum(frequence))) + geom_line(color = 'red', size = 1.1) + geom_vline(xintercept = Lc/L_inf, linetype="dashed",
-                                                                                                                                             color = "black", size=1) +xlim(0,1.5) + theme_nice() +labs(x = 'L / L_inf', y = "Relative frequency") + facet_grid(~title))
+      plotlist[[k-min(unique(data_frequency$year))+1]] <- ggplot(data = data_freq, aes(x = lclass/L_inf, y = frequence/sum(frequence))) + geom_line(color = 'red', size = 1.1) + geom_vline(xintercept = Lc/L_inf, linetype="dashed",
+                                                                                                                                                                                            color = "black", size=1) +xlim(0,1.5) + theme_nice() +labs(x = 'L / L_inf', y = "Relative frequency") + facet_grid(~title)
     }
+  }
+  if (plot == T){
+    plot(cowplot::plot_grid(plotlist = plotlist))
   }
 
   Fproxy<- NULL
@@ -59,12 +71,16 @@ data_poor_indicators <- function(Catch_IA, L_inf, year, plot = F) {
     Fproxy <- mean(Fproxy)
     print(paste0("Fproxy = ", Fproxy))
   }
-  r = mean(Catch_IA$IA[(dim(Catch_IA)[1]-1):(dim(Catch_IA)[1])], na.rm = T)/                  mean(Catch_IA$IA[(dim(Catch_IA)[1]-5):(dim(Catch_IA)[1]-3)], na.rm =T)
-  print(paste0("r = ", round(r, digits = 3)))
-  b = min(1, Catch_IA$IA[dim(Catch_IA)[1]]/(1.4*min(Catch_IA$IA, na.rm = T)))
-  print(paste0("b = ", round(b, digits = 3)))
-  f = data_indice$Lmean[data_indice$annee == year-1]/data_indice$LFM[data_indice$annee == year]
+  if (is.na(Catch_IA) != T) {
+    r = mean(Catch_IA$IA[(dim(Catch_IA)[1]-1):(dim(Catch_IA)[1])], na.rm = T)/                  mean(Catch_IA$IA[(dim(Catch_IA)[1]-5):(dim(Catch_IA)[1]-3)], na.rm =T)
+    print(paste0("r = ", round(r, digits = 3)))
+    b = min(1, Catch_IA$IA[dim(Catch_IA)[1]]/(1.4*min(Catch_IA$IA, na.rm = T)))
+    print(paste0("b = ", round(b, digits = 3)))
+  }
+  f = data_indice$Lmean[which.min(abs(year - data_indice$annee))-1]/data_indice$LFM[data_indice$annee == year]
   print(paste0("f = ", round(f, digits = 3)))
+  return(plotlist)
+}
   #data_indice <- full_join(data_indice,IA , by = 'annee')
   # print(f)
   # if(k < 0.2) {
@@ -96,4 +112,4 @@ data_poor_indicators <- function(Catch_IA, L_inf, year, plot = F) {
   # else {
   #
   # }
-}
+

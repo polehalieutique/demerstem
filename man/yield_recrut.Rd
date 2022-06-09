@@ -4,7 +4,7 @@
 \alias{yield_recrut}
 \title{yield_recrut}
 \usage{
-yield_recrut(a, b, Linf, K, t0, list_age, Mat_F3, Mat_M, mf)
+yield_recrut(a, b, Linf, K, t0, list_age, Mat_F3, Mat_M, mf, F0.1 = F)
 }
 \arguments{
 \item{a}{Initial value for pseudo cohort analysis, equivalent to the last year recruitment}

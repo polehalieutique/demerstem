@@ -4,16 +4,16 @@
 \alias{data_poor_indicators}
 \title{data_poor_indicators}
 \usage{
-data_poor_indicators(Catch_IA, L_inf, year, plot = F)
+data_poor_indicators(data_freq, Catch_IA = NA, L_inf, year = NA, plot = T)
 }
 \arguments{
 \item{Catch_IA}{data with weight and size vectors}
 
 \item{L_inf}{}
 
-\item{year}{}
+\item{year}{Year of interest you want to study and for which will be calculated 'f'}
 
-\item{plot}{}
+\item{plot}{if TRUE, plot all the years}
 }
 \description{
 \code{data_poor_indicators} estimates R_init

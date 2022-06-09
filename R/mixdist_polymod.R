@@ -251,7 +251,7 @@ print('')
   Mat_C <- data.frame(Catch = Mat_C)
 
   for (k in 1:length(Mat_C)) {
-    if (Mat_C[k]==0) {
+    if (Mat_C[k]<1) {
       Mat_C[k] <- 1
     }
   }
