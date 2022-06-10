@@ -50,7 +50,59 @@
 #'
 #' @export
 
-mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ngroup, step_class, step_time, month_recrue = 1, get_lmsd = FALSE, plot = FALSE, sigma_adjust = 1, age = 0){
+#'  mixdist_polymod
+#'
+#' \code{mixdist_polymod} returns the polymodal decomposition of length frequencies in age class
+#'
+#' @param   data_freq       input dataset table
+#' @param   title           fraction of the title in the plots
+#' @param   K               value for K
+#' @param   L_inf           value for L_inf
+#' @param   t0              value for t0
+#' @param   fix_mu          Fix values for mean
+#' @param   fix_sigma       Fix values for standard deviation
+#' @param   lmsd            just for this one
+#' @param   ngroup          number of age class
+#' @param   step_class      length step between two length class
+#' @param   age             ## May be removed
+#'
+#' @examples
+#'  data(freq_landings)
+#'  data_freq <- freq_landings
+#'  espece <- 'Pseudotolithus senegalensis'
+#'  ngroup <- 3
+#'
+#' S_landings <- 28.76
+#' K_landings <- 0.36
+#' L_landings <- 50.4
+#' t0_landings <- -0.22
+#' a <- 0.005
+#' b <- 3.16
+#'
+#'
+#' data_freq <- data_freq %>%  mutate(weight_sampling = total_sampling * a*lclass^b/1000)
+#' #data_catch_month <- data.frame(Wtot = rep(c(1000,2000,3000,5000,1000,3000),4), year = rep(rep(c(2000,2001),3),4), month = rep(seq(1:12),2))
+#' data_catch_month <- data.frame(Wtot = rep(180000,12), month = rep(seq(1:12)))
+#' data_catch_month <- data_catch_month %>% group_by(month) %>% dplyr::summarise(Wtot= mean(Wtot)) #mean over the years
+#' data_freq <- merge(data_freq, data_catch_month, by = "month")
+#' data_freq <- data_freq %>% group_by(month) %>%  dplyr::mutate(W_sampling = sum(weight_sampling),
+#'                                                               N_sampling = sum(total_sampling),
+#'                                                               Ntot= floor(Wtot * N_sampling/W_sampling),
+#'                                                               total = floor(total_sampling*Ntot/N_sampling))
+#' ngroup <- 3
+#' fixmu <- rep(T, ngroup)
+#' fixsigma <- rep(F, ngroup)
+#' step_class <- 1
+#' step_time <- 4
+#' month_recrue <- 3
+#' mixdist_polymod(data_freq, K = K_landings, L_inf = L_landings, t0 = t0_landings,
+#'                 step_class = 1, step_time = 4, ngroup = 3, month_recrue = 3,
+#'                 fix_mu = fixmu, fix_sigma = fixsigma, sigma_adjust = 0,
+#'                 lmsd = lmsd, get_lmsd = T, plot = T)
+#'
+#' @export
+
+mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ngroup, step_class, step_time, month_recrue = 1, get_lmsd = FALSE, plot = FALSE, sigma_adjust = 0, age = 0){
   print("Polymodal decomposition of length frequencies")
 
   data_mix <- as.list(list(NULL))
@@ -82,11 +134,11 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     data_mix[[i]] <- mixgroup(data_count[[i]],breaks=c(length_min, seq(length_min + step_class, length_max - step_class, step_class), length_max), xname="lclass")
   }
 
-    ALK <- cbind(data.frame(matrix(0, nrow = length(data_mix[[1]]$lclass), ncol = 3,
-                                   dimnames = list(NULL, c("lclass", "count", "prop_obs")))),
-                 data.frame(matrix(0, nrow = length(data_mix[[1]]$lclass), ncol = (ngroup*step_time),
-                                   dimnames = list(NULL, paste0("Age_", seq(age, ngroup + age - 1/step_time, by = 1/step_time))))))
-    Matrice_Capture <- ALK
+  ALK <- cbind(data.frame(matrix(0, nrow = length(data_mix[[1]]$lclass), ncol = 3,
+                                 dimnames = list(NULL, c("lclass", "count", "prop_obs")))),
+               data.frame(matrix(0, nrow = length(data_mix[[1]]$lclass), ncol = (ngroup*step_time),
+                                 dimnames = list(NULL, paste0("Age_", seq(age, ngroup + age - 1/step_time, by = 1/step_time))))))
+  Matrice_Capture <- ALK
 
 
   for (i in sort(unique(data_freq$step_time))){
@@ -125,13 +177,13 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     print(vb)
     print(L)
     if (get_lmsd == F){
-      sigma <- predict(lmsd, data.frame(age = vb)) # for sigma
+      sigma <- predict(lmsd, data.frame(age = vb)) + sigma_adjust # for sigma
       param <- mixparam(L,sigma)
       mix[[i]] <- mix(data_mix[[i]], param, dist="norm", emsteps=100, mixconstr(conmu="MFX", fixmu= fix_mu,
                                                                                 consigma="SFX", fixsigma=fix_sigma))#fitting function
     }
     else {
-      param <- mixparam(mu = L, sigma = rep(sigma_adjust,length(L)))
+      param <- mixparam(mu = L, sigma = rep(1,length(L)))
       mix[[i]] <- mix(data_mix[[i]], param, dist="norm", emsteps=100, mixconstr(conmu="MFX", fixmu= fix_mu,
                                                                                 consigma="NONE"))#fitting function
     }
@@ -142,7 +194,7 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     sd[[i]] <- mix[[i]]$parameters$sigma
 
     #if (get_lmsd==T) {
-      sd_lm <- rbind(sd_lm, data.frame(sd = mix[[i]]$parameters$sigma, age = vb, prop = prop[[i]], L))
+    sd_lm <- rbind(sd_lm, data.frame(sd = mix[[i]]$parameters$sigma, age = vb, prop = prop[[i]], L))
     #}
     if(step_time!=12) {
       ALK[,1:3] <- data_mix[[i]] %>%  mutate(prop_obs = count/sum(count, na.rm = T)) # might be removed
@@ -174,8 +226,8 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     #Matrice_Capture <- rbind(Matrice_Capture, t(as.matrix(ALK$count)) %*% as.matrix(ALK[,4:(4 + ngroup -1)]))
 
   }
-    print('')
-    print(sd_lm)
+  print('')
+  print(sd_lm)
 
   if (step_time == 12) {
     Matrice_Capture <- as.data.frame(NULL)
@@ -240,21 +292,17 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
   assign("mean", mean, envir=globalenv())
   assign("prop", prop, envir=globalenv())
 
-print('')
+  print('')
 
   if (step_time!=12) {
-    Mat_C <- apply(Matrice_Capture[4:(4+ngroup*step_time-1)], 2, sum)
+    Mat_C <- round(apply(Matrice_Capture[4:(4+ngroup*step_time-1)], 2, sum)) + 1
   }
   if (step_time == 12) {
-    Mat_C <- apply(Matrice_Capture[4:(4+ngroup-1)], 2, sum) #capture_trim[10] <- 1
+    Mat_C <- round(apply(Matrice_Capture[4:(4+ngroup-1)], 2, sum))+1 #capture_trim[10] <- 1
   }
   Mat_C <- data.frame(Catch = Mat_C)
 
-  for (k in 1:length(Mat_C)) {
-    if (Mat_C[k]<1) {
-      Mat_C[k] <- 1
-    }
-  }
   assign("Mat_C", Mat_C, envir=globalenv())
   assign("data_count", data_count, envir=globalenv())
 }
+
