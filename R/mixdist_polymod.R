@@ -50,7 +50,7 @@
 #'
 #' @export
 
-mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ngroup, step_class, step_time, month_recrue = 1, get_lmsd = FALSE, plot = FALSE, sigma_adjust = 0, age = 0){
+mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ngroup, step_class, step_time, month_recrue = 1, get_lmsd = FALSE, plot = FALSE, sigma_adjust = 1, age = 0){
   print("Polymodal decomposition of length frequencies")
 
   data_mix <- as.list(list(NULL))
@@ -125,13 +125,13 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     print(vb)
     print(L)
     if (get_lmsd == F){
-      sigma <- predict(lmsd, data.frame(age = vb)) + sigma_adjust # for sigma
+      sigma <- predict(lmsd, data.frame(age = vb)) # for sigma
       param <- mixparam(L,sigma)
       mix[[i]] <- mix(data_mix[[i]], param, dist="norm", emsteps=100, mixconstr(conmu="MFX", fixmu= fix_mu,
                                                                                 consigma="SFX", fixsigma=fix_sigma))#fitting function
     }
     else {
-      param <- mixparam(mu = L, sigma = rep(1,length(L)))
+      param <- mixparam(mu = L, sigma = rep(sigma_adjust,length(L)))
       mix[[i]] <- mix(data_mix[[i]], param, dist="norm", emsteps=100, mixconstr(conmu="MFX", fixmu= fix_mu,
                                                                                 consigma="NONE"))#fitting function
     }
