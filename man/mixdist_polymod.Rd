@@ -82,37 +82,4 @@ mixdist_polymod(data_freq, K = K_landings, L_inf = L_landings, t0 = t0_landings,
                 fix_mu = fixmu, fix_sigma = fixsigma, sigma_adjust = 0,
                 lmsd = lmsd, get_lmsd = T, plot = T)
 
- data(freq_landings)
- data_freq <- freq_landings
- espece <- 'Pseudotolithus senegalensis'
- ngroup <- 3
-
-S_landings <- 28.76
-K_landings <- 0.36
-L_landings <- 50.4
-t0_landings <- -0.22
-a <- 0.005
-b <- 3.16
-
-
-data_freq <- data_freq \%>\%  mutate(weight_sampling = total_sampling * a*lclass^b/1000)
-#data_catch_month <- data.frame(Wtot = rep(c(1000,2000,3000,5000,1000,3000),4), year = rep(rep(c(2000,2001),3),4), month = rep(seq(1:12),2))
-data_catch_month <- data.frame(Wtot = rep(180000,12), month = rep(seq(1:12)))
-data_catch_month <- data_catch_month \%>\% group_by(month) \%>\% dplyr::summarise(Wtot= mean(Wtot)) #mean over the years
-data_freq <- merge(data_freq, data_catch_month, by = "month")
-data_freq <- data_freq \%>\% group_by(month) \%>\%  dplyr::mutate(W_sampling = sum(weight_sampling),
-                                                              N_sampling = sum(total_sampling),
-                                                              Ntot= floor(Wtot * N_sampling/W_sampling),
-                                                              total = floor(total_sampling*Ntot/N_sampling))
-ngroup <- 3
-fixmu <- rep(T, ngroup)
-fixsigma <- rep(F, ngroup)
-step_class <- 1
-step_time <- 4
-month_recrue <- 3
-mixdist_polymod(data_freq, K = K_landings, L_inf = L_landings, t0 = t0_landings,
-                step_class = 1, step_time = 4, ngroup = 3, month_recrue = 3,
-                fix_mu = fixmu, fix_sigma = fixsigma, sigma_adjust = 0,
-                lmsd = lmsd, get_lmsd = T, plot = T)
-
 }
