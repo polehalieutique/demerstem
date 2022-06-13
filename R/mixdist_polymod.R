@@ -102,7 +102,7 @@
 #'
 #' @export
 
-mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ngroup, step_class, step_time, month_recrue = 1, get_lmsd = FALSE, plot = FALSE, sigma_adjust = 0, age = 0){
+mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ngroup, step_class, step_time, month_recrue = 1, get_lmsd = FALSE, plot = FALSE, sigma_adjust = 1, age = 0){
   print("Polymodal decomposition of length frequencies")
 
   data_mix <- as.list(list(NULL))
@@ -177,13 +177,13 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     print(vb)
     print(L)
     if (get_lmsd == F){
-      sigma <- predict(lmsd, data.frame(age = vb)) + sigma_adjust # for sigma
+      sigma <- predict(lmsd, data.frame(age = vb)) # for sigma
       param <- mixparam(L,sigma)
       mix[[i]] <- mix(data_mix[[i]], param, dist="norm", emsteps=100, mixconstr(conmu="MFX", fixmu= fix_mu,
                                                                                 consigma="SFX", fixsigma=fix_sigma))#fitting function
     }
     else {
-      param <- mixparam(mu = L, sigma = rep(1,length(L)))
+      param <- mixparam(mu = L, sigma = rep(sigma_adjust,length(L)))
       mix[[i]] <- mix(data_mix[[i]], param, dist="norm", emsteps=100, mixconstr(conmu="MFX", fixmu= fix_mu,
                                                                                 consigma="NONE"))#fitting function
     }
@@ -270,10 +270,12 @@ mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ng
     for (i in sort(unique(data_freq$step_time))) {
       print(i)
       if(step_time==12){
-        hist(data_count[[i]], breaks=c(length_min,seq(length_min + step_class, length_max - step_class, step_class),length_max),xlab = paste0(espece, " length (cm)"), ylab = "Relative frequency", main = paste0("Polymodal decomposition : Month ",i), col = "lightgrey", freq = FALSE, cex.axis = 1.3, cex.lab = 1.3, ylim = c(0,0.4))
+        A <- data.frame(count = data_count[[i]]) %>%  count(count) %>% mutate(freq = n/sum(n))
+        hist(data_count[[i]], breaks=c(length_min,seq(length_min + step_class, length_max - step_class, step_class),length_max),xlab = paste0(espece, " length (cm)"), ylab = "Relative frequency", main = paste0("Polymodal decomposition : Month ",i), col = "lightgrey", freq = FALSE, cex.axis = 1.3, cex.lab = 1.3, ylim = c(0,ceiling(max(A$freq)*10)/10))
       }
       else{
-        hist(data_count[[i]], breaks=c(length_min,seq(length_min + step_class, length_max - step_class, step_class),length_max),xlab = paste0(espece, " length (cm)"), ylab = "Relative frequency", main = paste0("Polymodal decomposition : Period ",i), col = "lightgrey", freq = FALSE, cex.axis = 1.3, cex.lab = 1.3, ylim = c(0,0.4))
+        A <- data.frame(count = data_count[[i]]) %>%  count(count) %>% mutate(freq = n/sum(n))
+        hist(data_count[[i]], breaks=c(length_min,seq(length_min + step_class, length_max - step_class, step_class),length_max),xlab = paste0(espece, " length (cm)"), ylab = "Relative frequency", main = paste0("Polymodal decomposition : Period ",i), col = "lightgrey", freq = FALSE, cex.axis = 1.3, cex.lab = 1.3, ylim = c(0,ceiling(max(A$freq)*10)/10))
       }
       lgen <- seq(0,length_max, by = 0.01)
       for (k in (1:ngroup)){
