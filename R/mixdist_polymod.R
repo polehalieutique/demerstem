@@ -101,7 +101,6 @@
 #'                 lmsd = lmsd, get_lmsd = T, plot = T)
 #'
 #' @export
-
 mixdist_polymod <- function(data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd, ngroup, step_class, step_time, month_recrue = 1, get_lmsd = FALSE, plot = FALSE, sigma_adjust = 1, age = 0){
   print("Polymodal decomposition of length frequencies")
 
