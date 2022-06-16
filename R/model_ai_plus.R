@@ -105,7 +105,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
       table_tempo$modality <- as.factor(table_tempo$modality)
       table_tempo$modality <- ordered(table_tempo$modality,
                                       levels = levels(tableau_ab[, vect_param[j]]))
-      table_tempo$title <- paste0("Estimation - density - ",
+      table_tempo$title <- paste0("Prediction - density - ",
                                   title, "\n", vect_param[j])
       list_plot[[j]] <- local({
         tempo <- j

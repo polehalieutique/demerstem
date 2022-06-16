@@ -90,7 +90,7 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
       table_tempo$modality <- as.factor(table_tempo$modality)
       table_tempo$modality <- ordered(table_tempo$modality,
                                       levels = levels(tableau_pres[, vect_param[j]]))
-      table_tempo$title <- paste0("Estimation - pres/abs - ",
+      table_tempo$title <- paste0("Prediction - pres/abs - ",
                                   title, "\n", vect_param[j])
       list_plot[[j]] <- local({
         tempo <- j
