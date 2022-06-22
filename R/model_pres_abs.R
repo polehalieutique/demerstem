@@ -145,10 +145,10 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
 
           plot_interac_1[[k]] <- local({k <- k
           ggplot(data = inter_glm[[k]], aes(x = inter_glm[[k]][,
-                                                               1], y = fit, group = inter_glm[[k]][, 2])) +
+                                                               1], y = 100 *fit, group = inter_glm[[k]][, 2])) +
             geom_line(size = 2, aes(color = inter_glm[[k]][,
                                                            2])) +
-            geom_ribbon(aes(ymin = fit - se, ymax = fit + se, fill = inter_glm[[k]][, 2]), alpha = 0.2) +
+            geom_ribbon(aes(ymin = 100*(fit - se), ymax = 100*(fit + se), fill = inter_glm[[k]][, 2]), alpha = 0.2) +
             facet_grid(~title) +
             labs(x = variable1, y = "Predicted % of presence", color = variable2, fill = variable2) + theme_nice() +
             theme(axis.text.x = element_text(angle = 60, size = 8),
