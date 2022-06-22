@@ -82,8 +82,8 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
     }
     table_tempo$corrected_estimates <- table_tempo$estimates +
       table_pres[1, 1]
-    table_tempo$corrected_estimates <- exp(table_tempo$corrected_estimates)/(1 +
-                                                                               exp(table_tempo$corrected_estimates))
+    table_tempo$corrected_estimates <- 100 * (exp(table_tempo$corrected_estimates)/(1 +
+                                                                               exp(table_tempo$corrected_estimates)))
     if (as.numeric(gregexpr(pattern = ":", as.character(attr(glm_presabs[[1]]$term,
                                                              "term.labels"))[j])) < 0) {
       count <- count + 1
