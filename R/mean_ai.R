@@ -44,7 +44,7 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
       data_IA <- subset(data_IA, !(year == as.numeric(vect_year_elim[i])))
     }
   }
-
+  # plot standardized AI without technology creep
   data_int_0 <- data_IA %>% dplyr::select(year, type_ref)
   data_int <- data_IA %>% dplyr::select(year, type_ref)
   for (k in 1:length(type_other)) {
