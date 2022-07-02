@@ -16,6 +16,7 @@ theme_nice <- function() {
   theme_bw() +
     theme(
           strip.text.x = element_text(size = 14, face = "bold"),
+          strip.text.y = element_text(size = 14, face = "bold"),
           axis.line = element_line(colour = "black"),
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
