@@ -2,16 +2,17 @@
 % Please edit documentation in R/generalised_model.R
 \name{generalised_model}
 \alias{generalised_model}
-\title{this function develop the generalised production model from IA and Efox series}
+\title{Generalised production model from IA and Efox series}
 \usage{
 generalised_model(
   table_Efox,
   graph_param,
-  vect_ini = c(10, -0.5, 1),
-  vect_lower = c(0.5, -1, 0.01),
-  vect_upper = c(100, 10, 9),
+  a = c(0.0001, 0.001, 0.01),
+  b = c(0.0001, 0.001, 0.01),
+  m = c(0.5, 0.7, 0.9),
   warning_control = FALSE,
-  max_iteration = 50
+  max_iteration = 50,
+  IC = T
 )
 }
 \arguments{
@@ -19,11 +20,11 @@ generalised_model(
 
 \item{graph_param}{: vector gathering the graphhics aestetics parameters (format : c(lengthEfox, title, upper_x, upper_y, upper_ybis))}
 
-\item{vect_ini}{: values of initialisation of the parameters a, b and p}
+\item{a}{: values of initialisation and range of the parameter a (lower, init, upper)}
 
-\item{vect_lower}{: values of lower limits of the parameters a, b and p}
+\item{b}{: values of initialisation and range of the parameter b}
 
-\item{vect_upper}{: values of upper limits of the parameters a, b and p}
+\item{m}{: values of initialisation and range of the parameter m}
 
 \item{warning_control}{: if TRUE, the nls won't stop its process if too many warnings are made.}
 
@@ -32,7 +33,7 @@ generalised_model(
 \item{log}{: by default, fit the model under log transformation of the AI. Else, fit without the log transformation (no start/limit)}
 }
 \description{
-this function develop the generalised production model from IA and Efox series
+\code{generalised_model}
 }
 \examples{
 
