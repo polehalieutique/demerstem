@@ -1,14 +1,13 @@
-## brouillon
-
-#' this function develop the generalised production model from IA and Efox series
+#' Generalised production model from IA and Efox series
 #'
+#' \code{generalised_model}
 #'
 #' @param table_Efox      : table with IA and Efox
 #' @param graph_param     : vector gathering the graphhics aestetics parameters (format : c(lengthEfox, title, upper_x, upper_y, upper_ybis))
 #' @param log             : by default, fit the model under log transformation of the AI. Else, fit without the log transformation (no start/limit)
-#' @param vect_ini        : values of initialisation of the parameters a, b and p
-#' @param vect_lower      : values of lower limits of the parameters a, b and p
-#' @param vect_upper      : values of upper limits of the parameters a, b and p
+#' @param a               : values of initialisation and range of the parameter a (lower, init, upper)
+#' @param b               : values of initialisation and range of the parameter b
+#' @param m               : values of initialisation and range of the parameter m
 #' @param warning_control : if TRUE, the nls won't stop its process if too many warnings are made.
 #' @param max_iteration   : number of iteration that will be runned.
 #'
@@ -17,25 +16,25 @@
 #' @export
 
 
-generalised_model <- function (table_Efox, graph_param, vect_ini = c(10, -0.5, 1),
-                               vect_lower = c(0.5, -1, 0.01), vect_upper = c(100, 10, 9),
+generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.01),
+                               b = c(0.0001, 0.001, 0.01), m = c(0.5, 0.7, 0.9),
                                warning_control = FALSE, max_iteration = 50, IC = T)
 {
   list_graph <- NULL
   if (warning_control == TRUE) {
-    modelegene_IA <- nls(formula = IA ~ (a + b * Efox)^(1/p),
-                         data = table_Efox, start = c(a = vect_ini[1], b = vect_ini[2],
-                                                      p = vect_ini[3]), lower = c(a = vect_lower[1],
-                                                                                  b = vect_lower[2], p = vect_lower[3]), upper = c(a = vect_upper[1],
-                                                                                                                                   b = vect_upper[2], p = vect_upper[3]), algorithm = "port",
+    modelegene_IA <- nls(formula = IA ~ (a + b * Efox)^(1/(m-1)),
+                         data = table_Efox, start = c(a = a[2], b = b[2],
+                                                      m = m[2]), lower = c(a = a[1],
+                                                                           b = b[1], m = m[1]), upper = c(a = a[3],
+                                                                                                          b = b [3], m = m[3]), algorithm = "port",
                          nls.control(warnOnly = TRUE, maxiter = max_iteration))
   }
   else {
-    modelegene_IA <- nls(formula = IA ~ (a + b * Efox)^(1/p),
-                         data = table_Efox, start = c(a = vect_ini[1], b = vect_ini[2],
-                                                      p = vect_ini[3]), lower = c(a = vect_lower[1],
-                                                                                  b = vect_lower[2], p = vect_lower[3]), upper = c(a = vect_upper[1],
-                                                                                                                                   b = vect_upper[2], p = vect_upper[3]), algorithm = "port",
+    modelegene_IA <- nls(formula = IA ~ (a + b * Efox)^(1/(m-1)),
+                         data = table_Efox, start = c(a = a[2], b = b[2],
+                                                      m = m[2]), lower = c(a = a[1],
+                                                                           b = b[1], m = m[2]), upper = c(a = a[3],
+                                                                                                          b = b[3], m = m[3]), algorithm = "port",
                          nls.control(maxiter = max_iteration))
   }
   if (IC ==T ){
@@ -48,12 +47,12 @@ generalised_model <- function (table_Efox, graph_param, vect_ini = c(10, -0.5, 1
       mutate(Year = table_Efox$Year[2:length(table_Efox$Efox)])
   }
   par_Efox <- as.vector(coef(modelegene_IA))
-  C_MSY <- -(par_Efox[3]/par_Efox[2]) * ((par_Efox[1]/(1 +
-                                                         par_Efox[3]))^(1 + (1/par_Efox[3]))) * table_Efox$factEfox[1]
-  E_MSY <- -(par_Efox[1]/(par_Efox[2] * (1 + (1/par_Efox[3]))))
+  C_MSY <- -((par_Efox[3]-1)/par_Efox[2]) * ((par_Efox[1]/(1 +
+                                                             (par_Efox[3]-1)))^(1 + (1/(par_Efox[3]-1)))) * table_Efox$factEfox[1]
+  E_MSY <- -(par_Efox[1]/(par_Efox[2] * (1 + (1/(par_Efox[3]-1)))))
   mE_fox <- seq(0, as.numeric(graph_param[1]), 0.01)
   annee_etude <- as.numeric(table_Efox$Year[1]):as.numeric(table_Efox$Year[nrow(table_Efox)])
-  IA_Efox <- (par_Efox[1] + par_Efox[2] * mE_fox)^(1/par_Efox[3])
+  IA_Efox <- (par_Efox[1] + par_Efox[2] * mE_fox)^(1/(par_Efox[3]-1))
   Y_Efox <- IA_Efox * mE_fox * table_Efox$factEfox[1]
   if (IC ==T ){
     interval_confidence$prod_low <- interval_confidence$`Sim.2.5%` *
@@ -140,12 +139,14 @@ generalised_model <- function (table_Efox, graph_param, vect_ini = c(10, -0.5, 1
                                                                                                                                                                                                                         ymax = `Sim.97.5%`), alpha = 0.15, inherit.aes = F,
                                                                                                                                                                                                                     fill = "#333232") + facet_grid(~title) + theme_nice() +
       labs(x = "Year", y = "Abundance indices")
-    list_graph[[length(list_graph) + 1]] <- plotGEN_pred  }
+    list_graph[[length(list_graph) + 1]] <- plotGEN_pred}
+
+  plot(nlsResiduals(modelegene_IA))
 
 
-  names_values <- c("Coeff_a", "Coeff_b", "Coeff_p", "MSY_recalcule",
-                    "Emsy_recalcule", "AIC")
-  results <- round(c(par_Efox[1], par_Efox[2], par_Efox[3],
+  names_values <- c("a", "b", "m", "MSY",
+                    "E_msy", "AIC")
+  results <- round(c(par_Efox[1], par_Efox[2], (par_Efox[3]),
                      C_MSY, E_MSY, AIC(modelegene_IA)), 5)
   table_outputs <- rbind(names_values, results)
   print(table_outputs)
