@@ -27,7 +27,6 @@ Depends:
     base,
     rjags,
     stringr,
-    profvis,
     coda,
     effects,
     mixdist,
