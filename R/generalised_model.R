@@ -145,10 +145,11 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
 
 
   names_values <- c("a", "b", "m", "MSY",
-                    "E_msy", "AIC")
+                    "E/E_msy", "B/B0", "AIC")
   results <- round(c(par_Efox[1], par_Efox[2], (par_Efox[3]),
-                     C_MSY, E_MSY, AIC(modelegene_IA)), 5)
-  table_outputs <- rbind(names_values, results)
-  print(table_outputs)
-  return(list(table_outputs, list_graph))
+                     C_MSY, tail(table_Efox$Efox,1), E_MSY, tail(table_Efox$IA,1)/IA_Efox[1], AIC(modelegene_IA)), 5)
+  table_pseudo_eq_gene <- rbind(names_values, results)
+  print(table_pseudo_eq_gene)
+  assign('table_pseudo_eq_gene', table_pseudo_eq_gene, envir=globalenv())
+  return(list(table_pseudo_eq_gene, list_graph))
 }
