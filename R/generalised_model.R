@@ -22,7 +22,7 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
 {
   list_graph <- NULL
   if (warning_control == TRUE) {
-    modelegene_IA <- nls(formula = IA ~ (a + b * Efox)^(1/(m-1)),
+    modelegene_IA <- nls(formula = log(IA) ~ log((a + b * Efox)^(1/(m-1))),
                          data = table_Efox, start = c(a = a[2], b = b[2],
                                                       m = m[2]), lower = c(a = a[1],
                                                                            b = b[1], m = m[1]), upper = c(a = a[3],
@@ -30,7 +30,7 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
                          nls.control(warnOnly = TRUE, maxiter = max_iteration))
   }
   else {
-    modelegene_IA <- nls(formula = IA ~ (a + b * Efox)^(1/(m-1)),
+    modelegene_IA <- nls(formula = log(IA) ~ log((a + b * Efox)^(1/(m-1))),
                          data = table_Efox, start = c(a = a[2], b = b[2],
                                                       m = m[2]), lower = c(a = a[1],
                                                                            b = b[1], m = m[2]), upper = c(a = a[3],
