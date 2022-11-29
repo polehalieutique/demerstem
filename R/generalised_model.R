@@ -53,6 +53,7 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
   mE_fox <- seq(0, as.numeric(graph_param[1]), 0.01)
   annee_etude <- as.numeric(table_Efox$Year[1]):as.numeric(table_Efox$Year[nrow(table_Efox)])
   IA_Efox <- (par_Efox[1] + par_Efox[2] * mE_fox)^(1/(par_Efox[3]-1))
+  IA_MSY <- (par_Efox[1] + par_Efox[2] * E_MSY)^(1/(par_Efox[3]-1))
   Y_Efox <- IA_Efox * mE_fox * table_Efox$factEfox[1]
   if (IC ==T ){
     interval_confidence$prod_low <- interval_confidence$`Sim.2.5%` *
@@ -145,9 +146,9 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
 
 
   names_values <- c("a", "b", "m", "MSY",
-                    "E/E_msy", "B/B0", "AIC")
+                    "E/E_msy", "B/BMSY", "B/B0", "AIC")
   results <- round(c(par_Efox[1], par_Efox[2], (par_Efox[3]),
-                     C_MSY, tail(table_Efox$Efox,1)/E_MSY, tail(table_Efox$IA,1)/IA_Efox[1], AIC(modelegene_IA)), 5)
+                     C_MSY, tail(table_Efox$IA,1)/IA_MSY, tail(table_Efox$Efox,1)/E_MSY, tail(table_Efox$IA,1)/IA_Efox[1], AIC(modelegene_IA)), 5)
   table_pseudo_eq_gene <- rbind(names_values, results)
   print(table_pseudo_eq_gene)
   assign('table_pseudo_eq_gene', table_pseudo_eq_gene, envir=globalenv())
