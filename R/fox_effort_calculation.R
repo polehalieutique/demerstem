@@ -20,7 +20,7 @@
 fox_effort_calculation <- function(data, catch_table, k){
   # data <- data[-2:-(ncol(data)-1)]
   colnames(data) <- c('Year', 'IA')
-  data <- data %>% arrange(Year)
+  data <- data %>% dplyr::arrange(Year)
 
   colnames(catch_table) <- c('Year', 'Capture')
   table_IA <- left_join(data, catch_table, by = "Year")

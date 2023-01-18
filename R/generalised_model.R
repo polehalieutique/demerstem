@@ -61,7 +61,7 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
     interval_confidence$prod_up <- interval_confidence$`Sim.97.5%` *
       x * table_Efox$factEfox[1]
   }
-  table_Efox$IA_pred <- c(NA, predict(modelegene_IA))
+  table_Efox$IA_pred <- exp(predict(modelegene_IA))
   table_Efox2 <- table_Efox
   data <- data.frame(mE_fox, IA_Efox, Y_Efox)
   todo <- data.frame(title = c(rep(graph_param[2], 4), paste0(graph_param[2],

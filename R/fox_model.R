@@ -52,7 +52,7 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, log=TRUE
 
   #line_E <- par_E[1]*exp(-par_E[2]*mE_fox)
 
-  IA_Efox <- par_Efox[1]*exp(-par_Efox[2]*mE_fox)
+  IA_Efox <- par_Efox[1]*exp(-par_Efox[2]*mE_fox) # IA predits => tracer la courbe
 
   interval_confidence$prod_low <- interval_confidence$`Sim.2.5%` * x *table_Efox$factEfox[1]
   interval_confidence$prod_up <- interval_confidence$`Sim.97.5%` * x *table_Efox$factEfox[1]
@@ -63,7 +63,7 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, log=TRUE
     table_Efox$IA_pred <- c(NA,predict(modelefox_IA))
   }
 
-  Y_Efox <- IA_Efox * mE_fox * table_Efox$factEfox[1]
+  Y_Efox <- IA_Efox * mE_fox * table_Efox$factEfox[1] # Y predits en multipliant IA par mE => tracer la courbe
 
   table_Efox2 <- table_Efox
 
@@ -103,7 +103,7 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, log=TRUE
     geom_point(aes(x=E, y=Capture), color="black", size = 1.3)+ facet_grid(~title) + labs(x = "mE") +
     geom_ribbon(data=interval_confidence, aes(x=Efox, ymin=prod_low, ymax= prod_up), alpha = 0.15, inherit.aes=F, fill="blue") +
     geom_hline(yintercept= rep(table_Efox$Capture[nrow(table_Efox)], nrow(table_Efox)), linetype="dashed", color = "red") + geom_vline(xintercept= rep(table_Efox$E[nrow(table_Efox)],nrow(table_Efox)), linetype="dashed", color = "red") +
-    theme_nice() + labs(x = "mE", y = "Catch") + geom_line(data = data, aes(x=mE_fox, y = Y_Efox), color="blue", size = 1.1) # D.a dit de prendre E
+    theme_nice() + labs(x = "mE", y = "Catch") + geom_line(data = data, aes(x=mE_fox, y = Y_Efox), color="blue", size = 1.1) # D.G a dit de prendre E
   list_graph[[length(list_graph) + 1]] <- plotFOX_Y
 
 
@@ -127,7 +127,7 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, log=TRUE
     facet_grid(~title) + theme_nice() + labs(x = "Year", y = "Abundance indices" )
   #plotFOX_pred <- plotFOX_pred + xlim(table_Efox$Year[1], table_Efox$Year[nrow(table_Efox)]) + ylim(0,as.numeric(graph_param[4]))
   list_graph[[length(list_graph) + 1]] <- plotFOX_pred
-
+  plot(nlsResiduals(modelefox_IA))
 if (log == T) {AIC <- AIC(modelefox_IA) + 2*sum(log(table_Efox$IA))}
 else {AIC <- AIC(modelefox_IA)}
   names_values <- c("Coeff_a", "Coeff_b", "MSY_recalcule", "Emsy_recalcule", "AIC")

@@ -21,6 +21,7 @@ RoxygenNote: 7.1.2
 Depends: 
     ggplot2,
     dplyr,
+    nlstools
     MASS,
     tidyr,
     ggpubr,
