@@ -44,37 +44,57 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
       data_IA <- subset(data_IA, !(year == as.numeric(vect_year_elim[i])))
     }
   }
-  # plot standardized AI without technology creep
+
   data_int_0 <- data_IA %>% dplyr::select(year, type_ref)
   data_int <- data_IA %>% dplyr::select(year, type_ref)
+
+  #-----------------------------------------------
+  # plot standardized AI without technology creep
+  #-----------------------------------------------
+
+  data_IA_fp_0 <- data_IA
+  ## on applique la dérive des puissances de pêche à chaque IA identifié comme pêche
   for (k in 1:length(type_other)) {
-    fish_power_0 <- fish_power * 0
-    data_IA_0 <- data_IA
-    Annee.indice <- as.numeric(data_IA_0$year) - min(data_IA_0$year[which(data_IA_0[,
-                                                                                    2 + k] > 0)]) + 1
-    data_IA_0[, 2 + k] <- data_IA_0[, 2 + k] * 1/(1 + fish_power_0[k])^(Annee.indice -
-                                                                          1)
-    data_IA_0_filter <- reshape2::melt(data_IA_0, id.vars = "year")
-    data_IA_0_filter <- data_IA_0_filter %>% filter(variable %in%
-                                                      c(type_ref, type_other[k]))
-    data_IA_0_filter <- data_IA_0_filter %>% pivot_wider(names_from = variable,
-                                                         values_from = value)
-    data_IA_0_filter$Any_NA <- apply(data_IA_0_filter, 1, function(x) anyNA(x))
-    tab_moy <- data_IA_0_filter %>% filter(Any_NA == FALSE)
-    if (is.null(tab_moy)) {
-      print("no common years")
+    Annee.indice <- as.numeric(data_IA_fp_0$year) - min(data_IA_fp_0$year[which(data_IA_fp_0[,2 + k] > 0)]) + 1
+
+    data_IA_fp_0[, 2 + k] <- data_IA_fp_0[, 2 + k] * 1/(1 + 0)^(Annee.indice -1)
+  }
+
+  # get year for which value is available for every IA
+  data_IA_fp_0$Any_NA <- apply(data_IA_fp_0, 1, function(x) anyNA(x))
+  tab_moy <- data_IA_fp_0 %>% filter(Any_NA == FALSE)
+
+  if (is.null(tab_moy)) {
+    return("no common years")
+  }
+
+  else{
+    data_IA_fp_0_st  <- data_IA_fp_0 %>%  dplyr::select(-Any_NA)
+    #data_IA_fp_st_transit <- data_IA_fp_0_st
+    mean_tempo <- tab_moy %>%
+      pivot_longer(cols = c(type_ref,type_other)) %>%
+      group_by(name) %>%
+      dplyr::summarise(mean = mean(value))
+
+    for (k in 1:length(type_other)) {
+
+      mean_survey <- (as.numeric(mean_tempo
+                                 %>% filter(name == type_ref)
+                                 %>% dplyr::select(mean)))
+
+      mean_com <- as.numeric(mean_tempo
+                             %>% filter(name == type_other[k])
+                             %>% dplyr::select(mean))
+
+      data_IA_fp_st_transit <- as.data.frame(data_IA_fp_0_st %>%
+                                               pivot_longer(type_other[k]) %>%
+                                               dplyr::select(year, value))
+
+      data_IA_fp_st_transit$value <- data_IA_fp_st_transit$value * as.numeric(mean_survey)/as.numeric(mean_com) # on standardise 1 à 1...
+      data_int_0 <- full_join(data_int_0, data_IA_fp_st_transit, by = "year")
+      names(data_int_0)[names(data_int_0) == "value"] <- type_other[k]
+
     }
-    mean_tempo <- tab_moy %>% pivot_longer(cols = c(type_ref,
-                                                    type_other[k])) %>% group_by(name) %>% dplyr::summarise(mean = mean(value))
-    data_IA_0_transit <- as.data.frame(data_IA_0 %>% pivot_longer(type_other[k]) %>%
-                                         dplyr::select(year, value))
-    mean_survey <- (as.numeric(mean_tempo %>% filter(name ==
-                                                       type_ref) %>% dplyr::select(mean)))
-    mean_com <- as.numeric(mean_tempo %>% filter(name ==
-                                                   type_other[k]) %>% dplyr::select(mean))
-    data_IA_0_transit$value <- data_IA_0_transit$value * as.numeric(mean_survey)/as.numeric(mean_com)
-    data_int_0 <- full_join(data_int_0, data_IA_0_transit, by = "year")
-    names(data_int_0)[names(data_int_0) == "value"] <- type_other[k]
   }
 
   data_IA_0 <- data_int_0
@@ -90,33 +110,57 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
 
   list_graph[[length(list_graph) + 1]] <- plot_standard
 
+
+  #-----------------------------------------------
+  # plot standardized AI with technology creep
+  #-----------------------------------------------
+
+
+  data_IA_fp <- data_IA
+  ## on applique la dérive des puissances de pêche à chaque IA identifié comme pêche
   for (k in 1:length(type_other)) {
-    Annee.indice <- as.numeric(data_IA$year) - min(data_IA$year[which(data_IA[,
-                                                                              2 + k] > 0)]) + 1
-    data_IA[, 2 + k] <- data_IA[, 2 + k] * 1/(1 + fish_power[k])^(Annee.indice -
-                                                                    1)
-    data_IA_filter <- reshape2::melt(data_IA, id.vars = "year")
-    data_IA_filter <- data_IA_filter %>% filter(variable %in%
-                                                  c(type_ref, type_other[k]))
-    data_IA_filter <- data_IA_filter %>% pivot_wider(names_from = variable,
-                                                     values_from = value)
-    data_IA_filter$Any_NA <- apply(data_IA_filter, 1, function(x) anyNA(x))
-    tab_moy <- data_IA_filter %>% filter(Any_NA == FALSE)
-    if (is.null(tab_moy)) {
-      print("no common years")
-    }
-    mean_tempo <- tab_moy %>% pivot_longer(cols = c(type_ref,
-                                                    type_other[k])) %>% group_by(name) %>% dplyr::summarise(mean = mean(value))
-    data_IA_transit <- as.data.frame(data_IA %>% pivot_longer(type_other[k]) %>%
-                                       dplyr::select(year, value))
-    mean_survey <- (as.numeric(mean_tempo %>% filter(name ==
-                                                       type_ref) %>% dplyr::select(mean)))
-    mean_com <- as.numeric(mean_tempo %>% filter(name ==
-                                                   type_other[k]) %>% dplyr::select(mean))
-    data_IA_transit$value <- data_IA_transit$value * as.numeric(mean_survey)/as.numeric(mean_com)
-    data_int <- full_join(data_int, data_IA_transit, by = "year")
-    names(data_int)[names(data_int) == "value"] <- type_other[k]
+    Annee.indice <- as.numeric(data_IA_fp$year) - min(data_IA_fp$year[which(data_IA_fp[,2 + k] > 0)]) + 1
+
+    data_IA_fp[, 2 + k] <- data_IA_fp[, 2 + k] * 1/(1 + fish_power[k])^(Annee.indice -1)
   }
+
+  # get year for which value is available for every IA
+  data_IA_fp$Any_NA <- apply(data_IA_fp, 1, function(x) anyNA(x))
+  tab_moy <- data_IA_fp %>% filter(Any_NA == FALSE)
+
+  if (is.null(tab_moy)) {
+    return("no common years")
+  }
+
+  else{
+    data_IA_fp_st  <- data_IA_fp %>%  dplyr::select(-Any_NA)
+    #data_IA_fp_st_transit <- data_IA_fp_st
+    mean_tempo <- tab_moy %>%
+      pivot_longer(cols = c(type_ref,type_other)) %>%
+      group_by(name) %>%
+      dplyr::summarise(mean = mean(value))
+
+    for (k in 1:length(type_other)) {
+
+      mean_survey <- (as.numeric(mean_tempo
+                                 %>% filter(name == type_ref)
+                                 %>% dplyr::select(mean)))
+
+      mean_com <- as.numeric(mean_tempo
+                             %>% filter(name == type_other[k])
+                             %>% dplyr::select(mean))
+
+      data_IA_fp_st_transit <- as.data.frame(data_IA_fp_st %>%
+                                               pivot_longer(type_other[k]) %>%
+                                               dplyr::select(year, value))
+
+      data_IA_fp_st_transit$value <- data_IA_fp_st_transit$value * as.numeric(mean_survey)/as.numeric(mean_com) # on standardise 1 à 1...
+      data_int <- full_join(data_int, data_IA_fp_st_transit, by = "year")
+      names(data_int)[names(data_int) == "value"] <- type_other[k]
+
+    }
+  }
+
   data_IA <- data_int
   data_IA$AI_standard <- apply(as.data.frame(data_IA[, -1]),
                                1, function(x) mean(x, na.rm = T))
