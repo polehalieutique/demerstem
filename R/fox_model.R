@@ -131,12 +131,11 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, log=TRUE
   plot(nlsResiduals(modelefox_IA))
 if (log == T) {AIC <- AIC(modelefox_IA) + 2*sum(log(table_Efox$IA))}
 else {AIC <- AIC(modelefox_IA)}
-  names_values <- c("a", "b", "m", "MSY", "E/E_msy", "B/BMSY",
+  names_values <- c("a", "b", "MSY", "E/E_msy", "B/BMSY",
                     "B/B0", "AIC")
 
   results <- round(c(par_Efox[1],
                      par_Efox[2],
-                     par_Efox[3],
                      C_MSYfox,
                      tail(table_Efox$Efox, 1)/E_MSYfox,
                      tail(table_Efox$IA,1)/IA_MSY,
