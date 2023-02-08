@@ -51,8 +51,6 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, log=TRUE
   mE_fox <- seq(0,as.numeric(graph_param[1]),0.01)
   annee_etude <- as.numeric(table_Efox$Year[1]):as.numeric(table_Efox$Year[nrow(table_Efox)])
 
-  #line_E <- par_E[1]*exp(-par_E[2]*mE_fox)
-
   IA_Efox <- par_Efox[1]*exp(-par_Efox[2]*mE_fox) # IA predits => tracer la courbe
 
   interval_confidence$prod_low <- interval_confidence$`Sim.2.5%` * x *table_Efox$factEfox[1]
