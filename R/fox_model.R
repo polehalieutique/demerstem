@@ -44,6 +44,7 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, log=TRUE
 
   C_MSYfox <- (par_Efox[1]/(par_Efox[2]*exp(1)))*table_Efox$factEfox[1]
   E_MSYfox <- (1/par_Efox[2])
+  IA_MSY <- par_Efox[1] * exp(-par_Efox[2] * E_MSYfox)
 
   # Un vecteur d'effort entre 0 et 12 par pas de 0.01 (pour les besoins du graphique, a adapter a votre etude)
   # A vector of effort values between 0 and 12, for each 0.01 (for the graphs, adapt it to your study)
@@ -57,10 +58,10 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, log=TRUE
   interval_confidence$prod_low <- interval_confidence$`Sim.2.5%` * x *table_Efox$factEfox[1]
   interval_confidence$prod_up <- interval_confidence$`Sim.97.5%` * x *table_Efox$factEfox[1]
   if (log ==T) {
-    table_Efox$IA_pred <- c(NA, exp(predict(modelefox_IA)))
+    table_Efox$IA_pred <- c(NA, exp(predict(modelefox_IA))) # IA predits => tracer la courbe
   }
   else {
-    table_Efox$IA_pred <- c(NA,predict(modelefox_IA))
+    table_Efox$IA_pred <- c(NA,predict(modelefox_IA)) # IA predits => tracer la courbe
   }
 
   Y_Efox <- IA_Efox * mE_fox * table_Efox$factEfox[1] # Y predits en multipliant IA par mE => tracer la courbe
@@ -130,8 +131,18 @@ fox_model <- function(table_Efox, graph_param, a_start = 5, b_start= 3, log=TRUE
   plot(nlsResiduals(modelefox_IA))
 if (log == T) {AIC <- AIC(modelefox_IA) + 2*sum(log(table_Efox$IA))}
 else {AIC <- AIC(modelefox_IA)}
-  names_values <- c("Coeff_a", "Coeff_b", "MSY_recalcule", "Emsy_recalcule", "AIC")
-  results <- round(c(par_Efox[1], par_Efox[2], C_MSYfox, E_MSYfox, AIC),2)
+  names_values <- c("a", "b", "m", "MSY", "E/E_msy", "B/BMSY",
+                    "B/B0", "AIC")
+
+  results <- round(c(par_Efox[1],
+                     par_Efox[2],
+                     par_Efox[3],
+                     C_MSYfox,
+                     tail(table_Efox$Efox, 1)/E_MSYfox,
+                     tail(table_Efox$IA,1)/IA_MSY,
+                     tail(table_Efox$IA, 1)/IA_Efox[1],
+                     AIC(modelegene_IA)),2)
+
   table_outputs <- rbind(names_values, results)
 
   print(table_outputs)

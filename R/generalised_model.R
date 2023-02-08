@@ -22,7 +22,7 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
 {
   list_graph <- NULL
   if (warning_control == TRUE) {
-    modelegene_IA <- nls(formula = log(IA) ~ log(a + b * Efox)*(1/(m-1)),
+    modelegene_IA <- nls(formula = log(IA) ~ log((a + b * Efox)^(1/(m-1))),
                          data = table_Efox, start = c(a = a[2], b = b[2],
                                                       m = m[2]), lower = c(a = a[1],
                                                                            b = b[1], m = m[1]), upper = c(a = a[3],
@@ -39,13 +39,20 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
   }
   if (IC ==T ){
     x <- seq(0, graph_param[1], length = length(table_Efox$Efox))
-    interval_confidence <- predictNLS(modelegene_IA, newdata = data.frame(Efox = x),
-                                      interval = "confidence", alpha = 0.05, nsim = 10000)$summary %>%
-      mutate(Efox = x)
-    interval_confidence_pred <- predictNLS(modelegene_IA, newdata = data.frame(Efox = table_Efox$Efox[2:length(table_Efox$Efox)]),
-                                           interval = "confidence", alpha = 0.05, nsim = 10000)$summary %>%
-      mutate(Year = table_Efox$Year[2:length(table_Efox$Efox)])
-  }
+    interval_confidence <- predictNLS(modelegene_IA, newdata = data.frame(Efox = x), interval = "confidence", alpha = 0.05, nsim = 10000)$summary %>% mutate(Efox = x)
+    interval_confidence_pred <- predictNLS(modelegene_IA, newdata = data.frame(Efox = table_Efox$Efox[2:length(table_Efox$Efox)]), interval = "confidence", alpha = 0.05, nsim = 10000)$summary %>% mutate(Year = table_Efox$Year[2:length(table_Efox$Efox)])
+
+    if (log ==T) {
+      interval_confidence$`Sim.2.5%` <- exp(interval_confidence$`Sim.2.5%`)
+      interval_confidence$`Sim.97.5%` <- exp(interval_confidence$`Sim.97.5%`)
+
+      interval_confidence_pred$`Sim.2.5%` <- exp(interval_confidence_pred$`Sim.2.5%`)
+      interval_confidence_pred$`Sim.97.5%` <- exp(interval_confidence_pred$`Sim.97.5%`)
+    }
+    interval_confidence$prod_low <- interval_confidence$`Sim.2.5%` * x *table_Efox$factEfox[1]
+    interval_confidence$prod_up <- interval_confidence$`Sim.97.5%` * x *table_Efox$factEfox[1]
+    }
+
   par_Efox <- as.vector(coef(modelegene_IA))
   C_MSY <- -((par_Efox[3]-1)/par_Efox[2]) * ((par_Efox[1]/(1 +
                                                              (par_Efox[3]-1)))^(1 + (1/(par_Efox[3]-1)))) * table_Efox$factEfox[1]
@@ -55,13 +62,9 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
   IA_Efox <- (par_Efox[1] + par_Efox[2] * mE_fox)^(1/(par_Efox[3]-1))
   IA_MSY <- (par_Efox[1] + par_Efox[2] * E_MSY)^(1/(par_Efox[3]-1))
   Y_Efox <- IA_Efox * mE_fox * table_Efox$factEfox[1]
-  if (IC ==T ){
-    interval_confidence$prod_low <- interval_confidence$`Sim.2.5%` *
-      x * table_Efox$factEfox[1]
-    interval_confidence$prod_up <- interval_confidence$`Sim.97.5%` *
-      x * table_Efox$factEfox[1]
-  }
-  table_Efox$IA_pred <- exp(predict(modelegene_IA))
+
+
+  table_Efox$IA_pred <- c(NA, exp(predict(modelegene_IA))) # to plot IA_pred
   table_Efox2 <- table_Efox
   data <- data.frame(mE_fox, IA_Efox, Y_Efox)
   todo <- data.frame(title = c(rep(graph_param[2], 4), paste0(graph_param[2],
