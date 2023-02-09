@@ -138,7 +138,7 @@ else {AIC <- AIC(modelefox_IA)}
                      tail(table_Efox$Efox, 1)/E_MSYfox,
                      tail(table_Efox$IA,1)/IA_MSY,
                      tail(table_Efox$IA, 1)/IA_Efox[1],
-                     AIC(modelegene_IA)),2)
+                     AIC(modelefox_IA)),2)
 
   table_outputs <- rbind(names_values, results)
 
