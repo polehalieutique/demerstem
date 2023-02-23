@@ -53,12 +53,7 @@ mixdist_polymod <- function (data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd,
                              ngroup, step_class, step_time, month_recrue = 1, get_lmsd = FALSE,
                              plot = FALSE, sigma_adjust = 1, age = 0)
 {
-  if (!is.null(data_freq$gear)){
-    data_freq <- data_freq %>% group_by(month, gear) %>%  dplyr::mutate(W_sampling = sum(weight_sampling),
-                                                                        N_sampling = sum(total_sampling),
-                                                                        Ntot= floor(Wtot * N_sampling/W_sampling),
-                                                                        total_gear = floor(total_sampling*Ntot/N_sampling)) %>%  na.omit()
-  }
+
   print("Polymodal decomposition of length frequencies")
   data_mix <- as.list(list(NULL))
   data_count <- as.list(list(NULL))
@@ -75,25 +70,23 @@ mixdist_polymod <- function (data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd,
   prop <- as.list(list(NULL))
   sd_constraint_musd <- as.list(list(NULL))
   sd <- as.list(list(NULL))
-  data_freq <- data_freq %>% mutate(indice_croissance = case_when(month -
-                                                                    month_recrue >= 0 ~ month - month_recrue, month - month_recrue <
-                                                                    0 ~ 12 - (month_recrue - month)))
-  data_freq$step_time <- ceiling((data_freq$indice_croissance +
-                                    1)/(12/step_time))
+
+
   if (!is.null(data_freq$gear)){
-    if (step_time == 1) {
-      data_freq <- data_freq %>% ungroup() %>% group_by(step_time,lclass) %>%
-        mutate(freq_gear = total_gear/sum(total_gear))
-    }
-    else {
-      data_freq <- data_freq %>% ungroup() %>% group_by(step_time, gear,lclass) %>%
-        mutate(tot_freq_gear = sum(total_gear)) %>% ungroup() %>% group_by(step_time, lclass) %>%  mutate(freq_gear = tot_freq_gear/sum(total_gear))
-    }
+
+    #if (step_time == 1) {
+    data_freq <- data_freq %>% ungroup() %>% group_by(step_time,lclass) %>%
+      mutate(freq_gear = total_gear/sum(total_gear))
+    #}
+    # else {
+    #   data_freq <- data_freq %>% ungroup() %>% group_by(step_time, gear,lclass) %>%
+    #     mutate(tot_freq_gear = sum(total_gear)) %>% ungroup() %>% group_by(step_time, lclass) %>%  mutate(freq_gear = tot_freq_gear/sum(total_gear))
+    # }
   }
   print(unique(data_freq$step_time))
   for (i in sort(unique(data_freq$step_time))) {
     data_count[[i]] <- rep(data_freq$lclass[data_freq$step_time ==
-                                              i], data_freq$total[data_freq$step_time == i])
+                                              i], data_freq$total_gear[data_freq$step_time == i])
     data_mix[[i]] <- mixgroup(data_count[[i]], breaks = c(length_min,
                                                           seq(length_min + step_class, length_max - step_class,
                                                               step_class), length_max), xname = "lclass")
@@ -212,7 +205,7 @@ mixdist_polymod <- function (data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd,
         for (k in 1:length(unique(data_freq$gear))) {
           ALK_gear[[k]] <- t(apply(ALK[, vect], 1, function(i) i/sum(i)))
           df_gear <- data.frame(data_mix[[i]]$count * ALK_gear[[k]]) %>% mutate(lclass = c(1: length_max)) %>% left_join(data_freq %>% group_by(lclass, gear, step_time) %>% filter(step_time==i, gear == unique(data_freq$gear)[k]) %>%   dplyr::select(lclass, freq_gear) %>%  distinct())
-          Matrice_Capture[[k]][, vect] <- df_gear[,c(1:4)] * df_gear$freq_gear # multpiply by prop for lclass of fleet k at time i
+          Matrice_Capture[[k]][, vect] <- df_gear[,c(1:3)] * df_gear$freq_gear # multpiply by prop for lclass of fleet k at time i
         }
       }
       else {
