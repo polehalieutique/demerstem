@@ -205,7 +205,7 @@ mixdist_polymod <- function (data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd,
         for (k in 1:length(unique(data_freq$gear))) {
           ALK_gear[[k]] <- t(apply(ALK[, vect], 1, function(i) i/sum(i)))
           df_gear <- data.frame(data_mix[[i]]$count * ALK_gear[[k]]) %>% mutate(lclass = c(1: length_max)) %>% left_join(data_freq %>% group_by(lclass, gear, step_time) %>% filter(step_time==i, gear == unique(data_freq$gear)[k]) %>%   dplyr::select(lclass, freq_gear) %>%  distinct())
-          Matrice_Capture[[k]][, vect] <- df_gear[,c(1:3)] * df_gear$freq_gear # multpiply by prop for lclass of fleet k at time i
+          Matrice_Capture[[k]][, vect] <- df_gear[,c(1:ngroup)] * df_gear$freq_gear # multpiply by prop for lclass of fleet k at time i
         }
       }
       else {
