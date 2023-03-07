@@ -42,13 +42,13 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
     interval_confidence <- predictNLS(modelegene_IA, newdata = data.frame(Efox = x), interval = "confidence", alpha = 0.05, nsim = 10000)$summary %>% mutate(Efox = x)
     interval_confidence_pred <- predictNLS(modelegene_IA, newdata = data.frame(Efox = table_Efox$Efox[2:length(table_Efox$Efox)]), interval = "confidence", alpha = 0.05, nsim = 10000)$summary %>% mutate(Year = table_Efox$Year[2:length(table_Efox$Efox)])
 
-    if (log ==T) {
+    #if (log ==T) {
       interval_confidence$`Sim.2.5%` <- exp(interval_confidence$`Sim.2.5%`)
       interval_confidence$`Sim.97.5%` <- exp(interval_confidence$`Sim.97.5%`)
 
       interval_confidence_pred$`Sim.2.5%` <- exp(interval_confidence_pred$`Sim.2.5%`)
       interval_confidence_pred$`Sim.97.5%` <- exp(interval_confidence_pred$`Sim.97.5%`)
-    }
+   # }
     interval_confidence$prod_low <- interval_confidence$`Sim.2.5%` * x *table_Efox$factEfox[1]
     interval_confidence$prod_up <- interval_confidence$`Sim.97.5%` * x *table_Efox$factEfox[1]
     }
@@ -134,7 +134,7 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
   list_graph[[length(list_graph) + 1]] <- plotGEN_Y_2
 
 
-  if (IC ==T) {
+ # if (IC ==T) {
     plotGEN_pred <- table_Efox %>% full_join(interval_confidence_pred[,
                                                                       c(11:13)], by = "Year") %>% mutate(title = todo[length(list_graph) +
                                                                                                                         1, ]) %>% ggplot() + geom_line(aes(x = Year, y = IA_pred),
@@ -142,8 +142,8 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
                                                                                                                                                                                      color = "black") + geom_ribbon(aes(x = Year, ymin = `Sim.2.5%`,
                                                                                                                                                                                                                         ymax = `Sim.97.5%`), alpha = 0.15, inherit.aes = F,
                                                                                                                                                                                                                     fill = "#333232") + facet_grid(~title) + theme_nice() +
-      labs(x = "Year", y = "Abundance indices")
-    list_graph[[length(list_graph) + 1]] <- plotGEN_pred}
+      labs(x = "Year", y = "Abundance indices")  + ylim(c(0,max(table_Efox$IA)))
+    list_graph[[length(list_graph) + 1]] <- plotGEN_pred#}
 
   plot(nlsResiduals(modelegene_IA))
 
