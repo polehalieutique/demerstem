@@ -11,6 +11,19 @@
 #'
 #' @export
 
+#'  F_pseudo_rectif
+#'
+#' \code{F_pseudo_rectif} returns Initial recruitment estiMate
+#'
+#' @param   FT            Terminal F
+#' @param   Rinit         Initial value for pseudo cohort analysis, equivalent to the last year recruitment
+#' @param   Mat_C         data frame of catch, each column is a different gear
+#' @param   Mat_R         vector of recruitment, if unknown, considered constant
+#' @param   Mat_E         data frame of effort, each column is a different gear
+#' @param   Mat_M         vector of mortality biological parameter
+#'
+#' @export
+
 F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop_R, quarter, ngroup= F) {
 
   plot <- list()
@@ -19,6 +32,13 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop
   Mat_N<<-rep(NA,age) # effectifs methode de Pope
   Mat_N2<<-rep(NA,age) # effectifs methode rectifiee
   Mat_Cage <<- apply(Mat_C,1,sum)
+
+  FT_min<- function (x)
+  {
+    res <- (Mat_Cage[indice] - (NT * (x/(x + Mat_M[indice]) *
+                                        (1 - exp(-x - Mat_M[indice])))))^2
+    res
+  }
 
   # Get Mat_F
   R_pseudo_rectif_bis <-function(init) # init <- Rinit
@@ -34,55 +54,68 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop
 
       indice <<-1
 
+      # on récupère q1
       Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
 
       assign('Mat_F2', Mat_F2, envir=globalenv())
-      Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+      Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
       assign('Mat_q', Mat_q, envir=globalenv())
 
+      #boucle pour apppliquer q1 à q4
       if (nb_flot < 2) {
+        #for (i in 1:4)
 
-        Mat_N2[2] <- Mat_N2[1] * exp(-(Mat_q[1, ] * Mat_E[4, ]) -  Mat_M[1]) + init*Prop_R[2]
+        #----
+        Mat_N2[2] <- Mat_N2[1] * exp(-(Mat_q[1, ] * Mat_E[4, ]) -  Mat_M[1]) #+ init*Prop_R[1]
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 2
         Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
-        Mat_N2[3] <- Mat_N2[2] * exp(-(Mat_q[2, ] * Mat_E[3, ]) -  Mat_M[2]) + init*Prop_R[3]
+        #---
+        #---
+        Mat_N2[3] <- Mat_N2[2] * exp(-(Mat_q[2, ] * Mat_E[3, ]) -  Mat_M[2]) + init*Prop_R[2]
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 3
         Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
-        Mat_N2[4] <- Mat_N2[3] * exp(-(Mat_q[3, ] * Mat_E[2, ]) -  Mat_M[3]) + init*Prop_R[4]
+        #---
+        #---
+        Mat_N2[4] <- Mat_N2[3] * exp(-(Mat_q[3, ] * Mat_E[2, ]) -  Mat_M[3]) + init*Prop_R[3]
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 4
         Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
-        NT2 <- Mat_N2[1] * Mat_R[2]/Mat_R[1] * exp(-(Mat_q[1, ] * Mat_E[8, ]) -  Mat_M[1]) + init*Prop_R[2]
-        NT3 <- NT2 *                           exp(-(Mat_q[2, ] * Mat_E[7, ]) -  Mat_M[2]) + init*Prop_R[3]
-        NT4 <- NT3 *                           exp(-(Mat_q[3, ] * Mat_E[6, ]) -  Mat_M[3]) + init*Prop_R[4]
-
-        Mat_N2[5] <- NT4 * exp(-(Mat_q[4, ] * Mat_E[5, ]) -  Mat_M[4])
+        #---
+        #---
+        Mat_N2[5] <- Mat_N2[4] * exp(-(Mat_q[4, ] * Mat_E[1, ]) -  Mat_M[4]) + init*Prop_R[4]
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
-        indice <<- 5
-        Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
-        assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
-        assign('Mat_q', Mat_q, envir=globalenv())
+        ### Fin 2020
 
-        Mat_N2[6] <- Mat_N2[5] * exp(-(Mat_q[5, ] * Mat_E[4, ]) -  Mat_M[5])
+
+        NT2 <- Mat_N2[1] * Mat_R[2]/Mat_R[1] * exp(-(Mat_q[1, ] * Mat_E[8, ]) -  Mat_M[1]) + init*Prop_R[1]
+        NT3 <- NT2 *                           exp(-(Mat_q[2, ] * Mat_E[7, ]) -  Mat_M[2]) + init*Prop_R[2]
+        NT4 <- NT3 *                           exp(-(Mat_q[3, ] * Mat_E[6, ]) -  Mat_M[3]) + init*Prop_R[3]
+        NT <- NT4 *                           exp(-(Mat_q[4, ] * Mat_E[5, ]) -  Mat_M[4]) + init*Prop_R[4]
+        assign('NT', NT, envir=globalenv())
+
+        indice <<- 5
+        Mat_F2[indice,] <- Mat_F2[indice,]*optimize(FT_min,interval=c(0,2))$minimum
+        assign('Mat_F2', Mat_F2, envir=globalenv())
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
+        assign('Mat_q', Mat_q, envir=globalenv())
+        #----
+        #----
+        Mat_N2[6] <- NT * exp(-(Mat_q[5, ] * Mat_E[4, ]) -  Mat_M[5])
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 6
@@ -90,6 +123,8 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop
         assign('Mat_F2', Mat_F2, envir=globalenv())
         Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
         assign('Mat_q', Mat_q, envir=globalenv())
+        #----
+        #----
 
         Mat_N2[7] <- Mat_N2[6] * exp(-(Mat_q[6, ] * Mat_E[3, ]) -  Mat_M[6])
         assign('Mat_N2', Mat_N2, envir=globalenv())
@@ -99,8 +134,8 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop
         assign('Mat_F2', Mat_F2, envir=globalenv())
         Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
-
+        #----
+        #----
         Mat_N2[8] <- Mat_N2[7] * exp(-(Mat_q[7, ] * Mat_E[2, ]) -  Mat_M[7])
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
@@ -109,19 +144,31 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop
         assign('Mat_F2', Mat_F2, envir=globalenv())
         Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
         assign('Mat_q', Mat_q, envir=globalenv())
+        #----
+        #----
+        Mat_N2[9] <- Mat_N2[8] * exp(-(Mat_q[8, ] * Mat_E[1, ]) -  Mat_M[8])
+        assign('Mat_N2', Mat_N2, envir=globalenv())
 
-        NT2 <- Mat_N2[1] * Mat_R[3]/Mat_R[1] * exp(-(Mat_q[1, ] * Mat_E[12, ]) -  Mat_M[1]) + init*Prop_R[2]
-        NT3 <- NT2 *                           exp(-(Mat_q[2, ] * Mat_E[11, ]) -  Mat_M[2]) + init*Prop_R[3]
-        NT4 <- NT3 *                           exp(-(Mat_q[3, ] * Mat_E[10, ]) -  Mat_M[3]) + init*Prop_R[4]
+        # fin 2020-1
 
+        NT2 <- Mat_N2[1] * Mat_R[3]/Mat_R[1] * exp(-(Mat_q[1, ] * Mat_E[12, ]) -  Mat_M[1]) #+ init*Prop_R[2]
+        NT3 <- NT2 *                           exp(-(Mat_q[2, ] * Mat_E[11, ]) -  Mat_M[2]) + init*Prop_R[2]
+        NT4 <- NT3 *                           exp(-(Mat_q[3, ] * Mat_E[10, ]) -  Mat_M[3]) + init*Prop_R[3]
+        NT5 <- NT3 *                           exp(-(Mat_q[4, ] * Mat_E[9, ]) -  Mat_M[4]) + init*Prop_R[4]
 
-        NT5 <- NT4 * exp(-(Mat_q[4, ] * Mat_E[9, ]) -  Mat_M[4])
-        NT6 <- Mat_N2[5] * exp(-(Mat_q[5, ] * Mat_E[8, ]) -  Mat_M[5])
-        NT7 <- Mat_N2[6] * exp(-(Mat_q[6, ] * Mat_E[7, ]) -  Mat_M[6])
-        NT8 <- Mat_N2[7] * exp(-(Mat_q[7, ] * Mat_E[6, ]) -  Mat_M[7])
+        NT6 <- NT4 * exp(-(Mat_q[5, ] * Mat_E[9, ]) -  Mat_M[4])
+        NT7 <- Mat_N2[5] * exp(-(Mat_q[6, ] * Mat_E[8, ]) -  Mat_M[5])
+        NT8 <- Mat_N2[6] * exp(-(Mat_q[7, ] * Mat_E[7, ]) -  Mat_M[6])
+        NT <- Mat_N2[7] * exp(-(Mat_q[8, ] * Mat_E[6, ]) -  Mat_M[7])
+        assign('NT', NT, envir=globalenv())
 
+        indice <<- 9
+        Mat_F2[indice,] <- Mat_F2[indice,]*optimize(FT_min,interval=c(0,2))$minimum
+        assign('Mat_F2', Mat_F2, envir=globalenv())
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
+        assign('Mat_q', Mat_q, envir=globalenv())
 
-        Mat_N2[9] <- NT8 * exp(-(Mat_q[8, ] * Mat_E[5, ]) -  Mat_M[8])
+        Mat_N2[10] <- NT9 * exp(-(Mat_q[8, ] * Mat_E[5, ]) -  Mat_M[8])
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 9
@@ -160,156 +207,180 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop
         assign('Mat_N2', Mat_N2, envir=globalenv())
       }
       else {
-        Mat_N2[2] <- Mat_N2[1] * exp(-apply((Mat_q[1, ] * Mat_E[4, ]), 1, sum) -  Mat_M[1]) + init*Prop_R[2]
+        Mat_N2[2] <- Mat_N2[1] * exp(-apply((Mat_q[1, ] * Mat_E[4, ]), 1, sum) -  Mat_M[1]) + init*Prop_R[1]
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 2
-
         Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
-
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
-        Mat_N2[3] <- Mat_N2[2] * exp(-apply((Mat_q[2, ] * Mat_E[3, ]), 1, sum) -  Mat_M[2]) + init*Prop_R[3]
+        #---
+        #---
+        Mat_N2[3] <- Mat_N2[2] * exp(-apply((Mat_q[2, ] * Mat_E[3, ]), 1, sum) -  Mat_M[2]) + init*Prop_R[2]
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 3
         Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
-
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
-        Mat_N2[4] <- Mat_N2[3] * exp(-apply((Mat_q[3, ] * Mat_E[2, ]), 1, sum) -  Mat_M[3]) + init*Prop_R[4]
+        #---
+        #---
+        Mat_N2[4] <- Mat_N2[3] * exp(-apply((Mat_q[3, ] * Mat_E[2, ]), 1, sum) -  Mat_M[3]) + init*Prop_R[3]
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 4
         Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
-
-        NT2 <- Mat_N2[1] * Mat_R[2]/Mat_R[1] * exp(-apply((Mat_q[1, ] * Mat_E[8, ]), 1, sum) -  Mat_M[1]) + init*Prop_R[2]
-        NT3 <- NT2 *                           exp(-apply((Mat_q[2, ] * Mat_E[7, ]), 1, sum) -  Mat_M[2]) + init*Prop_R[3]
-        NT4 <- NT3 *                           exp(-apply((Mat_q[3, ] * Mat_E[6, ]), 1, sum) -  Mat_M[3]) + init*Prop_R[4]
-
-        Mat_N2[5] <- NT4 * exp(-apply((Mat_q[4, ] * Mat_E[5, ]), 1, sum) -  Mat_M[4])
+        #---
+        #---
+        Mat_N2[5] <- Mat_N2[4] * exp(-apply((Mat_q[4, ] * Mat_E[1, ]), 1, sum) -  Mat_M[4]) + init*Prop_R[4]
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
-        indice <<- 5
-        Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
-        assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
-        assign('Mat_q', Mat_q, envir=globalenv())
+        ### Fin 2020
 
-        Mat_N2[6] <- Mat_N2[5] * exp(-apply((Mat_q[5, ] * Mat_E[4, ]), 1, sum) -  Mat_M[5])
+        NT2 <- Mat_N2[1] * Mat_R[2]/Mat_R[1] * exp(-apply((Mat_q[1, ] * Mat_E[8, ]), 1, sum) -  Mat_M[1]) + init*Prop_R[1]
+        NT3 <- NT2 *                           exp(-apply((Mat_q[2, ] * Mat_E[7, ]), 1, sum) -  Mat_M[2]) + init*Prop_R[2]
+        NT4 <- NT3 *                           exp(-apply((Mat_q[3, ] * Mat_E[6, ]), 1, sum) -  Mat_M[3]) + init*Prop_R[3]
+        NT <- NT4 *                           exp(-apply((Mat_q[4, ] * Mat_E[5, ]), 1, sum) -  Mat_M[4]) + init*Prop_R[4]
+        assign('NT', NT, envir=globalenv())
+
+        indice <<- 5
+        Mat_F2[indice,] <- Mat_F2[indice,]*optimize(FT_min,interval=c(0,2))$minimum
+        assign('Mat_F2', Mat_F2, envir=globalenv())
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
+        assign('Mat_q', Mat_q, envir=globalenv())
+        #---
+        #---
+        Mat_N2[6] <- NT * exp(-apply((Mat_q[5, ] * Mat_E[4, ]), 1, sum) -  Mat_M[5])
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 6
         Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
+        #---
+        #---
         Mat_N2[7] <- Mat_N2[6] * exp(-apply((Mat_q[6, ] * Mat_E[3, ]), 1, sum) -  Mat_M[6])
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 7
         Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
+        #---
+        #---
         Mat_N2[8] <- Mat_N2[7] * exp(-apply((Mat_q[7, ] * Mat_E[2, ]), 1, sum) -  Mat_M[7])
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 8
         Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
+        #---
+        #---
+        Mat_N2[9] <- Mat_N2[8] * exp(-apply((Mat_q[8, ] * Mat_E[1, ]), 1, sum) -  Mat_M[8])
+        assign('Mat_N2', Mat_N2, envir=globalenv())
 
+        #---
+        # fin 2019
+        #---
 
-        NT2 <- Mat_N2[1] * Mat_R[3]/Mat_R[1] * exp(-apply((Mat_q[1, ] * Mat_E[12, ]), 1, sum) -  Mat_M[1]) + init*Prop_R[2]
-        NT3 <- NT2 *                           exp(-apply((Mat_q[2, ] * Mat_E[11, ]), 1, sum) -  Mat_M[2]) + init*Prop_R[3]
-        NT4 <- NT3 *                           exp(-apply((Mat_q[3, ] * Mat_E[10, ]), 1, sum) -  Mat_M[3]) + init*Prop_R[4]
+        NT2 <- Mat_N2[1] * Mat_R[3]/Mat_R[1] * exp(-apply((Mat_q[1, ] * Mat_E[12, ]), 1, sum) -  Mat_M[1]) + init*Prop_R[1]
+        NT3 <- NT2 *                           exp(-apply((Mat_q[2, ] * Mat_E[11, ]), 1, sum) -  Mat_M[2]) + init*Prop_R[2]
+        NT4 <- NT3 *                           exp(-apply((Mat_q[3, ] * Mat_E[10, ]), 1, sum) -  Mat_M[3]) + init*Prop_R[3]
+        NT5 <- NT4 *                           exp(-apply((Mat_q[4, ] * Mat_E[9, ]), 1, sum) -  Mat_M[4]) + init*Prop_R[4]
 
-
-        NT5 <- NT4 * exp(-apply((Mat_q[4, ] * Mat_E[9, ]), 1, sum) -  Mat_M[4])
         NT6 <- NT5 * exp(-apply((Mat_q[5, ] * Mat_E[8, ]), 1, sum) -  Mat_M[5])
         NT7 <- NT6 * exp(-apply((Mat_q[6, ] * Mat_E[7, ]), 1, sum) -  Mat_M[6])
         NT8 <- NT7 * exp(-apply((Mat_q[7, ] * Mat_E[6, ]), 1, sum) -  Mat_M[7])
-
-
-        Mat_N2[9] <- NT8 * exp(-apply((Mat_q[8, ] * Mat_E[5, ]), 1, sum) -  Mat_M[8])
-        assign('Mat_N2', Mat_N2, envir=globalenv())
+        NT <- NT8 * exp(-apply((Mat_q[8, ] * Mat_E[5, ]), 1, sum) -  Mat_M[8])
+        assign('NT', NT, envir=globalenv())
 
         indice <<- 9
-        Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
+        Mat_F2[indice,] <- Mat_F2[indice,]*optimize(FT_min,interval=c(0,2))$minimum
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
-        Mat_N2[10] <- Mat_N2[9] * exp(-apply((Mat_q[9, ] * Mat_E[4, ]), 1, sum) -  Mat_M[9])
+        #---
+        #---
+        Mat_N2[10] <- NT * exp(-apply((Mat_q[9, ] * Mat_E[4, ]), 1, sum) -  Mat_M[9])
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 10
         Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
+        #---
+        #---
         Mat_N2[11] <- Mat_N2[10] * exp(-apply((Mat_q[10, ] * Mat_E[3, ]), 1, sum) -  Mat_M[10])
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 11
         Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
+        #---
+        #---
         Mat_N2[12] <- Mat_N2[11] * exp(-apply((Mat_q[11, ] * Mat_E[2, ]), 1, sum) -  Mat_M[11])
         assign('Mat_N2', Mat_N2, envir=globalenv())
 
         indice <<- 12
         Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
         assign('Mat_F2', Mat_F2, envir=globalenv())
-        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+        Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
         assign('Mat_q', Mat_q, envir=globalenv())
-
-        assign('Mat_N2', Mat_N2, envir=globalenv())
+        #---
+        #---
 
         if(ngroup == 4){
 
-          NT2 <- Mat_N2[1] * Mat_R[4]/Mat_R[1] * exp(-apply((Mat_q[1, ] * Mat_E[16, ]), 1, sum) -  Mat_M[1]) + init*Prop_R[2]
-          NT3 <- NT2 *                           exp(-apply((Mat_q[2, ] * Mat_E[15, ]), 1, sum) -  Mat_M[2]) + init*Prop_R[3]
-          NT4 <- NT3 *                           exp(-apply((Mat_q[3, ] * Mat_E[14, ]), 1, sum) -  Mat_M[3]) + init*Prop_R[4]
+          Mat_N2[13] <- Mat_N2[12] * exp(-apply((Mat_q[12, ] * Mat_E[1, ]), 1, sum) -  Mat_M[12])
+          assign('Mat_N2', Mat_N2, envir=globalenv())
 
+          NT2 <- Mat_N2[1] * Mat_R[4]/Mat_R[1] * exp(-apply((Mat_q[1, ] * Mat_E[16, ]), 1, sum) -  Mat_M[1]) + init*Prop_R[1]
+          NT3 <- NT2 *                           exp(-apply((Mat_q[2, ] * Mat_E[15, ]), 1, sum) -  Mat_M[2]) + init*Prop_R[2]
+          NT4 <- NT3 *                           exp(-apply((Mat_q[3, ] * Mat_E[14, ]), 1, sum) -  Mat_M[3]) + init*Prop_R[3]
+          NT5 <- NT4 *                           exp(-apply((Mat_q[4, ] * Mat_E[13, ]), 1, sum) -  Mat_M[4]) + init*Prop_R[4]
 
-          NT5 <- NT4 * exp(-apply((Mat_q[4, ] * Mat_E[13, ]), 1, sum) -  Mat_M[4])
           NT6 <- NT5 * exp(-apply((Mat_q[5, ] * Mat_E[12, ]), 1, sum) -  Mat_M[5])
           NT7 <- NT6 * exp(-apply((Mat_q[6, ] * Mat_E[11, ]), 1, sum) -  Mat_M[6])
           NT8 <- NT7 * exp(-apply((Mat_q[7, ] * Mat_E[10, ]), 1, sum) -  Mat_M[7])
+          NT9 <- NT8 * exp(-apply((Mat_q[8, ] * Mat_E[9, ]), 1, sum) -  Mat_M[8])
 
-
-          NT9  <- NT8 * exp(-apply((Mat_q[8, ] * Mat_E[9, ]), 1, sum) -  Mat_M[8])
-          NT10 <- NT9 * exp(-apply((Mat_q[9, ] * Mat_E[8, ]), 1, sum) -  Mat_M[9])
-          NT11 <- NT10 * exp(-apply((Mat_q[10, ] * Mat_E[7, ]), 1, sum) -  Mat_M[10])
-          NT12 <- NT11 * exp(-apply((Mat_q[11, ] * Mat_E[6, ]), 1, sum) -  Mat_M[11])
-
-
-          Mat_N2[13] <- NT12 * exp(-apply((Mat_q[12, ] * Mat_E[5, ]), 1, sum) -  Mat_M[12])
-          assign('Mat_N2', Mat_N2, envir=globalenv())
+          NT9  <- NT8 * exp(-apply((Mat_q[9, ] * Mat_E[8, ]), 1, sum) -  Mat_M[9])
+          NT10 <- NT9 * exp(-apply((Mat_q[10, ] * Mat_E[7, ]), 1, sum) -  Mat_M[10])
+          NT11 <- NT10 * exp(-apply((Mat_q[11, ] * Mat_E[6, ]), 1, sum) -  Mat_M[11])
+          NT <- NT11 * exp(-apply((Mat_q[12, ] * Mat_E[5, ]), 1, sum) -  Mat_M[12])
+          assign('NT', NT, envir=globalenv())
 
           indice <<- 13
+          Mat_F2[indice,] <- Mat_F2[indice,]*optimize(FT_min,interval=c(0,2))$minimum
+          assign('Mat_F2', Mat_F2, envir=globalenv())
+          Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
+          assign('Mat_q', Mat_q, envir=globalenv())
+          #---
+          #---
+          Mat_N2[14] <- NT * exp(-apply((Mat_q[13, ] * Mat_E[4, ]), 1, sum) -  Mat_M[13])
+          assign('Mat_N2', Mat_N2, envir=globalenv())
+
+          indice <<- 14
           Mat_F2[indice,] <- Mat_F2[indice,]*optimize(F_a_min,interval=c(0,2))$minimum
           assign('Mat_F2', Mat_F2, envir=globalenv())
-          Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
+          Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[4,]
           assign('Mat_q', Mat_q, envir=globalenv())
+          #---
+          #---
 
-          Mat_N2[14] <- Mat_N2[13] * exp(-apply((Mat_q[13, ] * Mat_E[4, ]), 1, sum) -  Mat_M[13])
+          Mat_N2[15] <- Mat_N2[14] * exp(-apply((Mat_q[14, ] * Mat_E[3, ]), 1, sum) -  Mat_M[14])
           assign('Mat_N2', Mat_N2, envir=globalenv())
 
           indice <<- 14
@@ -317,6 +388,8 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop
           assign('Mat_F2', Mat_F2, envir=globalenv())
           Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
           assign('Mat_q', Mat_q, envir=globalenv())
+          #---
+          #---
 
           Mat_N2[15] <- Mat_N2[14] * exp(-apply((Mat_q[14, ] * Mat_E[3, ]), 1, sum) -  Mat_M[14])
           assign('Mat_N2', Mat_N2, envir=globalenv())
@@ -326,6 +399,8 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop
           assign('Mat_F2', Mat_F2, envir=globalenv())
           Mat_q[indice,] <- Mat_F2[indice,]/Mat_E[1,]
           assign('Mat_q', Mat_q, envir=globalenv())
+          #---
+          #---
 
           Mat_N2[16] <- Mat_N2[15] * exp(-apply((Mat_q[15, ] * Mat_E[2, ]), 1, sum) -  Mat_M[15])
           assign('Mat_N2', Mat_N2, envir=globalenv())
@@ -489,3 +564,4 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop
   print(plot[[4]])
   return(plot)
 }
+
