@@ -177,6 +177,7 @@ a <- c(0.0000005, a_init, 0.005)
 b <- c(0.0000001, b_init, 0.01)
 m <- c(0.5, 0.7, 0.9)
 
+dev.off()
 warning_control=T
 title <- "Generalised model - E. aeneus (Thiof) - Mauritanie & Senegal \n Optimistic case"
 table_Efox <- table_Efox_thiof
