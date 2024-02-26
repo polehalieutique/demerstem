@@ -21,16 +21,17 @@ knitr::opts_chunk$set(
 
 library(demerstem)
 packageVersion("demerstem")
+
+data(data_IA)
+data(captures_aggregees)
 ```
 
-This first vignette aims to help *demerstem* package users to understand and use the different functions used for the AI (Abundance Index) calculation process, based on the delta-GLM method.
 Cette seconde vignette vise à accompagner les utilisateurs du package *demerstem* dans la réalisation d'une évaluation de stock avec un modèle de production selon un ajustement en pseudo-équilibre.
 
 
 ## 1) Data manipulation / Manipulation des données
 
-To illustrate this vignette, I'll be using data from scientific campaign in Guinea, which are also available in the package.
-Pour illustrer cette vignette, je vais utiliser un jeu de donnée de campagne scientifique en Guinée, qui est également disponible dans le package.
+Nous utilisons ici les données issues de la pêcherie de Thiof dans la zone Sénégal-Gambie-Mauritanie entre 1974 et 2019. 
 
 ```{r}
 
@@ -58,8 +59,6 @@ theme(legend.title = element_text(size=11),
   theme(legend.position = c(0.20, 0.80))
 ```
 
-The *demerstem* package needs some specifics data table formats as inputs for several functions. For the GLM modeling, you need a table with catch data, fishing effort (several columns are possible), species designation, as well as the parameters needed to identify one single fishing operation (date, position, vessel, etc...). Check your data, filter, transform if necessary. Be sure that the table is already aggregated.
-Le package *demerstem* nécessite une certaine forme de tableau en entré pour plusieurs fonctions. Pour la modélisation GLM, il faut un tableau avec les données de captures, l'effort (possiblement plusieurs colonnes), la désignation de l'espèce s'il y en a plusieurs ainsi que les paramètres nécessaires à l'identification d'une opération de pêche (date, position, bateau, etc...). Vérifiez vos données, filtrez, transformez si nécessaire. Veillez à ce que le tableau soit déjà aggregé.
 
 ```{r, include =  F, echo = F}
 data_captures <- captures_aggregees %>%  group_by(year) %>%  summarise(Catch = sum(c))
@@ -73,24 +72,24 @@ data_IA
 
 plot_grid(plotlist =list(Plot_Catch, plot_IA))
 ```
-You may also need to do the stratification of the parameters you will test in your GLMs, as the parameters will be converted as factor later on.
-Il vous faudra aussi stratifier vos paramètres testés dans les GLMs, puisqu'ils vont etre converti en facteur par la suite.
+
+## 2) Calcul des Efforts de Fox
+
+La fonction *fox_effort_calculation()* va calculer les efforts de Fox (cf formule), pour ajuster les modèles sous une hypothèse de pseudo-équilibre (on pondère en considérant qu'une cohorte subit plusieurs efforts au cours de sa vie, et on donne plus de poids aux efforts récents)
+Efox,i = (k x Ei + (k-1) x Ei-1 + ... + Ei-k+1)/(k+(k-1)+...1)
+Elle prend en argument : la série d'IA moyen calculé avec *mean_ai()*
+                          les captures totales
+                          k : nombre de groupes d'âges exploités (1, 3 ou 5) 
+Structure des arguments : Pour data_IA, Year et 1 seule série d'IA doivent être sélectionnés (dans cet ordre)
+                  Pour catch_table, Year et Catch, dans cet ordre. 
+                  Les deux séries de données doivent être de même tailles
+                         
 
 ```{r, include =  F, echo = F}
 #----------------------------
 #      Calcul des Efox 
 #----------------------------
 
-
-# La fonction *fox_effort_calculation()* va calculer les efforts de Fox (cf formule), pour ajuster les modèles sous une hypothèse de pseudo-équilibre (on pondère en considérant qu'une cohorte subit plusieurs efforts au cours de sa vie, et on donne plus de poids aux efforts récents)
-# Efox,i = (k x Ei + (k-1) x Ei-1 + ... + Ei-k+1)/(k+(k-1)+...1)
-# Elle prend en argument : la série d'IA moyen calculé avec *mean_ai()*
-#                          les captures totales
-#                          k : nombre de groupes d'âges exploités (1, 3 ou 5) 
-# Data structure : For data_IA, Year and only 1 IA must be selected (in this order)
-#                  For catch_table, Year and Catch, in this order. 
-#                  Same length for both data
-                         
 k <- 5
 table_Efox_thiof <- fox_effort_calculation(data = data_IA, catch_table = data_captures, k)
 
@@ -118,24 +117,23 @@ plot_Effort
 ```
 
 
-## 2) GLM modeling and AI calculation / Modélisation GLM et calcul des IA
+## 3) Application d'un modèle de production
 
-Your table is now ready. You'll be able to run the 2 GLM modeling functions: *model_ai_plus* and *model_pres_abs*. For this purpose, you'll define the parameters of the functions.
-Votre table est à présent prête. Vous puvez faire tourner les 2 fonctions de modélisation des GLM : *model_ai_plus* et *model_pres_abs*. Pour cela, vous devez d'abord définir les paramètres de ces fonctions.
+### 3.1) Fonction de production de Fox
+
+La fonction *fox_model()* permet ensuite d'ajuster un modèle global de Fox, on a :
+Ue(E) = a * exp(-b * E) : On cherche à ajuster cette relation sur nos données (U = PUE = IA, par rapport à l'Effort effectif = Efox) en testant toutes les valeurs possibles des paramètres *a* et *b* pour lesquels on obtient une estimation quand le modèle s'ajuste le mieux aux données.
+Ye(E) = E * Be(E)
+
+En argument : table_Efox : table issue de la fonction *fox_effort_calculation()*
+              graph_param : des paramètres graphiques comprenant la taille de l'axe des abscisses et du titre
+              logarithmic : par défaut = TRUE. Transformation log (par défaut = TRUE, si ne fonctionne pas essayer log=FALSE).
+              a_start : l'ajustement peut être sensible aux valeurs d'init choisis
+              b_start : idem
+
 
 ```{r, message = F, include = F}
-#----------------------------
-#      Modèle de Fox 
-#----------------------------
 
-# La fonction *fox_model()* permet ensuite d'ajuster un modèle global de Fox, on a : 
-# Ue(E) = a * exp(-b * E) : On cherche à ajuster cette relation sur nos données (U = PUE = IA, par rapport à l'Effort effectif = Efox) en testant toutes les valeurs possibles des paramètres *a* et *b* pour lesquels on obtient une estimation quand le modèle s'ajuste le mieux aux données.
-# Ye(E) = E * Be(E)
-# En argument : table_Efox : table issue de la fonction *fox_effort_calculation()*
-#               graph_param : des paramètres graphiques compris dans 
-#               logarithmic : par défaut = TRUE. Transformation log (par défaut = TRUE, si ne fonctionne pas essayer log=FALSE).
-#               a_start : l'ajustement peut être sensible aux valeurs d'init choisis
-#               b_start : idem
 
 dev.off()
 mE_range <- 1.5
@@ -151,19 +149,17 @@ Fox_model_thiof
 
 ```
 
-The *interactions* parameter should be defined as "N" in the first time. If, after the selection process, interactions are kept in the formula, change the *interactions* parameters as "Y", so the GLM modelling function will return the interactions estimates.
-Le paramètre *interactions* devrait être défini comme "N" pour le premier test. Si, à la fin du processus de sélection, des interactions sont conservées dans la formule, définissez ce paramètre sur "Y". La fonction de modélisation du GLM vous retournera les valeurs estimées des interactions.
 
 
+### 3.2) Fonction de production Pella-Tomlinson (modèle généralisé)
+
+Le modèle généralisé : IA ~ (a+b*Efox)^(1/m-1). 
+ 
 ```{r, include = F, echo = F}
 
 #----------------------------
 #      Modèle de pella-tomlinson 
 #----------------------------
-
-
-# Le modèle généralisé : IA ~ (a+b*Efox)^(1/m-1). 
-
 
 
 lengthEfox <- 1.5
@@ -191,13 +187,10 @@ Gene_model_thiof <- generalised_model(table_Efox, graph_param, a, b, m, warning_
 Gene_model_thiof
 ```
 
-For the first run, define *formula_select* as "auto". The function will select automatically, based on a stepAIC process, the formula with the smallest AIC value. Once you have defined the formula with which you want to keep working, assigned it to *formula_select* (see model_ai_plus above).
-Lors du premier lancement, définissez *formula_select* sur "auto". La fonction sélectionnera par un processus de stepAIC la formule avec la plus faible valeur d'AIC. Une fois que vous avez défini la formule avec laquelle vous souhaitez travailler, attribuer à *formula_select* votre formule (cf model_ai_plus au dessus).
 
+## 4) Conclusion/Résumé
 
-
-
-L'ajustement est réalisé sur la relation entre les $IA$ et $mE_{fox}$ qui permet d'analyser la réponse du stock aux variations de la pression de pêche depuis les années 75 (début de la disponibilité des indices d'abondance). Il ressort assez clairement qu'une augmentation de l'effort de pêche entraîne une forte diminution de l'abondance du stock selon une relation non linéaire. Dans les 2 scénarios, le modèle de Fox ne semble pas adapté pour expliquer les fortes abondances du début de la série temporelle. Ainsi, le modèle généralisé (ou de Pella-Tomlinson) sera ainsi privilégié pour réaliser le diagnostic des 2 scénarios (Tableau 2). Néanmoins, ce modèle a également du mal à expliquer correctement les fortes abondances observées à la fin des années 70. De même, les années les plus récentes sont très mal expliquées. Cet écart entre les prédictions et les observations est lié aux très fortes captures réalisées en Mauritanie entre 2016 et 2018. Dans les 2 scénarios, nous pouvons identifier une histoire similaire de l'exploitation du stock qui aurait début dans les années 1970 jusqu'à atteindre une première phase de surexploitation au début des années 2000. L'effort de pêche a ensuite diminué durant une dizaine d'année avant de repartir à la hausse et d'exploser dans la fin des années 2010, menant à un état de surexploitation extrêmement prononcé. L'analyse des résidus est disponible en annexe. 
+L'ajustement est réalisé sur la relation entre les $IA$ et $mE_{fox}$ qui permet d'analyser la réponse du stock aux variations de la pression de pêche depuis les années 75 (début de la disponibilité des indices d'abondance). Il ressort assez clairement qu'une augmentation de l'effort de pêche entraîne une forte diminution de l'abondance du stock selon une relation non linéaire. Le modèle de Fox ne semble pas adapté pour expliquer les fortes abondances du début de la série temporelle. Ainsi, sur la base des AIC, le modèle généralisé (ou de Pella-Tomlinson) sera ainsi privilégié pour réaliser le diagnostic. Néanmoins, ce modèle a également du mal à expliquer correctement les fortes abondances observées à la fin des années 70. De même, les années les plus récentes sont très mal expliquées. Cet écart entre les prédictions et les observations est lié aux très fortes captures réalisées en Mauritanie entre 2016 et 2018. Nous pouvons identifier une histoire de l'exploitation du stock qui aurait débutée dans les années 1970 jusqu'à atteindre une première phase de surexploitation au début des années 2000. L'effort de pêche a ensuite diminué durant une dizaine d'année avant de repartir à la hausse et d'exploser dans la fin des années 2010, menant à un état de surexploitation très avancé.
 
 
 ```{r, include = T, echo = F, ft.align="center"}
@@ -233,8 +226,7 @@ ft <- ft %>% merge_at(i=1, j=c(3:6), part = "head") %>% hline(i = 1, part = "hea
 ft
 ```
 
-The *delta_glm* function realise the pairing between the 2 GLMs. The *type* argument is used later on to define which type of data has been used for this AI series. 
-La fonction *delta_glm* va réaliser le couplage entre les 2 GLMs. L'argument *type* sera utiliser plus tard pour définir le type de données utilisées pour le calcul de cette série d'IA.
+
 
 
 
