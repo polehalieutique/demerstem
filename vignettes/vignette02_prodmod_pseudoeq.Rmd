@@ -40,6 +40,22 @@ plot_IA <- ggplot(data = data_IA %>% mutate(title = "Abundance indices"), aes(x=
    facet_grid(~title) +
   scale_color_manual(values = c("darkblue", "blue")) +  ylab("IA") +
   xlab("Year")
+
+ Plot_Catch <- rbind(captures_aggregees %>% filter(code_pays != "MRT") %>%  group_by(year) %>%  summarise(Catch = sum(c)) %>% mutate(code_pays = "SEN-GMB"), captures_aggregees %>% filter(code_pays == "MRT")%>%  dplyr::rename(Catch = c) %>% dplyr::select(-espece))  %>% 
+  #complete(code_pays, year = 1971:1989, fill = list(Catch = 0)) %>%
+  mutate(title = "Catch times series") %>% 
+  ggplot(aes(x = year, y = Catch, fill = code_pays), show.legend = FALSE) + 
+  #geom_line(size = 1.1, col = 'black') + 
+  scale_fill_manual(values = c("grey50", "grey30")) +
+  geom_area(show.legend = T) + 
+  geom_vline(xintercept = c(1974, 2019), linetype = "dashed") + 
+  ylab("Catch (t)") +
+  xlab("Year") +
+  theme_nice() +
+  facet_grid(~title) + #%>% filter(code_pays =="GIN")
+theme(legend.title = element_text(size=11),
+            legend.text = element_text(size=11)) + 
+  theme(legend.position = c(0.20, 0.80))
 ```
 
 The *demerstem* package needs some specifics data table formats as inputs for several functions. For the GLM modeling, you need a table with catch data, fishing effort (several columns are possible), species designation, as well as the parameters needed to identify one single fishing operation (date, position, vessel, etc...). Check your data, filter, transform if necessary. Be sure that the table is already aggregated.
