@@ -1,8 +1,8 @@
 ---
-title: "vignette02_Production_model_pseudoeq"
+title: "Modèle de production : Ajustement en Pseudo-equilibre"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{vignette02_Production_model_pseudoeq}
+  %\VignetteIndexEntry{Modèle de production : Ajustement en Pseudo-equilibre}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
