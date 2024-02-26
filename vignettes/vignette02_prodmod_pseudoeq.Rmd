@@ -46,6 +46,7 @@ The *demerstem* package needs some specifics data table formats as inputs for se
 Le package *demerstem* nécessite une certaine forme de tableau en entré pour plusieurs fonctions. Pour la modélisation GLM, il faut un tableau avec les données de captures, l'effort (possiblement plusieurs colonnes), la désignation de l'espèce s'il y en a plusieurs ainsi que les paramètres nécessaires à l'identification d'une opération de pêche (date, position, bateau, etc...). Vérifiez vos données, filtrez, transformez si nécessaire. Veillez à ce que le tableau soit déjà aggregé.
 
 ```{r, include =  F, echo = F}
+data_captures <- captures_aggregees %>%  group_by(year, code_pays) %>%  summarise(Catch = sum(c))
 
 data_captures
 data_IA
