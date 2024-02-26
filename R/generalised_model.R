@@ -37,7 +37,7 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
                                                                                                           b = b[3], m = m[3]), algorithm = "port",
                          nls.control(maxiter = max_iteration))
   }
-  if (IC ==T ){
+  #if (IC ==T ){
     x <- seq(0, graph_param[1], length = length(table_Efox$Efox))
     interval_confidence <- predictNLS(modelegene_IA, newdata = data.frame(Efox = x), interval = "confidence", alpha = 0.05, nsim = 10000)$summary %>% mutate(Efox = x)
     interval_confidence_pred <- predictNLS(modelegene_IA, newdata = data.frame(Efox = table_Efox$Efox[2:length(table_Efox$Efox)]), interval = "confidence", alpha = 0.05, nsim = 10000)$summary %>% mutate(Year = table_Efox$Year[2:length(table_Efox$Efox)])
@@ -51,7 +51,7 @@ generalised_model <- function (table_Efox, graph_param, a = c(0.0001, 0.001, 0.0
    # }
     interval_confidence$prod_low <- interval_confidence$`Sim.2.5%` * x *table_Efox$factEfox[1]
     interval_confidence$prod_up <- interval_confidence$`Sim.97.5%` * x *table_Efox$factEfox[1]
-    }
+    #}
 
   par_Efox <- as.vector(coef(modelegene_IA))
   C_MSY <- -((par_Efox[3]-1)/par_Efox[2]) * ((par_Efox[1]/(1 +
