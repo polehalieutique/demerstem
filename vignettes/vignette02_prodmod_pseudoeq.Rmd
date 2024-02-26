@@ -137,7 +137,7 @@ Votre table est à présent prête. Vous puvez faire tourner les 2 fonctions de 
 #               a_start : l'ajustement peut être sensible aux valeurs d'init choisis
 #               b_start : idem
 
-
+dev.off()
 mE_range <- 1.5
 title <- "Fox model - E. aeneus (Thiof) - MRT & SEN & GMB \n"
 graph_param <- c(mE_range, title) #param de mise en forme du graph
