@@ -19,6 +19,10 @@ knitr::opts_chunk$set(
 #detach("package:demerstem", unload = TRUE)
 #install_github("polehalieutique/demerstem")
 
+# Il se peut que vous ayez à installer TropFishR (estimation de paramètres biologiques) et Jags (simulation bayésienne).
+# remotes::install_github("tokami/TropFishR") # Depuis le 01/01/2024 le package TropFishR n'est plus disponible sur le CRAN, il faut passer par le git
+# https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/ # Pour Jags
+
 library(demerstem)
 packageVersion("demerstem")
 
