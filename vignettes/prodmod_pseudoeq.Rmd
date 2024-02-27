@@ -14,14 +14,10 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, warning = FALSE}
+```{r setup, warning = FALSE, include = F, echo = F}
 #library(devtools)
 #detach("package:demerstem", unload = TRUE)
 #install_github("polehalieutique/demerstem")
-
-# Il se peut que vous ayez à installer TropFishR (estimation de paramètres biologiques) et Jags (simulation bayésienne).
-# remotes::install_github("tokami/TropFishR") # Depuis le 01/01/2024 le package TropFishR n'est plus disponible sur le CRAN, il faut passer par le git
-# https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/ # Pour Jags
 
 library(demerstem)
 packageVersion("demerstem")
@@ -30,14 +26,14 @@ data(data_IA)
 data(captures_aggregees)
 ```
 
-Cette seconde vignette vise à accompagner les utilisateurs du package *demerstem* dans la réalisation d'une évaluation de stock avec un modèle de production selon un ajustement en pseudo-équilibre.
+Cet script vise à accompagner les utilisateurs du package *demerstem* dans la réalisation d'une évaluation de stock avec un modèle de production selon un ajustement en pseudo-équilibre.
 
 
 ## 1) Data manipulation / Manipulation des données
 
-Nous utilisons ici les données issues de la pêcherie de Thiof dans la zone Sénégal-Gambie-Mauritanie entre 1974 et 2019. 
+Nous utilisons ici les données issues de la pêcherie de Thiof dans la zone Sénégal-Gambie-Mauritanie entre 1974 et 2019. Les tableaux suivants fournissent les Captures et les Indices d'abondance sur cette période.
 
-```{r}
+```{r, echo =F,warning = F}
 
 plot_IA <- ggplot(data = data_IA %>% mutate(title = "Abundance indices"), aes(x=year, y=AI_cor)) + 
    geom_line(size = 1.01) + 
@@ -63,30 +59,50 @@ theme(legend.title = element_text(size=11),
   theme(legend.position = c(0.20, 0.80))
 ```
 
+- Captures
 
-```{r, include =  F, echo = F}
+```{r, echo =  F,warning = F}
 data_captures <- captures_aggregees %>%  group_by(year) %>%  summarise(Catch = sum(c))
 
 data_captures
+```
+
+- Indices d'abondances
+
+```{r, echo =  F,warning = F}
+
 data_IA
 ```
 
+Il sont représentés dans la figure suivante :
 
-```{r,warning = F, echo = F, fig.asp = 0.4, fig.height= 10, fig.width = 14, position = "c", fig.cap = "Figure 1 - Séries temporelles de captures de thiof dans la zone Mauritanie/Sénégal/Gambie."}
+```{r,warning = F, echo = F, fig.asp = 0.4, fig.height= 8, fig.width = 10, position = "c", fig.cap = "Figure 1 - Séries temporelles de captures et de l'indice d'abondance de thiof dans la zone Mauritanie/Sénégal/Gambie."}
 
 plot_grid(plotlist =list(Plot_Catch, plot_IA))
 ```
 
 ## 2) Calcul des Efforts de Fox
 
-La fonction *fox_effort_calculation()* va calculer les efforts de Fox (cf formule), pour ajuster les modèles sous une hypothèse de pseudo-équilibre (on pondère en considérant qu'une cohorte subit plusieurs efforts au cours de sa vie, et on donne plus de poids aux efforts récents)
+- La fonction *fox_effort_calculation()* va calculer les efforts de Fox (cf formule), pour ajuster les modèles sous une hypothèse de pseudo-équilibre (on pondère en considérant qu'une cohorte subit plusieurs efforts au cours de sa vie, et on donne plus de poids aux efforts récents)
+
 Efox,i = (k x Ei + (k-1) x Ei-1 + ... + Ei-k+1)/(k+(k-1)+...1)
-Elle prend en argument : la série d'IA moyen calculé avec *mean_ai()*
-                          les captures totales
-                          k : nombre de groupes d'âges exploités (1, 3 ou 5) 
-Structure des arguments : Pour data_IA, Year et 1 seule série d'IA doivent être sélectionnés (dans cet ordre)
-                  Pour catch_table, Year et Catch, dans cet ordre. 
-                  Les deux séries de données doivent être de même tailles
+
+
+- Elle prend en argument : 
+
+  • La série d'IA moyen calculé avec *mean_ai()*
+
+  • Les captures totales
+
+  • k : nombre de groupes d'âges exploités (1, 3 ou 5) 
+                          
+- Structure des arguments : 
+
+  • Pour data_IA, Year et 1 seule série d'IA doivent être sélectionnés (dans cet ordre)
+
+  • Pour catch_table, Year et Catch, dans cet ordre.
+
+  • Les deux séries de données doivent être de même tailles
                          
 
 ```{r, include =  F, echo = F}
@@ -113,7 +129,7 @@ plot_Effort <- ggplot(data = Table_effort_2, aes(x=Year, y=Effort, color = Study
 
 ```
 
-```{r,warning = F, echo = F, fig.asp = 0.4, fig.height= 10, fig.width = 14, position = "c"}
+```{r,warning = F, echo = F, fig.asp = 0.4, fig.height= 6, fig.width = 8, position = "c"}
 
 plot_Effort
 
@@ -125,50 +141,56 @@ plot_Effort
 
 ### 3.1) Fonction de production de Fox
 
-La fonction *fox_model()* permet ensuite d'ajuster un modèle global de Fox, on a :
-Ue(E) = a * exp(-b * E) : On cherche à ajuster cette relation sur nos données (U = PUE = IA, par rapport à l'Effort effectif = Efox) en testant toutes les valeurs possibles des paramètres *a* et *b* pour lesquels on obtient une estimation quand le modèle s'ajuste le mieux aux données.
-Ye(E) = E * Be(E)
+- La fonction *fox_model()* permet ensuite d'ajuster un modèle global de Fox, on a :
 
-En argument : table_Efox : table issue de la fonction *fox_effort_calculation()*
-              graph_param : des paramètres graphiques comprenant la taille de l'axe des abscisses et du titre
-              logarithmic : par défaut = TRUE. Transformation log (par défaut = TRUE, si ne fonctionne pas essayer log=FALSE).
-              a_start : l'ajustement peut être sensible aux valeurs d'init choisis
-              b_start : idem
+Ue(E) = a * exp(-b * E)
+
+On cherche à ajuster cette relation sur nos données (U = PUE = IA, par rapport à l'Effort effectif = Efox) en testant toutes les valeurs possibles des paramètres *a* et *b* pour lesquels on obtient une estimation quand le modèle s'ajuste le mieux aux données. On peut alors reconstruire la courbe des rendements : Ye(E) = E * Be(E)
+
+- En argument :
+
+ • table_Efox : table issue de la fonction *fox_effort_calculation()*
+ 
+ • graph_param : des paramètres graphiques comprenant la taille de l'axe des abscisses et du titre
+ 
+ • logarithmic : par défaut = TRUE. Transformation log (par défaut = TRUE, si ne fonctionne pas essayer log=FALSE).
+ 
+ • a_start : l'ajustement peut être sensible aux valeurs d'init choisis
+ 
+ • b_start : idem
 
 
-```{r, message = F, include = F}
-#----------------------------
-#      Modèle de Fox
-#----------------------------
-dev.off()
+```{r, message = F, include = F, fig.asp = 0.4, fig.height= 5, fig.width = 8, warning = F}
+
 mE_range <- 1.5
-title <- "Fox model - E. aeneus (Thiof) - MRT & SEN & GMB \n"
+title <- "Fox model - Thiof"
 graph_param <- c(mE_range, title) #param de mise en forme du graph
 table_Efox <- table_Efox_thiof
 Fox_model_thiof <- fox_model(table_Efox, graph_param, log = T, a_start = 1, b_start = 100)
 ```
 
 
-```{r, message = F, include = T}
-Fox_model_thiof
+```{r, message = F, include = T, fig.height= 5, fig.width = 8, warning = F}
+Fox_model_thiof[[1]]
+
+plot_grid(plotlist = list(Fox_model_thiof[[2]][[1]], Fox_model_thiof[[2]][[3]], Fox_model_thiof[[2]][[2]], Fox_model_thiof[[2]][[4]]))
+plot_grid(plotlist = list(Fox_model_thiof[[2]][[5]]))
 ```
 
 
 
 ### 3.2) Fonction de production Pella-Tomlinson (modèle généralisé)
 
-Le modèle généralisé : IA ~ (a+b*Efox)^(1/m-1). 
+Le modèle généralisé : IA ~ (a+b*Efox)^(1/m-1). Le fonctionnement est semblable à la foonction avec le modèle de Fox. On ajoute néanmoins un argument supplémentaire, les estimations sont donc plus sensibles aux paramètres d'initialisation.
  
-```{r, include = F, echo = F}
+```{r, include = F, echo = F, fig.asp = 0.4, fig.height= 5, fig.width = 8, warning = F}
 
 #----------------------------
 #      Modèle de pella-tomlinson 
 #----------------------------
 
-dev.off()
-
 lengthEfox <- 1.5
-
+title <- "Generalised model - Thiof"
 graph_param <- c(lengthEfox, title)
 
 a_init = 1/sqrt(table_Efox$IA[1])
@@ -178,16 +200,21 @@ a <- c(0.0000005, a_init, 0.005)
 b <- c(0.0000001, b_init, 0.01)
 m <- c(0.5, 0.7, 0.9)
 
-
 warning_control=T
-title <- "Generalised model - E. aeneus (Thiof) - Mauritanie & Senegal \n Optimistic case"
 table_Efox <- table_Efox_thiof
 Gene_model_thiof <- generalised_model(table_Efox, graph_param, a, b, m, warning_control, IC = F)
+
+
 ```
 
 
-```{r}
-Gene_model_thiof
+```{r, fig.height= 5, fig.width = 8, warning = F}
+
+Gene_model_thiof[[1]]
+
+plot_grid(plotlist = list(Gene_model_thiof[[2]][[1]], Gene_model_thiof[[2]][[3]], Gene_model_thiof[[2]][[2]], Gene_model_thiof[[2]][[4]]))
+plot_grid(plotlist = list(Gene_model_thiof[[2]][[5]]))
+
 ```
 
 
@@ -196,14 +223,14 @@ Gene_model_thiof
 L'ajustement est réalisé sur la relation entre les $IA$ et $mE_{fox}$ qui permet d'analyser la réponse du stock aux variations de la pression de pêche depuis les années 75 (début de la disponibilité des indices d'abondance). Il ressort assez clairement qu'une augmentation de l'effort de pêche entraîne une forte diminution de l'abondance du stock selon une relation non linéaire. Le modèle de Fox ne semble pas adapté pour expliquer les fortes abondances du début de la série temporelle. Ainsi, sur la base des AIC, le modèle généralisé (ou de Pella-Tomlinson) sera ainsi privilégié pour réaliser le diagnostic. Néanmoins, ce modèle a également du mal à expliquer correctement les fortes abondances observées à la fin des années 70. De même, les années les plus récentes sont très mal expliquées. Cet écart entre les prédictions et les observations est lié aux très fortes captures réalisées en Mauritanie entre 2016 et 2018. Nous pouvons identifier une histoire de l'exploitation du stock qui aurait débutée dans les années 1970 jusqu'à atteindre une première phase de surexploitation au début des années 2000. L'effort de pêche a ensuite diminué durant une dizaine d'année avant de repartir à la hausse et d'exploser dans la fin des années 2010, menant à un état de surexploitation très avancé.
 
 
-```{r, include = T, echo = F, ft.align="center"}
+```{r, include = T, echo = F, ft.align="center", message = F}
 # Tableau 2 : points de référence
 library(knitr)
 library(flextable)
 library(officer)
 library(officedown)
 set_flextable_defaults(font.family = "Palatino Linotype")
-Tableau_indicateurs <- data.frame("Scénario" = c(NA, "Test-exemple", "Test-exemple"), 
+Tableau_indicateurs <- data.frame("Scénario" = c(NA, "", ""), 
                                   "Modèle" = c(NA,"Fox", "Pella-Tomlinson"),
                                      "Indicateurs de l'état du stock" = c("MSY", 
                                                                         round(as.numeric(Fox_model_thiof[[1]][,3][2])),
