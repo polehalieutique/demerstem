@@ -19,6 +19,10 @@ knitr::opts_chunk$set(
 #detach("package:demerstem", unload = TRUE)
 #install_github("polehalieutique/demerstem")
 
+# Il se peut que vous ayez à installer TropFishR (estimation de paramètres biologiques) et Jags (simulation bayésienne).
+# remotes::install_github("tokami/TropFishR") # Depuis le 01/01/2024 le package TropFishR n'est plus disponible sur le CRAN, il faut passer par le git
+# https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/ # Pour Jags
+
 library(demerstem)
 packageVersion("demerstem")
 
@@ -133,8 +137,9 @@ En argument : table_Efox : table issue de la fonction *fox_effort_calculation()*
 
 
 ```{r, message = F, include = F}
-
-
+#----------------------------
+#      Modèle de Fox
+#----------------------------
 dev.off()
 mE_range <- 1.5
 title <- "Fox model - E. aeneus (Thiof) - MRT & SEN & GMB \n"
@@ -146,7 +151,6 @@ Fox_model_thiof <- fox_model(table_Efox, graph_param, log = T, a_start = 1, b_st
 
 ```{r, message = F, include = T}
 Fox_model_thiof
-
 ```
 
 
@@ -161,6 +165,7 @@ Le modèle généralisé : IA ~ (a+b*Efox)^(1/m-1).
 #      Modèle de pella-tomlinson 
 #----------------------------
 
+dev.off()
 
 lengthEfox <- 1.5
 
@@ -173,13 +178,11 @@ a <- c(0.0000005, a_init, 0.005)
 b <- c(0.0000001, b_init, 0.01)
 m <- c(0.5, 0.7, 0.9)
 
-dev.off()
+
 warning_control=T
 title <- "Generalised model - E. aeneus (Thiof) - Mauritanie & Senegal \n Optimistic case"
 table_Efox <- table_Efox_thiof
 Gene_model_thiof <- generalised_model(table_Efox, graph_param, a, b, m, warning_control, IC = F)
-
-
 ```
 
 

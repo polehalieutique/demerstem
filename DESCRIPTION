@@ -34,7 +34,6 @@ Depends:
     ggpubr,
     RColorBrewer,
     R (>= 2.10),
-    TropFishR, 
     cowplot,
     propagate
 VignetteBuilder: knitr
