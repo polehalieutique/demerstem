@@ -1,0 +1,532 @@
+---
+title: "Modèle de production : JABBA"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Modèle de production : JABBA}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# 0) Préparation
+
+## 0.1) Installation des packages
+
+```{r setup, warning = FALSE, include = F, echo = F}
+#--------------------------
+#     Installations
+#--------------------------
+
+#------ Installation Rjags ------
+# https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/ # Pour Jags : program for bayesian simulation using Markov chain Monte Carlo (mcmc), algorithms for sampling from a probability distribution. 
+
+library(rjags)
+library(R2jags)
+
+#------ Installation JABBA (Winker et al, 2018. https://github.com/jabbamodel) ------
+# install.packages(devtools)
+ #library(remotes)
+ #install_version("snpar", "1.0")
+#devtools:: install_github("jabbamodel/JABBA")
+library(JABBA)
+
+#------ Installation FishLife (Thorson et al, 2023. https://github.com/James-Thorson-NOAA/FishLife) ------
+# Generate stock parameters with tuning from FishLife (https://github.com/James-Thorson-NOAA/FishLife)
+# devtools::install_github("james-thorson/FishLife")
+library(FishLife)
+
+#------ Installation demerstem ------
+#library(devtools)
+#detach("package:demerstem", unload = TRUE)
+#install_github("polehalieutique/demerstem")
+library(demerstem)
+packageVersion("demerstem")
+
+#----- Results presentation ----
+library(officer)
+library(flextable)
+```
+
+This script aims to help *demerstem* partners in the stock asssessment process using a production model with JABBA package. Current data used are thiof stock from Senegal/Gambie/Mauritania on 1974-2019 period. This script should be used in addition to the following videos :
+For theoretical part : https://www.youtube.com/watch?v=HIMzaaX4lxM
+For practical part : https://www.youtube.com/watch?v=bBcQg6hPTsQ
+
+Cet script vise à accompagner les partenaires du projet *demerstem* dans la réalisation d'une évaluation de stock avec un modèle de production via le package JABBA.
+Nous utilisons ici les données issues de la pêcherie de Thiof dans la zone Sénégal-Gambie-Mauritanie entre 1974 et 2019.
+Ce script devrait être utilisé en complément des vidéos suivantes : 
+Pour la partie théorique : https://www.youtube.com/watch?v=HIMzaaX4lxM
+Pour la partie pratique : https://www.youtube.com/watch?v=bBcQg6hPTsQ
+
+## 0.2) Preparation de l'environnement de travail
+
+/!\ A specifier en cohérence avec VOTRE environnement de travail /!\
+```{r, echo =F,warning = F}
+
+#----------------------------------------------------------------
+# Setup working directories and output folder labels 
+#-----------------------------------------------------------------
+# Set Working directory file, where assessments are stored 
+File = "C:/Users/fquemper/Eval_stock"
+#File = "~/projects/florian/modele_global/JABBA"
+# Set working directory for JABBA R source code
+JABBA.file = "C:/Users/fquemper/Eval_stock/JABBA"
+#JABBA.file = "~/projects/florian/modele_global/JABBA"
+# JABBA version
+version = "v1.1"
+# Set Assessment file: assement folder within File that includes .csv input files
+assessment = "Thiof_example" 
+
+# add specifier for assessment (File names of outputs)
+output.dir = file.path(File,assessment)
+dir.create(output.dir,showWarnings = F)
+setwd(output.dir)
+```
+
+
+# 1) Preparation des données
+
+```{r, eval = T, include = F, echo =F}
+#---------------------------------------
+#---------------------------------------
+
+      #    Setup data inputs
+
+#---------------------------------------
+#---------------------------------------
+
+# First thing, it necessitates 2 files with catch and abundance indices. Files must match, missing AI are allowed, not Catch. Possibility to use several AI. Also possiblity to distinguish multiple CPUE by defining block-times - to take account of different catchability through change of scientific vessels. 
+# Standard deviation can be informed (AI se in log scale). This third file has the same structure as cpue. Can also be used to weight the AI with the CV.
+
+# Récupérer les données inclues dans le package demerstem pour l'analyse avec JABBA
+data(data_IA_JABBA)
+data(data_capture_JABBA)
+
+
+data_IA_JABBA
+data_capture_JABBA
+
+############-------------
+#
+#-- - - 4 IA- - --
+#
+############-------------
+
+cpue_4IA <- data_IA_JABBA %>% 
+  dplyr::rename(year = annee) %>% 
+  dplyr::select(year, ScientificSurvey_SEN, ScientificSurvey_MRT, Artisanal_SEN, Artisanal_MRT) %>% 
+  arrange(year)
+
+#------------------------
+# 
+#   Technology creep
+#
+#------------------------
+
+Tec_creep <- 0.02
+Annee.indice <- as.numeric(cpue_4IA$year) - min(cpue_4IA$year[which(cpue_4IA$Artisanal_SEN > 0)]) + 1
+cpue_4IA$Artisanal_SEN <- cpue_4IA$Artisanal_SEN * 1/(1 + Tec_creep)^(Annee.indice -1)
+
+
+Tec_creep <- 0.05
+Annee.indice <- as.numeric(cpue_4IA$year) - min(cpue_4IA$year[which(cpue_4IA$Artisanal_MRT > 0)]) + 1
+cpue_4IA$Artisanal_MRT <- cpue_4IA$Artisanal_MRT * 1/(1 + Tec_creep)^(Annee.indice -1)
+
+
+
+############-------------
+#
+#-- - - 5 IA early / late stf  - --
+#
+############-------------
+ 
+
+cpue_5IA <- cpue_4IA 
+cpue_5IA[6] <- cpue_4IA[3] 
+
+colnames(cpue_5IA)[3] <- "ScientificSurvey_MRT_82_96"
+colnames(cpue_5IA)[6] <- "ScientificSurvey_MRT_97_19"
+
+cpue_5IA[3][cpue_5IA$year > 1996,] <- NA
+cpue_5IA[6][cpue_5IA$year <= 1996,] <- NA
+
+
+cpue_5IA <- cpue_5IA %>% dplyr::select(year, ScientificSurvey_SEN, ScientificSurvey_MRT_82_96, ScientificSurvey_MRT_97_19, Artisanal_SEN, Artisanal_MRT)
+
+
+ cpue <- list(cpue_4IA, cpue_5IA) 
+ Scenario = c("Scenario-4IA", "Scenario-5IA") 
+
+ catch <- list()
+ catch[[1]] <- data_capture_JABBA 
+ catch[[2]] <- data_capture_JABBA
+
+```
+
+# 2) Spécifications des priors
+
+## 2.1) Priors sur les paramiètres écologiques (K, r et m)
+
+```{r, eval = T, include = F, echo =F}
+
+#---------------------------------------
+#---------------------------------------
+
+      #    Setup priors
+
+#---------------------------------------
+#---------------------------------------
+
+
+#------------------------------------------------
+       # Prior for unfished biomass K
+#------------------------------------------------
+
+# Most prior settings provide more than one option. For example, if the prior for K is meant to be specified as a lognormal prior set K.dist = c("lnorm","range")[1], whereas for a range set K.dist = c("lnorm","range")[2]. If the prior for K is specified as lognormal, e.g. K.prior = c(200000,1), it requires the untransformed mean K and the assumed CV. If the prior for K is specified as range, it requires the assumed minimum and maximum values, e.g. K.prior = c(15000,1500000).
+
+  # The option are: 
+  # a) Specify as a lognormal prior with mean and CV 
+  # b) Specify as range to be converted into lognormal prior
+  
+  K.dist = c("lnorm","range")[2]
+  
+  # if lnorm use mean and CV; if range use lower,upper bound
+  K.prior = c(10000,200000) 
+  
+#----------------------------------------------------
+  # Determine r prior
+#----------------------------------------------------
+  # The r prior provides an additional option, in that it can be specified as a generic resiliance category Very low, Low, Medium or High, such as provided by FishBase. This requires specifying K.dist = c("lnorm","range")[2] (i.e. as a range) and then setting the K.prior equal to one of the above reliance categories, e.g. r.prior = "Low".
+  
+  # The option are: 
+  # a) Specifying a lognormal prior [1] 
+  # b) Specifying range (min,max) [2] 
+  # c) Specifying a resiliance category after Froese et al. (2017; CMSY)
+  # Resilience = c("Very low", "Low", "Medium", "High") #(requires r.range = TRUE)
+  
+  r.dist = c("lnorm","range")[1] 
+  
+  r.prior = c(0.2, 0.2)
+  
+#-----------------------------------------------------------
+# mean and CV and sd for Initial depletion level P1= SB/SB0
+#-----------------------------------------------------------
+  # Set the initial depletion prior B1/K 
+  # To be converted into a lognormal prior (with upper bound at 1.1)
+  
+  psi.dist= "lnorm"
+  # specify as mean and CV 
+  
+  psi.prior = c(0.9,0.02) # by default c(1,0.2)
+  
+#-----------------------------------------
+ # Determine prior m
+#-----------------------------------------
+  
+  prior.m = c(0.25, 0.3)
+  
+
+```
+
+## 2.2) Erreur d'observation et processus
+
+```{r, eval = T, include = F, echo =F}
+#------------------------------------------------
+#------------------------------------------------
+
+#              Observation error 
+
+#------------------------------------------------
+#------------------------------------------------
+
+
+# The estimable observation variance σ2est,i can be specified to be estimated: (1) for each CPUE index, (2) in groups or (3) as the same quantity for all indices.
+
+#--------------------------------------------------------------
+  # Determine estimation for catchability q and observation error 
+#--------------------------------------------------------------
+
+ #><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>>
+ # Observation Error
+ #><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>>
+  # Total observation error: TOE = sqrt(SE^2 + sigma.est^2 + fixed.obsE^2). Assumed to range from 0.1-0.4 (Francis, 2011)
+
+  # #To Estimate additional observation variance set sigma.add = TRUE
+   sigma.est = TRUE
+  
+  # # Series
+   sets.var = 1:(ncol(cpue[[2]])-1) # estimate individual additional variance
+  
+   # # As option for data-weighing
+  # # minimum fixed observation error for each variance set (optional choose 1 value for both)
+   fixed.obsE<-list()
+  fixed.obsE[[1]] = c(0.15, 0.15, 0.2, 0.2) # Important if SE.I is not available
+  fixed.obsE[[2]] = c(0.15, 0.15, 0.15, 0.2, 0.2)  
+
+
+  
+  #><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>>
+  # Process Error
+  #><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>>
+  
+  #Estimate set sigma.proc == True
+  sigma.proc = TRUE
+  # Determines if process error deviation are estimated for all years (TRUE)  
+  # or only from the point the first abundance index becomes available (FALSE)
+  proc.dev.all = FALSE 
+  #------------------------------------------
+  if(sigma.proc == TRUE){
+    igamma = c(0.001,0.001) #specify inv-gamma parameters, informative would be c(4, 0.001) are matching the level of process error where state space models SPMs                                are most likeliy to perform.
+
+  }else{
+    sigma.proc = 0.07 #IF Fixed: typicallly 0.05-0.15 (see Ono et al. 2012)
+  } 
+  
+  #--------------------------------------------
+  # Catchabilities
+  #--------------------------------------------
+
+  # Assign q to CPUE
+  sets.q = 1:(ncol(cpue[[2]])-1) # by cpue group
+  # set.q = c(1,1,2,2,3) # by indices
+  # sets.q = rep(1,ncol(cpue)-1) # same for each cpue
+  
+  
+```
+
+
+# 3) Exécution du model
+
+```{r, eval = T, echo =F}
+#---------------------
+
+   # Run the model...
+
+#---------------------
+
+# jbinput = build_jabba(catch=as.data.frame(Catch),cpue=as.data.frame(cpue[[1]]), assessment=assessment, scenario = Scenario[1], model.type = "Fox")
+# jbplot_indices(jbinput) # Plot indices
+# jabba_opt_IA <- fit_jabba(jbinput,save.jabba=TRUE,output.dir=output.dir, quickmcmc = T) 
+# # Fit JABBA (here mostly default value have been changed to increase running time for better convergence, 1 chain has been added)
+# jabba_opt_IA <- fit_jabba(jbinput,save.jabba=TRUE,output.dir=output.dir, quickmcmc = F, nc = 3, ni = 100000, nt = 10, nb = 20000)
+```
+
+
+```{r, eval = T, echo =F, fig.width=5, fig.height=4}
+#---------------------------
+
+  # ...Run several models...
+
+#---------------------------
+
+# 1. preparation du modèle -----
+
+jbinput <- list()
+for (k in 1:length(Scenario)) {
+
+  #k <- 1
+
+  model.type = "Pella_m"
+
+  #Scenario[k] <- "quickmcmc"
+
+  sets.q = 1:(ncol(cpue[[k]])-1) # by cpue group
+
+  sigma.est = TRUE
+
+  sets.var = 1:(ncol(cpue[[k]])-1)
+
+  igamma = c(0.001,0.001)
+
+  dim(as.data.frame(cpue[[k]]))
+
+jbinput[[k]] = build_jabba(catch=as.data.frame(catch[[k]]),
+                           cpue=as.data.frame(cpue[[k]]),
+                           fixed.obsE = fixed.obsE[[k]],
+                           assessment=paste0(assessment,"_",model.type),
+                           scenario = Scenario[k],
+                           model.type = model.type,
+                           r.prior = r.prior,
+                           r.dist = r.dist,
+                           BmsyK = prior.m[1],  # if pella tomlinson model only
+                           shape.CV = prior.m[2], # if pella tomlinson model
+                           catch.cv = 0.2,
+                           add.catch.CV = T,
+                           K.dist = K.dist,
+                           K.prior = K.prior,
+                           psi.prior = psi.prior,
+                           psi.dist = psi.dist,
+                           sets.var = sets.var,
+                           igamma = igamma)
+
+jbplot_indices(jbinput[[k]])
+
+# 2. Ajustement du modèle JABBA -----
+
+fit_jabba(jbinput = jbinput[[k]],save.jabba=TRUE, output.dir=output.dir, quickmcmc = T) # quick run
+}
+
+#-----------------------------------------------------
+
+#         ... or you can call previous work
+
+#-----------------------------------------------------
+Scenario = c("Scenario-4IA", "Scenario-5IA") 
+jabba_scenario <- list()
+for (i in Scenario) {
+  print (i)
+load(paste0(output.dir,"/",assessment,"_Pella_m_",i,"_jabba.rdata"))
+jabba_scenario[[i]] <- jabba
+}
+#jbplot_summary(jabba_scenario)
+
+# save(jbinput_5IA, file = "C:/Users/fquemper/ownCloud/Demerstem/demerstem/script_demerstem/JABBA/Thiof_example/jbinput_5IA.Rdata")
+```
+
+
+```{r, eval = T}
+#---------------------
+  # Selecting the model
+#---------------------
+
+jabba_4IA <- jabba_scenario[[1]]
+
+jbinput_5IA <- jbinput[[2]]
+ 
+jabba_5IA <- jabba_scenario[[2]]
+```
+
+# 4) Analyses
+
+## 4.1) Convergence
+
+```{r, eval = T, fig.width= 8, fig.height= 8}
+
+#---------------------
+   # Convergence analysis
+#---------------------
+
+jbplot_ppdist(jabba_5IA)
+jbplot_mcmc(jabba_5IA)
+
+jabba_5IA$pars # no evidence (p>0.05) to reject the hypothesis of randomly distributed residuals.
+
+# Geweke's (1992) test for nonconvergence of a MCMC chain is to conduct a difference-of-means test that compares the mean early in the chain to the mean late in the chain. If the means are significantly different from each other, then this is evidence that the chain has not converged.
+
+# The convergence test uses the Cramer-von-Mises statistic to test the null hypothesis that the sampled values come from a stationary distribution. The test is successively applied, firstly to the whole chain, then after discarding the first 10%, 20%, ... of the chain until either the null hypothesis is accepted, or 50% of the chain has been discarded. The latter outcome constitutes ‘failure’ of the stationarity test and indicates that a longer MCMC run is needed. 
+
+
+```
+
+
+## 4.2) Résidus
+
+```{r, eval = T, fig.width= 8, fig.height= 8}
+#---------------------
+   # residuals and correlation analysis : Model diagnostic
+# set of function implemented in JABBA
+#---------------------
+jbplot_residuals(jabba_4IA) # predicted vs observed with different colors and boxplot indicating the strength of the discrepancy.
+                            # RMSE (Root Mean Squared Error) describes the standard deviation of residuals, a relative small RMSE (<30%) indicates a reasonably                                   precise model fit.
+jbplot_residuals(jabba_5IA)
+
+jbplot_cpuefits(jabba_5IA)
+
+jbplot_runstest(jabba_4IA) # residuals randomness ==> correlation between years ? 
+jbplot_runstest(jabba_5IA)
+jbplot_logfits(jabba_5IA)
+jbplot_procdev(jabba_5IA)
+jbplot_summary(jabba_5IA)
+```
+
+## 4.3) Analyse rétrospective
+
+```{r, eval = T, fig.width= 8, fig.height= 8}
+#----------------------------------------------------------------
+# Conduct Retrospective Analysis and Hind-Cast Cross-Validation
+#----------------------------------------------------------------
+# Organize folders by creating a "retro" subfolder
+retro.dir = file.path(output.dir,"retro")
+dir.create(retro.dir,showWarnings = F)
+
+jbinput_5IA <- jbinput[[2]]
+
+# Run hindcasts for reference model (set plotall = TRUE if you want to save plots from all runs)
+hd_5IA <- hindcast_jabba(jbinput_5IA, fit = jabba_5IA, quickmcmc = T, verbose = T, peels = 1:5) # identfying retrospective patterns : rho should to range in [-0.15; 0.20]                                                                                            (Carvalho et al., 2017)
+ jbplot_retro(hd_5IA)
+ jbplot_retro(hd_5IA,xlim = c(2000,2019))
+# take note of rho.mu
+
+
+# Do Hindcast Cross-Validation (hcxval) 
+# show multiplot
+# jbplot_hcxval(hd_5IA,single.plots = F,as.png = F,output.dir=retro.dir,col=rainbow(8)) # prediction skill : MASE score should be less than 1
+# # Zoom-in
+# jbplot_hcxval(hd_5IA,single.plots = F,as.png = F,output.dir=retro.dir,minyr=2000)
+# note summary stats MASE
+```
+
+# 5) Resultats
+
+```{r,warning = F, echo = F, fig.height= 8, fig.width = 8, position = "c", eval = T}
+#---------------------
+   # Results analysis
+#---------------------
+
+#jbpar(mfrow=c(3,2),plot.cex = 0.8)
+#jbplot_trj(jabba_5IA,add=T)
+
+#jbpar(mfrow=c(1,1),plot.cex = 0.8)
+
+#jbplot_spphase(jabba_5IA,add=T)
+
+
+jbplot_kobe(jabba_5IA,add=T)
+
+
+#jbplot_biplot(jabba_5IA) # diagnosis modern plot (bmsy fmsy, 3 colors)
+
+#jbplot_bprior(jabba_5IA)
+```
+
+
+```{r, include = T, echo = F, ft.align="center"}
+
+F.last <- c(NA,NA)
+for (k in 1:2){
+F.last[k] <- tail(jabba_scenario[[k]]$timeseries[, , "FFmsy"][,1], 1)
+}
+
+set_flextable_defaults(font.family = "Palatino Linotype")
+Tableau_indicateurs <- data.frame("Scénario" = c(NA, "5 IA", "4 IA"), 
+                                     "Indicateurs de l'état du stock" = c("K", round(as.numeric(jabba_5IA$refpts[1,4])), round(as.numeric(jabba_4IA$refpts[1,4]))), 
+                                     "Indicateurs de l'état du stock" = c("B_msy", round(as.numeric(jabba_5IA$refpts[1,5])), round(as.numeric(jabba_4IA$refpts[1,5]))),
+                                     "Indicateurs de l'état du stock" = c("F/F_msy", round(F.last[2], 2), round(F.last[1],2)),
+                                     "Indicateurs de l'état du stock" = c("MSY", round(as.numeric(jabba_5IA$refpts[1,7])), round(as.numeric(jabba_4IA$refpts[1,7]))))
+                                                                                                                                                    
+names(Tableau_indicateurs) <- c("Scénario", "Indicateurs de l'état du stock", "Indicateurs de l'état du stock2", "Indicateurs de l'état du stock3","Indicateurs de l'état du stock4")
+ft <- flextable(Tableau_indicateurs) #, Fox_model_optimist[[1]], Fox_model_pessimist_log[[1]], Fox_model_pessimist[[1]]))
+ft <- ft %>% set_caption("- Indicateurs de l’état du stock selon le scénario", style = "Table Caption") %>% align(align = "center", part = "all")%>% padding(padding = 0, part = "body")%>% autofit()
+
+ft <- bg(ft, bg = "#C5E0B3", part = "header")
+ft <- bold(ft, part = "header", bold = T)
+ft <- ft %>% merge_at(i=1, j=c(2:5), part = "head") %>% hline(i = 1, part = "header", border = fp_border(color="black", width = 1)) %>%  hline_top(part= "header", border = fp_border(color="black", width = 1)) %>% align(j = 1, align = "left", part ="all") %>% hline(i = 3, part = "body", border = fp_border(color="black", width = 1)) %>% bold(i = 1, j = c(2:5), part = "body", bold = T)
+
+ft
+```
+
+```{r,warning = F, echo = F, fig.height= 5, fig.width = 8, position = "c"}
+
+jbplot_summary(jabbas =jabba_scenario , output.dir = getwd())
+
+```
+
+
+
+
+
