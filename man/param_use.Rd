@@ -2,7 +2,8 @@
 % Please edit documentation in R/param_use.R
 \name{param_use}
 \alias{param_use}
-\title{nombre de donnees par modalite de chaque parametre}
+\title{param_use
+\code{param_use} nombre de donnees par modalite de chaque parametre}
 \usage{
 param_use(tab, list)
 }
@@ -12,5 +13,6 @@ param_use(tab, list)
 \item{list}{facteurs}
 }
 \description{
-nombre de donnees par modalite de chaque parametre
+param_use
+\code{param_use} nombre de donnees par modalite de chaque parametre
 }

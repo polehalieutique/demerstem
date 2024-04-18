@@ -1,4 +1,5 @@
-#' this function develop the Fox global model from IA and Efox series
+#' fox_model
+#' \code{fox_model} this function develop the Fox global model from IA and Efox series
 #'
 #'
 #' @param table_Efox  : table with IA and Efox

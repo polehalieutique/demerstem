@@ -2,7 +2,8 @@
 % Please edit documentation in R/prep_table.R
 \name{prep_table}
 \alias{prep_table}
-\title{Cette fonction réunie les séries d'IA (/!\ MAX 5 SERIES) dans une seule table, standardise et plot plusieurs graphs en relation}
+\title{prep_table
+\code{prep_table} Cette fonction réunie les séries d'IA (/!\ MAX 5 SERIES) dans une seule table, standardise et plot plusieurs graphs en relation}
 \usage{
 prep_table(nb_table, MOY, vect_year_elim, ...)
 }
@@ -16,5 +17,6 @@ prep_table(nb_table, MOY, vect_year_elim, ...)
 \item{...}{: les différentes tables d'IA (max 5)}
 }
 \description{
-Cette fonction réunie les séries d'IA (/!\ MAX 5 SERIES) dans une seule table, standardise et plot plusieurs graphs en relation
+prep_table
+\code{prep_table} Cette fonction réunie les séries d'IA (/!\ MAX 5 SERIES) dans une seule table, standardise et plot plusieurs graphs en relation
 }

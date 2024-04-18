@@ -1,4 +1,5 @@
-#' Cette fonction réunie les séries d'IA (/!\ MAX 5 SERIES) dans une seule table, standardise et plot plusieurs graphs en relation
+#' prep_table
+#' \code{prep_table} Cette fonction réunie les séries d'IA (/!\ MAX 5 SERIES) dans une seule table, standardise et plot plusieurs graphs en relation
 #'
 #'
 #' @param nb_table : nb de table inclut dans "..." (=le nb de série d'IA différentes)

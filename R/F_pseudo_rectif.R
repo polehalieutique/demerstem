@@ -11,19 +11,6 @@
 #'
 #' @export
 
-#'  F_pseudo_rectif
-#'
-#' \code{F_pseudo_rectif} returns Initial recruitment estiMate
-#'
-#' @param   FT            Terminal F
-#' @param   Rinit         Initial value for pseudo cohort analysis, equivalent to the last year recruitment
-#' @param   Mat_C         data frame of catch, each column is a different gear
-#' @param   Mat_R         vector of recruitment, if unknown, considered constant
-#' @param   Mat_E         data frame of effort, each column is a different gear
-#' @param   Mat_M         vector of mortality biological parameter
-#'
-#' @export
-
 F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop_R, quarter, ngroup= F) {
 
   plot <- list()

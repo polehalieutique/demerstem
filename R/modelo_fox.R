@@ -1,4 +1,6 @@
-#' Cette fonction réalise le modele de Fox à partir d'un IA et d'Efox
+#' modelo_fox
+#'
+#' \code{modelo_fox} Cette fonction réalise le modele de Fox à partir d'un IA et d'Efox
 #'
 #'
 #' @param data : le tableau avec IA

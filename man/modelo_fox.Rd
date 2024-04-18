@@ -2,7 +2,7 @@
 % Please edit documentation in R/modelo_fox.R
 \name{modelo_fox}
 \alias{modelo_fox}
-\title{Cette fonction réalise le modele de Fox à partir d'un IA et d'Efox}
+\title{modelo_fox}
 \usage{
 modelo_fox(table_Efox, param_graph)
 }
@@ -14,5 +14,5 @@ modelo_fox(table_Efox, param_graph)
 \item{k}{: facteur k du calcul de l'effort de Fox. Au choix : 1, 3 ou 5}
 }
 \description{
-Cette fonction réalise le modele de Fox à partir d'un IA et d'Efox
+\code{modelo_fox} Cette fonction réalise le modele de Fox à partir d'un IA et d'Efox
 }

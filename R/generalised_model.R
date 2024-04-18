@@ -1,6 +1,7 @@
-#' Generalised production model from IA and Efox series
+#' generalised_model
 #'
-#' \code{generalised_model}
+#'
+#' \code{generalised_model} Generalised production model from IA and Efox series
 #'
 #' @param table_Efox      : table with IA and Efox
 #' @param graph_param     : vector gathering the graphhics aestetics parameters (format : c(lengthEfox, title, upper_x, upper_y, upper_ybis))

@@ -2,7 +2,7 @@
 % Please edit documentation in R/generalised_model.R
 \name{generalised_model}
 \alias{generalised_model}
-\title{Generalised production model from IA and Efox series}
+\title{generalised_model}
 \usage{
 generalised_model(
   table_Efox,
@@ -33,5 +33,5 @@ generalised_model(
 \item{log}{: by default, fit the model under log transformation of the AI. Else, fit without the log transformation (no start/limit)}
 }
 \description{
-\code{generalised_model}
+\code{generalised_model} Generalised production model from IA and Efox series
 }

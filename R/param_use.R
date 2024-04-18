@@ -1,4 +1,5 @@
-#'  nombre de donnees par modalite de chaque parametre
+#' param_use
+#' \code{param_use} nombre de donnees par modalite de chaque parametre
 #' @param tab tableau de données
 #' @param list facteurs
 
