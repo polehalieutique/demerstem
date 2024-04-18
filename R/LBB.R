@@ -110,8 +110,10 @@
 #' plotLBB.ts(res)
 #' }
 #'
-#' @import R2jags
-#' @import rjags
+#'# IMPORT
+#'
+#' import R2jags
+#' import rjags
 #' @importFrom Hmisc wtd.quantile
 #' @importFrom coda mcmc
 #' @importFrom stats quantile
