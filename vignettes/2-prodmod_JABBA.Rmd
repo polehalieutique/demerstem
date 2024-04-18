@@ -16,6 +16,16 @@ knitr::opts_chunk$set(
 
 # 0) Préparation
 
+This script aims to help *demerstem* partners in the stock asssessment process using a production model with JABBA package. Current data used are thiof stock from Senegal/Gambie/Mauritania on 1974-2019 period. This script should be used in addition to the following videos :
+For theoretical part : https://www.youtube.com/watch?v=HIMzaaX4lxM
+For practical part : https://www.youtube.com/watch?v=bBcQg6hPTsQ
+
+Cet script vise à accompagner les partenaires du projet *demerstem* dans la réalisation d'une évaluation de stock avec un modèle de production via le package JABBA.
+Nous utilisons ici les données issues de la pêcherie de Thiof dans la zone Sénégal-Gambie-Mauritanie entre 1974 et 2019.
+Ce script devrait être utilisé en complément des vidéos suivantes : 
+Pour la partie théorique : https://www.youtube.com/watch?v=HIMzaaX4lxM
+Pour la partie pratique : https://www.youtube.com/watch?v=bBcQg6hPTsQ
+
 ## 0.1) Installation des packages
 
 ```{r setup, warning = FALSE, include = F, echo = F}
@@ -53,15 +63,6 @@ library(officer)
 library(flextable)
 ```
 
-This script aims to help *demerstem* partners in the stock asssessment process using a production model with JABBA package. Current data used are thiof stock from Senegal/Gambie/Mauritania on 1974-2019 period. This script should be used in addition to the following videos :
-For theoretical part : https://www.youtube.com/watch?v=HIMzaaX4lxM
-For practical part : https://www.youtube.com/watch?v=bBcQg6hPTsQ
-
-Cet script vise à accompagner les partenaires du projet *demerstem* dans la réalisation d'une évaluation de stock avec un modèle de production via le package JABBA.
-Nous utilisons ici les données issues de la pêcherie de Thiof dans la zone Sénégal-Gambie-Mauritanie entre 1974 et 2019.
-Ce script devrait être utilisé en complément des vidéos suivantes : 
-Pour la partie théorique : https://www.youtube.com/watch?v=HIMzaaX4lxM
-Pour la partie pratique : https://www.youtube.com/watch?v=bBcQg6hPTsQ
 
 ## 0.2) Preparation de l'environnement de travail
 
