@@ -36,5 +36,7 @@ Depends:
     TropFishR,
     R (>= 2.10),
     cowplot,
+    officer,
+    flextable,
     propagate
 VignetteBuilder: knitr
