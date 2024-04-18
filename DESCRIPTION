@@ -33,6 +33,7 @@ Depends:
     mixdist,
     ggpubr,
     RColorBrewer,
+    TropFishR,
     R (>= 2.10),
     cowplot,
     propagate
