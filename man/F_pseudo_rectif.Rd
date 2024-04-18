@@ -4,7 +4,18 @@
 \alias{F_pseudo_rectif}
 \title{F_pseudo_rectif}
 \usage{
-F_pseudo_rectif(FT, age, Mat_C, Mat_R, Mat_E, Mat_M)
+F_pseudo_rectif(
+  FT,
+  age,
+  Mat_C,
+  Mat_R,
+  Mat_E,
+  Mat_M,
+  step_time,
+  Prop_R,
+  quarter,
+  ngroup = F
+)
 }
 \arguments{
 \item{FT}{Terminal F}

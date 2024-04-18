@@ -16,6 +16,3 @@ modelo_fox(table_Efox, param_graph)
 \description{
 Cette fonction réalise le modele de Fox à partir d'un IA et d'Efox
 }
-\examples{
-
-}

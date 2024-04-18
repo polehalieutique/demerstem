@@ -4,7 +4,19 @@
 \alias{yield_recrut}
 \title{yield_recrut}
 \usage{
-yield_recrut(a, b, Linf, K, t0, list_age, Mat_F, Mat_M, mf, F0.1 = F, Mat_W = NA)
+yield_recrut(
+  a,
+  b,
+  Linf,
+  K,
+  t0,
+  list_age,
+  Mat_F,
+  Mat_M,
+  mf,
+  F0.1 = F,
+  Mat_W = NA
+)
 }
 \arguments{
 \item{a}{Initial value for pseudo cohort analysis, equivalent to the last year recruitment}
@@ -17,7 +29,9 @@ yield_recrut(a, b, Linf, K, t0, list_age, Mat_F, Mat_M, mf, F0.1 = F, Mat_W = NA
 
 \item{t0}{vector of mortality biological parameter}
 
-\item{Mat_F3}{}
+\item{Mat_F}{}
+
+\item{Mat_W}{}
 
 \item{Mat_N2}{}
 
@@ -27,20 +41,5 @@ yield_recrut(a, b, Linf, K, t0, list_age, Mat_F, Mat_M, mf, F0.1 = F, Mat_W = NA
 \code{yield_recrut} function to be optimized by stats::optimize, hence gives an estimation by iteration of F minimum value
 }
 \examples{
-espece <- "dicentrarchus labrax"
-age <- 18
-Mat_C <- data.frame(catchA = c(8, 438, 13955, 16933, 47864, 22925,23117,4684,15853,10942,8839,18524,8141,9850,4485,3608,2642,1310), catchB = c(0, 184, 1827, 2245, 7158, 4792,7151,1767,5378,3524,1429,2533,1481,2470,1161,563,617,477), catchC = c(8, 1103, 11285, 5938, 9773, 2749,1722,228,678,483,368,213,87,265,224,87,85,0), catchD = c(7, 6435, 20817, 4023, 3656, 905,570,117,131,60,115,42,111,157,117,0,51,0))
-Mat_Cage <- apply(Mat_C, 1, sum) # catch sum by age over fleets
-Mat_M <- rep(0.2, age)
-FT <- 0.2
-Mat_E <- data.frame(effortA = c(3500, 2900, 2200, 1500, 800, 800,800,800,800,800,800,800,800,800,800,800,800,800), effortB = c(800, 600, 450, 350, 200, 50,50,0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0), efforC = c(550, 400, 200, 100, 100, 100,100,100,100,100,100,100,100,100,100,100,100,100), effortD = c(430, 600, 760, 900, 900, 1000,1100,1150,1250,1350,1350,1350,1350,1350,1350,1350,1350,1350))
-Mat_R <- rep(100000, 18) # si indisponible, on suppose recrutement constant
-Mat_M <- rep(0.2, 18)
-Rinit <- 1.18*10^6#  Mat_N[1] # valeur issue de Bertignac, 1987
-pseudo_rectif_R(Mat_Cage, Mat_C, Mat_R, Mat_E, Mat_M, Rinit)
-b <- 3.1428
-a <- 0.0054
-Linf<- 77.2
-K<- 0.16
-t0 <- -0.7
+-- IN PROCESS --
 }

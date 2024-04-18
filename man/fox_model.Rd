@@ -4,7 +4,14 @@
 \alias{fox_model}
 \title{this function develop the Fox global model from IA and Efox series}
 \usage{
-fox_model(table_Efox, graph_param, a_start = 5, b_start = 3, log = TRUE)
+fox_model(
+  table_Efox,
+  graph_param,
+  a_start = 5,
+  b_start = 3,
+  log = TRUE,
+  lower_b = 0
+)
 }
 \arguments{
 \item{table_Efox}{: table with IA and Efox}
@@ -15,7 +22,4 @@ fox_model(table_Efox, graph_param, a_start = 5, b_start = 3, log = TRUE)
 }
 \description{
 this function develop the Fox global model from IA and Efox series
-}
-\examples{
-
 }

@@ -14,6 +14,3 @@ param_use(tab, list)
 \description{
 nombre de donnees par modalite de chaque parametre
 }
-\examples{
-
-}

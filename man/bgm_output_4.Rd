@@ -12,6 +12,3 @@ bgm_output_4(mcmc, data, n_proj = 4, multiple = FALSE, title)
 \description{
 Bayesian global model, on encapsule un modèle global générique dans la fonction
 }
-\examples{
-
-}

@@ -18,6 +18,3 @@ prep_table(nb_table, MOY, vect_year_elim, ...)
 \description{
 Cette fonction réunie les séries d'IA (/!\ MAX 5 SERIES) dans une seule table, standardise et plot plusieurs graphs en relation
 }
-\examples{
-
-}

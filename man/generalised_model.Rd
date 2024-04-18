@@ -7,8 +7,8 @@
 generalised_model(
   table_Efox,
   graph_param,
-  a = c(0.0001, 0.001, 0.01),
-  b = c(0.0001, 0.001, 0.01),
+  a = c(1e-04, 0.001, 0.01),
+  b = c(1e-04, 0.001, 0.01),
   m = c(0.5, 0.7, 0.9),
   warning_control = FALSE,
   max_iteration = 50,
@@ -34,7 +34,4 @@ generalised_model(
 }
 \description{
 \code{generalised_model}
-}
-\examples{
-
 }
