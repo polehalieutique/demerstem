@@ -3,8 +3,7 @@
 #' \code{LBB}
 #' @title Length-based Bayesian biomass estimator (LBB)
 #'
-#' @description A new approach for estimating stock status from length-frequency
-#'    data
+#' @description This function is copied from TropFishR 1.6.0. It has been slightly modified in lines 147, 1172 and 1347 by examining if lfq$catch class was a matrix (using `any(class(lfq$catch)) == "matrix"`)
 #'
 #' @param lfq A list of the class "lfq" consisting of following parameters:
 #' \itemize{
