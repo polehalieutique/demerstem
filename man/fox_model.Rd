@@ -2,7 +2,8 @@
 % Please edit documentation in R/fox_model.R
 \name{fox_model}
 \alias{fox_model}
-\title{this function develop the Fox global model from IA and Efox series}
+\title{fox_model
+\code{fox_model} this function develop the Fox global model from IA and Efox series}
 \usage{
 fox_model(
   table_Efox,
@@ -21,5 +22,6 @@ fox_model(
 \item{log}{: by default, fit the model under log transformation of the AI. Else, fit without the log transformation (no start/limit)}
 }
 \description{
-this function develop the Fox global model from IA and Efox series
+fox_model
+\code{fox_model} this function develop the Fox global model from IA and Efox series
 }
