@@ -1,11 +1,6 @@
 #'  LBB
 #'
 #' \code{LBB}
-#' @title Length-based Bayesian biomass estimator (LBB)
-#'
-#' @description A new approach for estimating stock status from length-frequency
-#'    data
-#'
 #' @param lfq A list of the class "lfq" consisting of following parameters:
 #' \itemize{
 #'   \item \strong{species} species name,
@@ -47,80 +42,6 @@
 #' @param mfrow A vector of the form 'c(nr, nc)'.  Subsequent figures will be drawn in an
 #'    'nr'-by-'nc' array on the device by _rows_ ('mfrow'). If NA (default), a panel with
 #'    3 columns and several rows (dependent on number of years) is used.
-#'
-#' @details Requires the Gibbs sampler JAGS to be installed on your
-#'     computer, available for your Operating System from the
-#'     following web site:
-#'     \href{http://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/}{http://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/}.
-#'     LBB is a new method for the analysis of length frequency data
-#'     from the commercial fishery. It works for species that grow
-#'     throughout their lives, such as most commercial fish and
-#'     invertebrates, and requires no input in addition to length
-#'     frequency data. It estimates asymptotic length (Linf), length
-#'     at first capture (Lc), relative natural mortality (M/K) and
-#'     relative fishing mortality (F/M) as means over the age range
-#'     represented in the length-frequency sample. With these
-#'     parameters as input, standard fisheries equations can be used
-#'     to estimate depletion or current exploited biomass relative to
-#'     unexploited biomass (B/B0). In addition, these parameters allow
-#'     the estimation of the length at first capture that would
-#'     maximize catch and biomass for the given fishing effort
-#'     (Lc_opt), and estimation of a proxy for the relative biomass
-#'     capable of producing maximum sustainable yields
-#'     (Bmsy/B0). Relative biomass estimates of LBB were not
-#'     significantly different from the "true" values in simulated
-#'     data and similar to independent estimates from full stock
-#'     assessments.
-#'
-#' @author Rainer Froese, (\email{rfroese@geomar.de})
-#'
-#' @return A list with the input parameters and following list objects:
-#' \itemize{
-#'   \item \strong{GausSel}: indicating if gaussian Selection was used,
-#'   \item \strong{priors}: priors,
-#'   \item \strong{refLev}: matrix with all reference levels for all years,
-#'   \item \strong{medianRefLev}: median reference levels (plus 95\% confidence intervals),
-#'   \item \strong{lastRefLev}: reference levels in the last year,
-#'   \item \strong{LFall}: matrix with lengths and relative frequencies.
-#' }
-#'
-#' @examples
-#' \donttest{
-#' ## load data
-#' data(synLFQ8)
-#'
-#' ## arrange lfq data
-#' lfq <- lfqModify(synLFQ8, aggregate = "year")
-#'
-#' ## plot lfq data traditionally
-#' plot(lfq)
-#'
-#' ## plot data in LBB manner
-#' plotLBB.data(lfq)
-#'
-#' ## add length at maturity to lfq data
-#' lfq$Lm50 <- 36
-#'
-#' ## run LBB model
-#' res <- LBB(lfq, plot = TRUE)
-#'
-#' ## plot results
-#' plotLBB(res)
-#'
-#' ## plot time series
-#' plotLBB.ts(res)
-#' }
-#'
-#' @import R2jags
-#' @import rjags
-#' @importFrom Hmisc wtd.quantile
-#' @importFrom coda mcmc
-#' @importFrom stats quantile
-#'
-#' @references
-#' R. Froese, H. Winker, G. Coro, N. Demirel, A.C. Tsikliras, D. Dimarchopoulou,
-#' G. Scarcella, W.N. Probst, M. Dureuil, and D. Pauly (2018) A new approach
-#' for estimating stock status from length frequency data. ICES Journal of Marine Science. DOI: 10.1093/icesjms/fsy078
 #'
 #' @export
 #'
