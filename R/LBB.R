@@ -1,6 +1,6 @@
-#'  R_estimate
+#'  LBB
 #'
-#' \code{R_estimate} returns Initial recruitment estiMate
+#' \code{LBB} returns Initial recruitment estiMate
 #' @title Length-based Bayesian biomass estimator (LBB)
 #'
 #' @description A new approach for estimating stock status from length-frequency
