@@ -95,8 +95,7 @@ A list with the input parameters and following list objects:
 }
 }
 \description{
-A new approach for estimating stock status from length-frequency
-   data
+This function is copied from TropFishR 1.6.0. It has been slightly modified in lines 147, 1172 and 1347 by examining if lfq$catch class was a matrix (using `any(class(lfq$catch)) == "matrix"`)
 }
 \details{
 LBB
@@ -154,6 +153,10 @@ plotLBB(res)
 plotLBB.ts(res)
 }
 
+# IMPORT
+
+import R2jags
+import rjags
 }
 \references{
 R. Froese, H. Winker, G. Coro, N. Demirel, A.C. Tsikliras, D. Dimarchopoulou,
