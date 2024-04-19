@@ -128,7 +128,7 @@
 LBB <- function(lfq, startYear=NA, endYear=NA, years=NA, binSize=NA, LinfUser=NA, LcutUser=NA,
                 LcUser=NA, LstartUser=NA, MKUser=NA, mmUser=FALSE, GausSel=FALSE, MergeLF=FALSE,
                 n.chains = 3, n.cluster = 3, plot=FALSE, mfrow = NA){
-print('test')
+
   ## informative warning messages if input not correct
   ## length at maturity
   if(!"Lm50" %in% names(lfq)){
@@ -256,9 +256,6 @@ print('test')
   # use largest fish as Lmax
   Lmax       <- LF.all$Length[n.LF.all]
   # use median of largest fish per year as Lmax.med
-  print("ok 259")
-  print(rep(res$midLengths,ncolC)[as.numeric(res$catch)>0])
-  print(rep(res$dates,each=nrowC)[as.numeric(res$catch)>0])
   Lmax.med   <- median(as.numeric(by(rep(res$midLengths,ncolC)[as.numeric(res$catch)>0],
                                      rep(res$dates,each=nrowC)[as.numeric(res$catch)>0],max)))/10
 
