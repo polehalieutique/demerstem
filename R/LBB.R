@@ -1341,7 +1341,9 @@ plotLBB <- function(lfq, GausSel = FALSE, LcUser = NA, mmUser = FALSE, MKUser=NA
 plotLBB.ts <- function(lfq, mmUser = FALSE, GausSel = FALSE){
 
   res <- lfq
-  LdatF <- res$refLev
+  res$refLev * 2 # because of en error
+  Ldat <- res$refLev
+  Ldat2 <- Ldat #because of on error
 
   years <- as.numeric(format(res$dates, "%Y"))
 
