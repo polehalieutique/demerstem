@@ -4,9 +4,15 @@
 \alias{plotLBB.ts}
 \title{Plotting LBB results over time}
 \usage{
-plotLBB.ts(lfq, mmUser = FALSE, GausSel = FALSE)
+plotLBB.ts(res, mmUser = FALSE, GausSel = FALSE)
 }
 \arguments{
+\item{mmUser}{Logical; indicating the unit of length measurements, where TRUE
+indicates that lengths are in mm and FALSE (default) indicate that lengths are in cm.}
+
+\item{GausSel}{Logical; indicating the selectivity pattern. If FALSE (default) trawl-like,
+if TRUE gaussian selectivity is assumed.}
+
 \item{lfq}{A list of the class "lfq" consisting of following parameters:
 \itemize{
   \item \strong{species} species name,
@@ -17,12 +23,6 @@ plotLBB.ts(lfq, mmUser = FALSE, GausSel = FALSE)
      and sampling date (column),
   \item \strong{comments} comments;
 }}
-
-\item{mmUser}{Logical; indicating the unit of length measurements, where TRUE
-indicates that lengths are in mm and FALSE (default) indicate that lengths are in cm.}
-
-\item{GausSel}{Logical; indicating the selectivity pattern. If FALSE (default) trawl-like,
-if TRUE gaussian selectivity is assumed.}
 }
 \description{
 Function to plot main results of a LBB assessment as time series graphs
