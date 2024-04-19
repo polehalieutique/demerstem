@@ -95,7 +95,7 @@ A list with the input parameters and following list objects:
 }
 }
 \description{
-This function is copied from TropFishR 1.6.0. It has been slightly modified in lines 147, 1172 and 1347 by examining if lfq$catch class was a matrix (using `any(class(lfq$catch)) == "matrix"`)
+This function is copied from TropFishR 1.6.0. It has been slightly modified in lines 150, 1175 and 1350 by examining if lfq$catch class was a matrix (using `any(class(lfq$catch)) == "matrix"`)
 }
 \details{
 LBB
