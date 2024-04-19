@@ -149,10 +149,10 @@ LBB <- function(lfq, startYear=NA, endYear=NA, years=NA, binSize=NA, LinfUser=NA
   ## Put data into vectors
   ##--------------------------------------------------------------------------------------
   if(any(class(res$catch) == "matrix")){
-    nrowC <- nrow(lfq$catch)
-    ncolC <- ncol(lfq$catch)
-  }else if(class(lfq$catch) == "numeric"){
-    nrowC <- length(lfq$catch)
+    nrowC <- nrow(res$catch)
+    ncolC <- ncol(res$catch)
+  }else if(class(res$catch) == "numeric"){
+    nrowC <- length(res$catch)
     ncolC <- 1
   }else{
     stop("lfq$catch has to be either a matrix or a numeric vector!")
@@ -1348,7 +1348,7 @@ plotLBB.ts <- function(lfq, mmUser = FALSE, GausSel = FALSE){
   ##--------------------------------------------------------------------------------------
   ## Put data into vectors
   ##--------------------------------------------------------------------------------------
-  if(any(class(lfq$catch)[1] == "matrix")){
+  if(any(class(lfq$catch) == "matrix")){
     nrowC <- nrow(lfq$catch)
     ncolC <- ncol(lfq$catch)
   }else if(class(lfq$catch) == "numeric"){
