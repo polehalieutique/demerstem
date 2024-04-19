@@ -1,0 +1,332 @@
+---
+title: "Modèle basé sur les tailles : LBB"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Modèle basé sur les tailles : LBB}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# 0) Preparation
+
+---- English version ----
+
+• This script aims to help *demerstem* partners in the stock asssessment process. It focus on using a length-based model : LBB.
+This function, developped by Froese et al (2018), has been taken from version 1.6.0 of the TropFishR package. Current data used are from sosso stock in ghana/Côte d'Ivoire on 1974-2019 period. 
+
+• This script should be used in addition to the following videos :
+For theoretical part : https://www.youtube.com/watch?v=PgzbsY5Zb6o
+For practical part : https://www.youtube.com/watch?v=VXM4lULgsEg
+
+Videos being done in French only, the script in manly described in english, considering online translation is available for everyone 
+
+---- Version Française ----
+
+• Ce script vise à accompagner les partenaires du projet *demerstem* dans la réalisation d'une évaluation de stock avec un modèle basé sur les tailles via la fonction LBB. Cette fonction développée par Froese et al (2018) a été récupérée de la version 1.6.0 du package TropFishR. Pour faciliter son usage elle a été ajoutée au package demerstem.
+
+• Nous utilisons ici les données issues de la pêcherie de Sosso dans la zone Ghana/Côte d'Ivoire entre 2006 et 2020.
+Ce script devrait être utilisé en complément des vidéos suivantes : 
+Pour la partie théorique : https://www.youtube.com/watch?v=PgzbsY5Zb6o
+Pour la partie pratique : https://www.youtube.com/watch?v=VXM4lULgsEg
+
+Les vidéos étant réalisées en Français, les scripts sont principalement décrits en anglais.
+
+## 0.1) Packages installation
+
+```{r, warning = FALSE, include = F, echo = F}
+#--------------------------
+#     Installations
+#--------------------------
+
+#------ Installation Rjags ------
+# https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/ # Pour Jags : program for bayesian simulation using Markov chain Monte Carlo (mcmc), algorithms for sampling from a probability distribution. 
+library(rjags)
+library(R2jags)
+
+#------ Installation demerstem ------
+#library(devtools)
+#detach("package:demerstem", unload = TRUE)
+#install_github("polehalieutique/demerstem")
+library(demerstem)
+packageVersion("demerstem")
+
+```
+
+# 1) Data extrapolation 
+
+LBB will perform poorly if LF are not representative of the length composition of the exploited phase of the stock. This maybe caused by gears that have a different selectivity or catchability than the main commercial gears (e.g. survey gears), or by length samples taken in areas where a non-representative subset of the exploited stock is present, such as in nursery or spawning areas. Also the availability of representative length frequency data can be an issue. Combining different LF samples poses an extra challenge, because the frequencies have to be weighted according to their contribution to the total catch.
+
+Hence, the first step will be to extrapolate the samples to the population (total catches) using the landings. This will give us the total number of individuals caught for each length sampled. However, over the 2006-2020 period, length frequencies were collected on both artisanal and industrial fisheries only in 2020 during demerstem project samplings. In addition, length frequencies over the 2006-2018 period are only from Côte d'Ivoire, and for this reasons extrapolation are only done in 2020.
+
+```{r, include = F, echo=F, cache = T}
+
+espece<-'Pseudotolithus senegalensis'
+
+data(data_capture_LBB)
+data(data_LF_LBB)
+
+# biological parameters from literature or estimated in previous work
+
+Linf <- 44.4 # Asymptotic length
+K <- 0.34 # Growth parameter
+t0 <- -0.24 # theoric age for length 0 cm
+
+a <- 0.006 # parameters from length-size relationship
+b <- 3.08
+
+#-----------------------
+#      Extrapolation 
+#-----------------------
+# Pseudotolithus senegalensis catches are mixed with several other Pseudotolithus species (typus...) species. We estimate proportion of Sosso in catch data using scientific survey, which indicates a proportion 77% of sosso. We multiply this proportion to 2020 total catches
+data_catch_PI_CIV <- data.frame(capture = rep(0.77*5000/12, 12))
+
+# 1. catch table of industrial fisheries in Ghana (PI = Pêcherie Industrielle). We aggregate Semi-Industrial and Industrial
+data_catch_PI_GHA <- data_capture_LBB %>%  
+  filter(code_pays == 'GHA', pecherie %in% c('Industrial', "Semi-industrial")) %>%  
+  filter(year == 2020) %>%  
+  group_by(month) %>% 
+  summarise(capture = sum(capture)) %>% 
+  ungroup() %>%  
+  dplyr::select(capture)
+
+# 2. catch table of industrial fisheries in Ghana and Côte d'ivoire (PI = Pêcherie Industrielle)
+data_catch_PI <- (data_catch_PI_CIV + data_catch_PI_GHA) %>%  mutate(gear = 'Industrial', month = c(1:12))
+
+# 3.1 catch table of Artisanal fisheries in Ghana (Pêcherie Artisanale).
+data_catch_PA_GHA <- data_capture_LBB %>%  
+  filter(code_pays == 'GHA', pecherie == 'Artisanal') %>%  
+  group_by(month) %>%  
+  filter(year == 2020) %>% 
+  ungroup() %>% 
+  dplyr::select(capture)
+
+# 3.2 catch table of Artisanal fisheries in Côte d'Ivoire (PA = Pêcherie Artisanale).
+# Our assumption is art. catches ~ ind. caches in CIV
+data_catch_PA_CIV <- data.frame(capture = rep(0.77*5000/12, 12))# data_capture_LBB %>%  filter(code_pays == 'CIV') %>% summarise (mean_capture_2020 = mean(capture))
+
+# 4. catch table of artisanal fisheries in Ghana and Côte d'ivoire (PA = Pêcherie Artisanale)
+data_catch_PA <- (data_catch_PA_CIV + data_catch_PA_GHA) %>%  mutate(gear = 'Artisanal', month = c(1:12))
+
+
+# 5. Compute PA and PI catches by month, then by quarter 
+data_catch_month <- data_catch_PI %>% 
+  full_join(data_catch_PA) 
+
+step_time = 4
+data_catch_month$step_time <- ceiling((data_catch_month$month)/(12/step_time))
+data_catch_quarter <- data_catch_month %>%  group_by(gear, step_time) %>% summarise(capture = sum(capture))
+
+# 6. Preparing length frequencies data. We remove data from San Pedro because samples weren't consistent.
+data_freq <- data_LF_LBB %>%  
+  filter(data_type == "Data Bio DEMERSTEM", data_from != "San Pedro") %>% 
+  mutate(gear = case_when(
+  data_from == "Abidjan" ~ 'Industrial',
+  data_from %in% c("Tadkoradi","Tema") ~ "Artisanal")) %>%  
+  mutate(step_time = ceiling((month)/(12/step_time))) 
+
+data_freq %>%  group_by(lclass, month, gear) %>% mutate(total = sum(frequence,na.rm = T)) %>%  ggplot(aes(x = lclass, y = total)) + geom_bar(stat = 'identity') + facet_grid(month~gear)
+
+# 7. Extrapolation of length frequencies
+ data_freq <- data_freq %>% 
+  group_by(lclass, step_time, gear) %>% 
+  dplyr::summarise(total_sampling=sum(frequence, na.rm = T)) %>%  mutate(weight_sampling = total_sampling * a*lclass^b/1000)
+
+
+data_freq <- data_freq %>% full_join(data_catch_quarter, by = c("step_time", "gear")) %>% dplyr::rename(Wtot = capture) %>%  mutate(Wtot = 1000 * Wtot)
+
+
+data_freq <- data_freq %>% group_by(step_time, gear) %>%  dplyr::mutate(W_sampling = sum(weight_sampling),
+                                                                        N_sampling = sum(total_sampling),
+                                                                        Ntot= floor(Wtot * N_sampling/W_sampling),
+                                                                        total_gear = floor(total_sampling*Ntot/N_sampling)) %>%  na.omit() 
+
+```
+
+
+```{r, echo = F, fig.height= 5, fig.width = 6, position = "c", fig.cap = "Figure 1 - Extrapolated catches for P. senegalensis by gear and quarter in 2020", warning=F, message=F}
+
+data_freq %>%  ggplot(aes(x = lclass, y = total_gear, fill = gear)) + geom_bar(stat = "summary",width=.9) + facet_grid(step_time~.) + theme_nice() + theme(legend.position="bottom") +ylab("Fish numbers") + xlab("Length (cm)")
+
+```
+
+
+Then, we add industrial length frequencies data to this first dataset. As explained earlier, these data won't be extrapolated.
+
+```{r, echo = F, include = F, message = F, warning=F}
+library(plyr)
+
+
+data_LBB <- rbind.fill(data_LF_LBB %>% filter(data_type == "Industrial"), 
+                       data_freq %>%  group_by(lclass) %>% dplyr::summarise(total = sum(total_gear))  %>% mutate(year = 2020, frequence = total) %>%  dplyr::select(lclass, year, frequence))
+
+detach("package:plyr", unload = TRUE)
+library(dplyr)
+```
+
+
+# 2) LBB model run presentation
+
+We use the LBB function from the package TropfishR, which only need length at maturity as additional input to LF data. Only **Industrial** (2006-2018) and **DEMERSTEM** (2020) length frequencies were studied. A prior on $L_{\infty}$ is fixed using the values previously estimated/selected.
+
+First approach is to filter the aberrant years. For this we study the shape of the selectivity curve and try to identify if all LF data exhibited good patterns to reflect resource status and met the requirements of LBB. If in some years the plots do not follow the expected pattern, exclude that year.
+
+
+```{r}
+data_LBB %>%  distinct(year)
+```
+
+```{r, include = F, echo = F, fig.height = 10, fig.width = 10, eval = F}
+
+list_year <- c(2006:2020)
+
+#-----------------------------
+# prepare data to lfq format
+#-----------------------------
+
+data2 <- data_LBB %>% 
+  filter(year %in% c(list_year)) %>%
+  mutate(length.cm= lclass,dates=as.Date(paste('01','01',year,sep="/"),format = "%d/%m/%Y")) %>%
+  group_by(dates,length.cm) %>% 
+  dplyr::summarize(catch=sum(frequence,na.rm=TRUE))
+
+lfq_dat <- lfqCreate(stock=espece,
+                     species=espece,
+                     data2,
+                     Lname = "length.cm", 
+                     Fname="catch",
+                     Dname = "dates",
+                     length_unit = "cm", 
+                     bin_size = 1, 
+                     aggregate_dates = TRUE,
+                     plot=TRUE)
+
+lfq <- lfqModify(lfq_dat, aggregate = "year")
+
+# If only one year has been selected, this command must be done, otherwise an error might occurs.
+if (length(list_year)==1){
+lfq$catch <- as.data.frame(lfq$catch)
+}
+
+# ## add length at maturity to lfq data
+ lfq$Lm50 <-  35
+
+ 
+#-----------------------------
+# LBB function presentation
+#----------------------------
+ 
+res <- LBB(lfq, #data
+    startYear=NA, 
+    endYear=NA, 
+    years=NA,
+    LinfUser=NA, # Linfinity or asymptotic length of the von Bertalanffy growth function, in cm
+    LcutUser=NA, # lower threshold for length data. Data will be restricted to those L >= Lcut.user (in cm)
+    LcUser=NA, # user-specified prior for length at 50% first capture, in cm
+    LstartUser=NA, # length where gear retention is larger than 95%, in cm
+    MKUser=NA, # user-specified M/K prior, e.g. 1.5 by default
+    mmUser=FALSE, # to specify if analysis is to be done in millimeters; default is FALSE (but Length must be in mm in any case)
+    GausSel=FALSE, # to specify if gill net selection is used; default is FALSE
+    MergeLF=FALSE, # to aggregate LFs with previous year; default is FALSE (if TRUE, first and second year will have identical LFs)
+    plot= FALSE, 
+    mfrow = NA)
+ 
+```
+
+# 3) Results
+
+```{r, warnings = F, echo = F, fig.height = 8, fig.width = 8, position = "c", fig.cap = "Figure 2 - Results from LBB analysis. The red curve shows the LBB fit, which provides estimates of Z/K, M/K, F/K, Lc, and Linf. From Linf and M/K is calculated Lopt and shown as a reference."}
+
+list_year <- c(2009:2020)
+
+data2 <- data_LBB %>% 
+  filter(year %in% c(list_year)) %>%
+  mutate(length.cm= lclass,dates=as.Date(paste('01','01',year,sep="/"),format = "%d/%m/%Y")) %>%
+  group_by(dates,length.cm) %>% 
+  dplyr::summarize(catch=sum(frequence,na.rm=TRUE))
+
+lfq_dat <- lfqCreate(stock=espece,
+                     species=espece,
+                     data2,
+                     Lname = "length.cm", 
+                     Fname="catch",
+                     Dname = "dates",
+                     length_unit = "cm", 
+                     bin_size = 1, 
+                     aggregate_dates = TRUE,
+                     plot=F)
+
+lfq <- lfqModify(lfq_dat, aggregate = "year")
+
+# If only one year has been selected, this command must be done, otherwise an error might occurs.
+if (length(list_year)==1){
+lfq$catch <- as.data.frame(lfq$catch)
+}
+
+# ## add length at maturity to lfq data
+lfq$Lm50 <-  35
+
+res <- LBB(lfq, plot = TRUE, LinfUser = 44.4)
+
+
+```
+
+The $L_{opt}$ dash lines indicate relatively good stock status or good length structures if they are at the middle or left of the peak of the curves. It in this study is not the case regardless of the year. The red curve shows the fit of the LBB for each year, providing estimates for fishery reference points, i.e., $M/K$, $F/M$, $B/B_{MSY}$, $B/B_0$, $L_{mean}/L_{opt}$, and $Lc/Lc_{opt}$.
+Following figure shows the accumulated LF data over all assessment years used to estimate priors.
+
+```{r, warnings = F, echo = F, fig.height = 4, fig.width = 6, position = "c", fig.cap = "Figure 3 - Fitness to the fully selected part of the catch in the numbers curve used to obtain Linf (cm), Lc (cm), and Z/K priors for the studied fish stock. Black dots indicate the observed LF data."}
+plotLBB(res)
+```
+
+Finally, this last figure show length indicators, and stock status estimates trends (only for demerstem growht estimates). On the first plot (left panel), we can see $L_{mean}$ (bold black curve) relative to $L_{opt}$, and $L_c$ (dashed black curve) relative to $Lc_{opt}$. Relative fishing pressure $F/M$ (black curve), with approximate 95% confidence limits (dotted curves) and indication of the FMSY proxy level ($F=M$ green horizontal line) is in the middle plot. Similarly, Relative biomass $B/B_0$ with confidence limits and indication of a proxy for $B_{MSY}$ (green dashed line) and $B_{pa}$ or 0.5 $B_{MSY}$ (red dotted line) is presented in the last plot. Similar trends are observed in the other model (Appendix)
+
+```{r, warnings = F, echo = F, fig.height = 3, fig.width = 8, position = "c", fig.cap = "Figure 4 - Results from LBB analysis (demerstem growth estimates model)"}
+plotLBB.ts(res)
+```
+
+
+The estimate of $F/M$ is much higher than 1, confirming the stock has been overexploited during the last decade, while the estimate of $B/B_{F=M}<0.5$ indicates that the biomass was extremely low between 2016-2018 (Table 2). Besides, the $L_{mean}/L_{opt}$ and $L_c$/$Lc_{opt})$ ratios are inferior to 1, suggesting fishing of too small individuals and a stock suffering from growth overfishing (Zhang et al., 2021b). Trends are similar, but indicates a worse situation when previous literature growth estimates are used (Table 2).
+
+
+# 4) Discussion
+
+**LBB assumptions**
+
+LBB assumes fluctuations of mortality, growth, and recruitment around mean values over the range of ages in the LF sample and should not be used if this assumption is violated. 
+For example, high interannual recruitment variability may lead to multiple peaks and poor analytical results (Quinn and Deriso, 1999; Hordyk et al., 2015b;Thorson and Cope, 2015), because without additional information, length-based methods cannot determine whether the observed difference in the frequency of many small and few large individuals is caused by an unusually strong cohort of recruits or by strong removal of large fish (Rudd and Thorson, 2017).
+
+**Use of priors on Linf and M/K**
+M, natural mortality rate relative to K, somatic growth rate (M/K)
+
+Jensen (1996) and Hordyk etal. (2015a) implies that species that reach their maximum age at about 95% of L inf have an adult M/K ratio of 1.5; also, Taylor (1958) suggests that the age at 95% of L inf is a realistic proxy for maximum age in many commercially-important fish. In LF distributions where only few species survive to approximate L inf, it is reasonable to assume an M/K prior around 1.5. Some species may have different life history strategies with corresponding different M/K ratios outside this range. 
+
+However M/K values of 0.3–3.0 have minor influence on the estimation of relative biomass the main target output of LBB.
+
+==> In summary, theoretical considerations as well as empirical observations suggest that M/K ≈ 1.5 is a reasonable default prior for species where maximum length and maximum age coincide.
+==> True cases of high longevity without growth should be recognizable from the LF pattern, which should show an unusual normal distribution of high frequencies around reasonable estimates of L inf. LBB analysis should not be performed on such populations.
+
+**Use of LBB in management of data-poor stocks** 
+
+LBB may be directly useful for management of data-poor stocks with unreliable or missing catch data. Representative LF samples from the main gear used in the fishery or from the main landing site may suffice to get a preliminary impression of stock size relative to levels that can produce the maximum sustainable yield. LBB also gives a comparison of current length at first capture Lc relative to the one (Lc_opt) that would maximize catch and biomass for the given fishing pressure (Froese et al., 2016b).
+
+==> Based on this information, management can propose changes in lengths at first capture and in fishing effort. 
+
+Note, however, that the assumption of Fmsy = M used in the estimation of the proxy for Bmsy/B0 is not precautionary, because M is the upper bound rather than a surrogate of Fmsy (Quinn and Deriso, 1999, p. 461). Consequently, the B/Bmsy estimate of LBB should not be used as a target, but rather as a lower bound of desirable stock sizes. 
+
+**Use of LBB in evaluating the size structure of stocks** 
+
+Suitable indicators : 
+LBB estimates the mean length in the exploited population (L mean) as well as the length in the unfished population (L opt) where cohort biomass is maximum. An exploited population with a Lmean close to Lopt has a size and age distribution similar to an unexploited healthy population. In other words, the ratio L mean /Lopt is a theoretically sound and easy-to-estimate indicator for a healthy size and agecomposition of exploited stocks. A size and age composition close to Lopt can be achieved by starting fishing at the length Lc_opt, which has the additional advantage of maximizing catch (Beverton andHolt, 1957) and biomass (Froese et al., 2016b) for the applied fishing pressure (F/M).
+
+# 5) Conclusion
+
+LBB is a simple and fast method for estimating relative stock size but relying on strong assumptions and the LF data.
+
+
+It requires no information on age, maturity, recruitment, growth, effort, or mortality, just representative LF data from the commercial fishery. LBB derives priors for L inf and selectivity from aggregated annual length frequency samples and assumes a prior M/K ratio around 1.5. It then performs Bayesian analyses of the annual LF data to simultaneously estimate L inf, L c, M/K, and F/K. With these inputs, a combination of standard fisheries equations (Beverton and Holt, 1957, 1966) provides an estimate of relative biomass (B/B0 or B/Bmsy) for the exploited size range.LBB estimates appear especially useful as objective relative biomass priors for use in other assessment models. But the LBB estimates of length at first capture and relative biomass in comparison with their respective reference points can also be used directly in management. 
