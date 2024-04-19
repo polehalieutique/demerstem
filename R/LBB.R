@@ -3,7 +3,7 @@
 #' \code{LBB}
 #' @title Length-based Bayesian biomass estimator (LBB)
 #'
-#' @description This function is copied from TropFishR 1.6.0. It has been slightly modified in lines 147, 1172 and 1347 by examining if lfq$catch class was a matrix (using `any(class(lfq$catch)) == "matrix"`)
+#' @description This function is copied from TropFishR 1.6.0. It has been slightly modified in lines 150, 1175 and 1350 by examining if lfq$catch class was a matrix (using `any(class(lfq$catch)) == "matrix"`)
 #'
 #' @param lfq A list of the class "lfq" consisting of following parameters:
 #' \itemize{
@@ -148,7 +148,7 @@ LBB <- function(lfq, startYear=NA, endYear=NA, years=NA, binSize=NA, LinfUser=NA
   ##--------------------------------------------------------------------------------------
   ## Put data into vectors
   ##--------------------------------------------------------------------------------------
-  if(any(class(lfq$catch) == "matrix")){
+  if(class(lfq$catch)[1] == "matrix"){
     nrowC <- nrow(lfq$catch)
     ncolC <- ncol(lfq$catch)
   }else if(class(lfq$catch) == "numeric"){
@@ -1173,7 +1173,7 @@ plotLBB.data <- function(lfq, mfrow=NA){
   ##--------------------------------------------------------------------------------------
   ## Put data into vectors
   ##--------------------------------------------------------------------------------------
-  if(any(class(lfq$catch) == "matrix")){
+  if(class(lfq$catch)[1] == "matrix"){
     nrowC <- nrow(lfq$catch)
     ncolC <- ncol(lfq$catch)
   }else if(class(lfq$catch) =="numeric"){
@@ -1348,7 +1348,7 @@ plotLBB.ts <- function(lfq, mmUser = FALSE, GausSel = FALSE){
   ##--------------------------------------------------------------------------------------
   ## Put data into vectors
   ##--------------------------------------------------------------------------------------
-  if(any(class(lfq$catch) == "matrix")){
+  if(class(lfq$catch)[1] == "matrix"){
     nrowC <- nrow(lfq$catch)
     ncolC <- ncol(lfq$catch)
   }else if(class(lfq$catch) == "numeric"){
