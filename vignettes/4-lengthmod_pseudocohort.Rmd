@@ -1,0 +1,995 @@
+---
+title: "Modèle basé sur les tailles : Pseudo-cohortes rectifiées "
+author : "Auteur : Florian Quemper"
+date: "Date du fichier : 22/04/2024"
+output :
+   rmdformats::readthedown:
+     toc_depth: 6
+     code_folding: show
+editor_options:
+   chunk_output_type: console
+vignette: >
+  %\VignetteIndexEntry{Modèle basé sur les tailles : Pseudo-cohortes rectifiées}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# 0) Preparation
+
+---- English version ----
+
+• This script aims to help *demerstem* partners in the stock asssessment process. It focus on using a length-based model : rectified pseudo cohort
+This methodology, developped by Chassot et al (2006; 2008), has been compute in demerstem package. Current data used are from sosso stock in ghana/Côte d'Ivoire on 1974-2019 period. 
+
+• This script should be used in addition to the following videos :\
+For theoretical part : https://studio.youtube.com/video/lm9RM3NdfdY  
+For practical part : https://studio.youtube.com/video/qU0sNBhSjTk
+
+Videos being done in French only, the script in manly described in english, considering online translation is available for everyone 
+
+---- Version Française ----
+
+• Ce script vise à accompagner les partenaires du projet *demerstem* dans la réalisation d'une évaluation de stock avec un modèle basé sur les tailles via la méthode des pseudo-cohortes rectifiées.Nous utilisons ici les données issues de la pêcherie de Sosso dans la zone Ghana/Côte d'Ivoire entre 2006 et 2020.
+
+• Ce script devrait être utilisé en complément des vidéos suivantes :  
+Pour la partie théorique : https://studio.youtube.com/video/lm9RM3NdfdY  
+Pour la partie pratique : https://studio.youtube.com/video/qU0sNBhSjTk
+
+Les vidéos étant présentées en Français, les scripts sont principalement décrits en anglais.
+
+## 0.1) Packages installation
+
+```{r, warning = FALSE, include = F, echo = F}
+#--------------------------
+#     Installations
+#--------------------------
+
+#------ Installation Rjags ------
+# https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/ # Pour Jags : program for bayesian simulation using Markov chain Monte Carlo (mcmc), algorithms for sampling from a probability distribution. 
+library(rjags)
+library(R2jags)
+
+#------ Installation demerstem ------
+#library(devtools)
+#detach("package:demerstem", unload = TRUE)
+#install_github("polehalieutique/demerstem")
+library(demerstem)
+packageVersion("demerstem")
+
+```
+
+# 1) Data extrapolation 
+
+
+As described in the previous analysis using LBB, LF must be extrapolated accordingly to seasonal and fisheries variations. 
+Hence, the first step will be to extrapolate the samples to the population (total catches) using the landings. This will give us the total number of individuals caught for each length sampled. Before that, we need to study data
+
+```{r, include = F}
+# Première phase : étudier les données pour déterminer lesquelles vont être conservées. On utilise les fréquences de tailles décrites dans les captures (industrielle et artisanales), soit la dernière année ou une moyenne sur 2-3ans. 
+# Dans le cas de P. senegalensis, on va utiliser les échantillonnages réalisés dans le cadre du projet demerstem sur les captures artisanales en 2020 et 
+#----------------------------
+#----------------------------
+
+#  Debarquements demerstem 2020
+
+#----------------------------
+#----------------------------
+data(data_LF_LBB)
+data(data_capture_LBB)
+
+length_frequency <- data_LF_LBB 
+
+length_frequency <- length_frequency %>%
+  mutate(gear = case_when(
+  data_from == "Abidjan" ~ 'Industrial',
+  data_from %in% c("Tadkoradi","Tema") ~ "Artisanal"))
+
+
+plot_data <- list()
+# Echantillonnages demerstem tous mois confondus
+length_frequency %>% 
+  filter(data_type == "Data Bio DEMERSTEM") %>% 
+  group_by(lclass,month) %>% 
+  dplyr::summarise(total = sum(frequence, na.rm = T))  %>% 
+  ggplot(aes(x = lclass, y = total)) + geom_bar(stat = 'identity') + labs(title="Landings (demerstem project - 2020)") + theme_nice()
+
+#Débarquement par port d'échantillonnage, on distingue 3 ports semi industriel ? + 1 PA (san pedro) cf CIV
+# IL y a des trous selon le port d'échantillonnage
+plot_data[[1]] <- length_frequency %>% 
+  filter(data_type == "Data Bio DEMERSTEM") %>% 
+  group_by(lclass, month, data_from) %>% 
+  dplyr::summarise(total=sum(frequence, na.rm = T)) %>% ggplot(aes(x=lclass,y=total)) + facet_grid(month~data_from, scales = 'free') + geom_bar(stat = 'identity') + theme_nice()
+
+plot_data[[2]] <- length_frequency %>% 
+  filter(data_type == "Data Bio DEMERSTEM", data_from != "San Pedro") %>% 
+  group_by(lclass, month, gear) %>% 
+  dplyr::summarise(total=sum(frequence, na.rm = T)) %>% mutate(title = "Length frequencies by month - 2020") %>% ggplot(aes(x=lclass,y=total, fill = gear)) + facet_grid(month~title, scales = 'free') + geom_bar(stat = 'identity') + theme_nice()
+
+
+plot_data[[3]] <- length_frequency %>% 
+  filter(data_type == "Data Bio DEMERSTEM", !(data_from %in% c("San Pedro", "Abidjan"))) %>% 
+  group_by(lclass,month) %>% 
+  dplyr::summarise(total = sum(frequence, na.rm = T))  %>% mutate(title = "Length frequencies aggregated - Ghana - 2020") %>% 
+  ggplot(aes(x = lclass, y = total)) + geom_bar(stat = 'identity') + theme_nice() + facet_grid(.~title)
+
+plot_data[[4]] <- length_frequency %>% 
+  filter(data_type == "Data Bio DEMERSTEM", data_from == "Abidjan") %>% 
+  group_by(lclass,month) %>% 
+  dplyr::summarise(total = sum(frequence, na.rm = T))  %>% mutate(title = "Length frequencies aggregated - Industrial CIV - 2020") %>%   ggplot(aes(x = lclass, y = total)) + geom_bar(stat = 'identity') + theme_nice() + facet_grid(.~title)
+
+plot_data[[5]] <- length_frequency %>% 
+  filter(data_type == "Data Bio DEMERSTEM", data_from != "San Pedro") %>% 
+  group_by(lclass,month, gear) %>% 
+  dplyr::summarise(total = sum(frequence, na.rm = T))  %>% mutate(title = "Length frequencies aggregated - 2020") %>% 
+  ggplot(aes(x = lclass, y = total, fill = gear)) + geom_bar(stat = 'identity') + theme_nice() + facet_grid(.~title)
+
+
+
+```
+
+```{r, warnings = F, echo = F, fig.height = 6, fig.width = 9, position = "c", fig.cap = "Figure 1 - Landings from demerstem project (2020 sampling). Data from San Pedro were removed"}
+
+ggarrange(plot_data[[2]] + ylab("Observations") + xlab("Length (cm)") + theme(legend.position="bottom"), plot_data[[5]]+ theme(legend.position="bottom")+ ylab("Observations") + xlab("Length (cm)"))
+
+```
+
+
+
+Some months are missing, hence we choose to extrapolate data by quarter
+
+
+```{r, include = F, echo=F, cache = T}
+
+espece<-'Pseudotolithus senegalensis'
+
+
+# biological parameters from literature or estimated in previous work
+
+Linf <- 44.4 # Asymptotic length
+K <- 0.34 # Growth parameter
+t0 <- -0.24 # theoric age for length 0 cm
+
+a <- 0.006 # parameters from length-size relationship
+b <- 3.08
+
+#-----------------------
+#      Extrapolation 
+#-----------------------
+# Pseudotolithus senegalensis catches are mixed with several other Pseudotolithus species (typus...) species. We estimate proportion of Sosso in catch data using scientific survey, which indicates a proportion 77% of sosso. We multiply this proportion to 2020 total catches
+data_catch_PI_CIV <- data.frame(capture = rep(0.77*5000/12, 12))
+
+# 1. catch table of industrial fisheries in Ghana (PI = Pêcherie Industrielle). We aggregate Semi-Industrial and Industrial
+data_catch_PI_GHA <- data_capture_LBB %>%  
+  filter(code_pays == 'GHA', pecherie %in% c('Industrial', "Semi-industrial")) %>%  
+  filter(year == 2020) %>%  
+  group_by(month) %>% 
+  summarise(capture = sum(capture)) %>% 
+  ungroup() %>%  
+  dplyr::select(capture)
+
+# 2. catch table of industrial fisheries in Ghana and Côte d'ivoire (PI = Pêcherie Industrielle)
+data_catch_PI <- (data_catch_PI_CIV + data_catch_PI_GHA) %>%  mutate(gear = 'Industrial', month = c(1:12))
+
+# 3.1 catch table of Artisanal fisheries in Ghana (Pêcherie Artisanale).
+data_catch_PA_GHA <- data_capture_LBB %>%  
+  filter(code_pays == 'GHA', pecherie == 'Artisanal') %>%  
+  group_by(month) %>%  
+  filter(year == 2020) %>% 
+  ungroup() %>% 
+  dplyr::select(capture)
+
+# 3.2 catch table of Artisanal fisheries in Côte d'Ivoire (PA = Pêcherie Artisanale).
+# Our assumption is art. catches ~ ind. caches in CIV
+data_catch_PA_CIV <- data.frame(capture = rep(0.77*5000/12, 12))# data_capture_LBB %>%  filter(code_pays == 'CIV') %>% summarise (mean_capture_2020 = mean(capture))
+
+# 4. catch table of artisanal fisheries in Ghana and Côte d'ivoire (PA = Pêcherie Artisanale)
+data_catch_PA <- (data_catch_PA_CIV + data_catch_PA_GHA) %>%  mutate(gear = 'Artisanal', month = c(1:12))
+
+
+# 5. Compute PA and PI catches by month, then by quarter 
+data_catch_month <- data_catch_PI %>% 
+  full_join(data_catch_PA) 
+
+step_time = 4
+data_catch_month$step_time <- ceiling((data_catch_month$month)/(12/step_time))
+data_catch_quarter <- data_catch_month %>%  group_by(gear, step_time) %>% summarise(capture = sum(capture))
+
+```
+
+```{r}
+data_catch_quarter
+```
+
+
+```{r, include = F, echo=F, cache = T}
+# biological parameters from literature or estimated in previous work
+
+Linf <- 44.4 # Asymptotic length
+K <- 0.34 # Growth parameter
+t0 <- -0.24 # theoric age for length 0 cm
+
+a <- 0.006 # parameters from length-size relationship
+b <- 3.08
+
+
+# 6. Preparing length frequencies data. We remove data from San Pedro because samples weren't consistent.
+data_freq_mixdist <- data_LF_LBB %>%  
+  filter(data_type == "Data Bio DEMERSTEM", data_from != "San Pedro") %>% 
+  mutate(gear = case_when(
+  data_from == "Abidjan" ~ 'Industrial',
+  data_from %in% c("Tadkoradi","Tema") ~ "Artisanal")) %>%  
+  mutate(step_time = ceiling((month)/(12/step_time))) 
+
+data_freq_mixdist %>%  group_by(lclass, month, gear) %>% mutate(total = sum(frequence,na.rm = T)) %>%  ggplot(aes(x = lclass, y = total)) + geom_bar(stat = 'identity') + facet_grid(month~gear)
+
+# 7. Extrapolation of length frequencies
+ data_freq_mixdist <- data_freq_mixdist %>% 
+  group_by(lclass, step_time, gear) %>% 
+  dplyr::summarise(total_sampling=sum(frequence, na.rm = T)) %>%  mutate(weight_sampling = total_sampling * a*lclass^b/1000)
+
+
+data_freq_mixdist <- data_freq_mixdist %>% full_join(data_catch_quarter, by = c("step_time", "gear")) %>% dplyr::rename(Wtot = capture) %>%  mutate(Wtot = 1000 * Wtot)
+
+
+data_freq_mixdist <- data_freq_mixdist %>% group_by(step_time, gear) %>%  dplyr::mutate(W_sampling = sum(weight_sampling),
+                                                                        N_sampling = sum(total_sampling),
+                                                                        Ntot= floor(Wtot * N_sampling/W_sampling),
+                                                                        total_gear = floor(total_sampling*Ntot/N_sampling)) %>%  na.omit() 
+
+
+```
+
+
+```{r, echo = F, fig.height= 5, fig.width = 6, position = "c", fig.cap = "Figure 2 - Extrapolated catches for P. senegalensis by gear and quarter in 2020", message=F, warning = F}
+
+data_freq_mixdist %>%  ggplot(aes(x = lclass, y = total_gear, fill = gear)) + geom_bar(stat = "summary",width=.9) + facet_grid(step_time~.) + theme_nice() + theme(legend.position="bottom") +ylab("Fish numbers") + xlab("Length (cm)")
+
+```
+
+# 2) Polymodal decomposition
+
+After various analyses and by considering the limited number of modes identified, it has been decided to make an assessment by quarter with 3-age groups.
+
+The constraint is applied from the average length calculated from the growth model. A first polymodal decomposition is performed without constraining the standard deviation. Then, a linear model is performed on the standard deviations for this purpose. In particular, the linear model was  adjusted for ages 1-3 because the estimated standard deviations for ages below 1 and greater than 3 are highly variable due to the lack of observations for small and large fish.s. The constraint model established using the growth estimates from Demerstem study case is also considered for the second model, using growth estimates from previous literature.
+
+## 2.1) First polymodal decomposition : with constraints on "mean" only
+
+```{r, include = T, message = F}
+
+####################################################################
+###
+###   First polymodal decomposition : with constraints on mean ONLY
+###
+####################################################################
+
+
+espece <- "P. senegalensis"
+
+Linf <- 44.4 # Asymptotic length
+K <- 0.34 # Growth parameter
+t0 <- -0.24 # theoric age for length 0 cm
+
+ngroup <- 3 # number of age group we want to detect
+fixmu <- rep(T, ngroup) # We fix the mean length at age using growth parameters estimated/from literature : We specify 'TRUE'
+fixsigma <- rep(F, ngroup) # We want to get an estimation of sigma : We specify 'FALSE'
+step_time = 4 # We will try to examine at a quarter level.
+
+mixdist_polymod(data_freq = data_freq_mixdist, 
+                K, 
+                Linf, 
+                t0,
+                step_class = 1, # bin size 
+                step_time = step_time, 
+                ngroup = ngroup,
+                fix_mu = fixmu, 
+                fix_sigma = fixsigma, 
+                sigma_adjust = 2,
+                get_lmsd = T, # We will perform a linear model with these data
+                plot = T)
+```
+
+
+```{r, include = T, echo = F}
+#############################################
+###        Linear model on sigma
+#############################################
+
+mean_no <- mean
+sd_no <- sd
+prop_no <- prop
+
+
+sd_lm_age <- sd_lm %>%  filter(age < 3 & age > 1)
+plot(x = sd_lm_age$age, y = sd_lm_age$sd)
+sd <- sd_lm_age$sd
+age <- sd_lm_age$age
+lmsd <- lm(sd ~ age) #linear regression
+anova(lmsd)
+sum_sd <- summary(lmsd)
+sum_sd$coefficients
+##Figure constraint for the sd
+#postscript('sigma-compute.ps',pointsize=15,horizontal=F,height=7,width=9)
+plot(x = sd_lm$age, y = sd_lm$sd, ylim = c(0,12), las = 1, cex.axis = 1.3, cex.lab = 1.3, xlab = "Age",
+ylab = expression(sigma(t)))
+
+newd <- data.frame(age = seq(0,6, by = 0.05)) #generates age data
+pred.sd <- predict(lmsd, newd, interval = "confidence") #predicts the value of sd based on the linear regression model lmsd
+
+abline(a = sum_sd$coefficients[1], b = sum_sd$coefficients[2],lwd = 2)
+points(pred.sd[,2]~newd$age, type = "l", lty = 2)
+points(pred.sd[,3]~newd$age, type = "l", lty = 2)
+summary(lmsd)$adj.r.squared 
+
+#Plot the residuals
+plot(age,residuals(lmsd), ylim = c(-10,10), xlab = "Age", ylab = "Residuals", cex.lab =
+1.3, cex.axis = 1.3)
+abline(h = 0, lwd = 2, lty = 2)
+```
+
+## 2.2) Second polymodal decomposition : with constraints on "mean" and "sd"
+
+A second model is then applied with a constraint on mean and standard deviation length-at-age using the previous linear model for two growth model estimates (Figure 9)
+
+```{r, include = F, echo = F}
+
+#######################################################################
+###
+###  Second polymodal decomposition : with constraints on mean AND sd
+###
+#######################################################################
+
+ngroup <- 3
+fixmu <- rep(T, ngroup) # We fix the mean as previously done
+fixsigma <- c(F,T,T)  # We fix sigma (only after the first age for technical reasons)
+step_time = 4
+step_class = 1
+
+mixdist_polymod(data_freq = data_freq_mixdist, K, Linf, t0, 
+                step_class = 1, 
+                step_time, 
+                ngroup = ngroup, 
+                month_recrue = 1,
+                fix_mu = fixmu, 
+                fix_sigma = fixsigma, 
+                sigma_adjust = 0,
+                lmsd = lmsd, 
+                get_lmsd = F, plot = T)
+
+mean_dem <- mean
+sd_dem <- sd
+prop_dem <- prop
+
+Mat_C_dem <- Mat_C # Catch matrice
+```
+
+
+We perform a second analysis in order to discuss final results. The process is similar
+
+```{r, include = F, echo = F}
+
+#######################################################################
+###
+###  Polymodal decomposition with other growth parameters estimates
+###
+#######################################################################
+
+
+espece<-'Pseudotolithus senegalensis'
+
+L_inf <- 52.7
+K <- 0.34
+t0 <- -0.44
+
+a<- 0.006
+b <- 3.08
+
+
+ngroup <- 3
+fixmu <- rep(T, ngroup)
+fixsigma <- c(F,T,T)
+step_time = 4
+step_class = 1
+
+mixdist_polymod(data_freq = data_freq_mixdist, K, L_inf, t0, 
+                step_class = 1, step_time, ngroup = ngroup, month_recrue = 1,
+                fix_mu = fixmu, fix_sigma = fixsigma, sigma_adjust = 0,
+                lmsd = lmsd, get_lmsd = F, plot = T, age = 0)
+mean_lit <- mean
+sd_lit <- sd
+prop_lit <- prop
+Mat_C_lit <- Mat_C #%>%  mutate(Age = seq(0,3.75, by = 0.25)) %>% pivot_wider(names_from = Age, values_from = Catch)
+
+```
+
+
+
+```{r, echo = F, results ='hide', fig.asp = 0.8, fig.width = 10, position = "c", fig.cap = "Figure 3 - Polymodal decompostion of length frequencies on P. senegalensis with constraints on the standard deviation for two different growth law (solid line correspond to the model with Demerstem estimates and dashed line to the model with literature estimates)"}
+#---------------------------------------------------------
+#    This code is only done to present the results 
+#         It is not expected to understand it
+#---------------------------------------------------------
+
+  length_min <- 0
+  length_max <- max(data_freq_mixdist$lclass)
+  
+  par(mfrow=c(2,2))
+for (i in 1:step_time) {
+      print(i)
+      if(step_time==12){
+        hist(data_count[[i]], breaks=c(length_min,seq(length_min + step_class, length_max - step_class, step_class),length_max),xlab = "Length (cm)", ylab = "Relative frequency", main = paste0("Polymodal decomposition : Month ",i), col = "lightgrey", freq = FALSE, cex.axis = 1.3, cex.lab = 1.3, ylim = c(0,0.25))
+      }
+      else{
+        hist(data_count[[i]], breaks=c(length_min,seq(length_min + step_class, length_max - step_class, step_class),length_max),xlab ="Length (cm)", ylab = "Relative frequency", main = paste0("Quarter ",i), col = "lightgrey", freq = FALSE, cex.axis = 1.3, cex.lab = 1.3, ylim = c(0,0.3))
+      }
+      lgen <- seq(0,length_max, by = 0.01)
+      for (k in (1:ngroup)){
+        dens1 <- dnorm(lgen,mean = mean_dem[[i]][k],sd = sd_dem[[i]][k])
+        dens.rel1 <- dens1/sum(dens1) * prop_dem[[i]][k] * 100
+        lines(lgen,dens.rel1,col = "black", type = "l",lty=2, lwd = 2)
+        
+        dens <- dnorm(lgen, mean = mean_lit[[i]][k], sd = sd_lit[[i]][k])
+        dens.rel <- dens/sum(dens) * prop_lit[[i]][k] * 100
+        lines(lgen,dens.rel,col = "black", type = "l", lty=1, lwd = 2)
+      }
+    }    
+  legend(x = 0, y = 0.3, legend = c("Growth estimates from Demerstem", "Growth estimates from literature"), lty = c(2,1), lwd = c(2,2), bty = "n", cex = 1.3)
+  
+```
+
+Knowing the proportions of catch-at-length by fishery, the polymodal decomposition give us a vector of catch-at-age by fishery (Table 1) which can be used in a rectified pseudo-cohort analysis. When the number of catches is too low, the value of '1' is arbitrarily assigned. 
+
+```{r, echo = F}
+ft <- flextable(data.frame(Age = seq(0.125,2.875, by = 0.25), c(Mat_C_dem %>% rename(C_ind_dem = Catch.Industrial, C_art_dem = Catch.Artisanal), Mat_C_lit %>% rename(C_ind_lit = Catch.Industrial, C_art_lit = Catch.Artisanal))))
+ft <- bg(ft, bg = "#C5E0B3", part = "header")
+ft <- bold(ft, part = "header", bold = T)
+ft
+```
+
+
+Using the growth estimates from literature impacts strongly the catches distributions due to a superior $L_{\infty}$ increasing the length for younger fish. Thus, the polymodal decomposition indicates more little fish are caught with this model.
+
+# 3) Rectified pseudo-cohort analysis
+
+=> Requires : 
+
+- Catch at age for the last year (mean over 3 year) (done in the previous part)
+- Effort over the study period
+- Natural mortality at age
+- Recruitment over the study period
+
+## 3.1) Effort over the study period
+
+In Ghana, time series supplied by Fisheries Commisions of Ghana are monthly informing effort for each fishery. These information are presented by quarters (Figure 2). The effort, which is in fishing days for each fishery, of the **Artisanal** is 100 times bigger than the others. Overall, efforts and global catch are showing important variations over time.
+
+In Côte d'Ivoire, efforts are only known for the **Industrial** fishery. Catches are only known by year from 2008 to 2018 for *Pseudotolithus spp* (Figure 3). Hence, *Pseudotolithus senegalensis* are reconstituted from scientific survey, which indicates it represent a mean and assumed constant of 77% of the observations. We estimate catches in 2020.
+
+The analysis is done by taking into account quarters between 2018 and 2020.
+
+Considering CPUE constant over the period, effort by fishery are standardized in the unit of industrial fishery. In addition, effort being unavailable in Côte d'Ivoire for **Artisanal** fishery and only in 2018 for the **Industrial** fishery, it is assumed efforts in Ghana are representative for both countries. We compute **Industrial** and **Semi-Industrial** together. 
+
+```{r, include = F, echo = F}
+civ_2020 <- data_capture_LBB[1,] %>% mutate(capture = 5000, year = 2020)
+
+captures_aggregees <- rbind(civ_2020, data_capture_LBB) %>%  unique()
+ 
+```
+
+
+```{r, include = T, echo = F, fig.height = 5, fig.width = 10}
+#Mat_C <- Capture_senegalensis 
+
+df_Effort <- captures_aggregees %>%  mutate(quarter = case_when(
+    month <= 3 ~ 1,
+    month >3 & month <= 6 ~ 2,
+    month >6 & month <= 9 ~ 3,
+    month >9 & month <= 12 ~ 4), 
+    year_quarter = paste0(year,".",quarter)) %>% 
+    group_by(year_quarter, pecherie, year, quarter, code_pays) %>% 
+  filter(!(year%in%c(2016,2017))) %>%  
+  summarise(mean = mean(effort, na.rm = T)) %>% 
+  filter(code_pays=='GHA') %>% 
+  ungroup() %>% 
+  dplyr::select(year_quarter,mean, pecherie) %>% 
+  pivot_wider(names_from = pecherie, values_from = mean) %>% 
+  arrange(desc(year_quarter))
+
+df_Effort <- df_Effort %>% mutate(Artisanal = Artisanal/130, `Semi-industrial` = `Semi-industrial`/5) %>% mutate(Industrial = Industrial +`Semi-industrial`)
+df_Effort <- df_Effort %>% dplyr::select(-`Semi-industrial`)
+
+#Rinit <- sum(capture_period)*2 # arbitrary hypothesis
+```
+
+
+## 3.2) Natural mortality estimation
+
+Natural mortality, noted $M$, is estimated with Lorenzen method (Lorenzen et al, 1996; Powers, 2014; Lorenzen, 2022).
+Lorenzen (2000) higlighted the existence of an allometric relationship between $M$ and fish weight : 
+
+
+$$
+{M_W = M_u \cdot W^d} \quad \quad \text{(5)}
+$$
+
+Where $M_W$ is the natural mortality for a given weight, $M_u$ is M at unit weight (in gram) and $d$ an allometric exponent from empirical relationships varying with the ecosystem. In this case, considering marine fish in a tropical ecosystem, we will assume $d = -0.21$ and $M_u = 3.08$.
+
+According Powers (2014) and following Lorenzen (1996, 2000), current applications of equation (5) in stock assessments often use the following relationship :
+
+$$
+{M_t = M_{\infty} \cdot (1-e^{-K(t-t_0)})^{-b(0.21)}} \quad \quad \text{(6)}
+$$
+
+
+where $K$ is the growth rate, $t_0$ is the age at which length is zero for the von Bertalanffy model, and the allometric relationship is $W = aL^b$. Given that the von Bertalanffy and length–weight parameters are known, then the mortality rate schedule is defined by the Lorenzen parameters $M_{\infty}$ and $d = -0.21$. Note that the scale of the mortality rate schedule in equation (6) is provided by the parameter $M_{\infty}$, where $M_{\infty}$ is based on maximum age (Hoenig, 1983) or other life history characteristics (Pauly, 1980). In this case it is arbitrary fixed to 0.2. Natural mortality estimates are done for both model and represented in Figure 10. 
+
+
+
+```{r, include = F, echo = F, fig.height = 5, fig.width = 10}
+espece <- "Pseudotolithus senegalensis"
+Linf <- 44.4
+K <- 0.35
+t0 <- -0.24
+a<- 0.006
+b <- 3.08
+M_inf <- 0.2
+list_age <- seq(0,3, by = 0.25)
+
+M_dem_graph <- M_Lorenzen(list_age, M_inf, K, t0)[[1]]
+
+
+Linf <- 52.7
+K <- 0.35
+t0 <- -0.44
+M_lit_graph <- M_Lorenzen(list_age, M_inf, K, t0)[[1]]
+
+
+data <- data.frame(M= c(M_lit_graph,M_dem_graph), age = rep(list_age,2), model = c(rep("literature",13), rep("Demerstem",13)), title = "Natural mortality estimates using Lorenzen method")
+```
+
+The natural mortality, computed by an-1, has to be divided by the step_time (quarter in this study)
+
+```{r, include = F, echo = F, fig.height = 5, fig.width = 10}
+#---------------------------------------------------------
+#    This code is only done to present the results 
+#         It is not expected to understand it
+#---------------------------------------------------------
+
+M_dem <- M_dem_graph/step_time
+Mat_M_dem <- M_dem
+for (m in 1:length(M_dem-1)) {
+  Mat_M_dem[m] <- mean(M_dem[c(m,m+1)])
+}
+M_lit <- M_lit_graph/step_time
+Mat_M_lit <- M_lit
+for (m in 1:length(M_lit-1)) {
+  Mat_M_lit[m] <- mean(M_lit[c(m,m+1)])
+}
+```
+
+```{r, echo = F, fig.height = 4, fig.width = 8, position = "c", fig.cap = "Figure 4 - Natural mortality estimates using Lorenzen methods for two different growth parameters estimates."}
+
+ggplot(data,aes(x = age, y = M, linetype = model)) + facet_grid(.~title) + ylab("Natural mortality M (an-1)") + geom_point() + geom_line() + theme_nice() + ylim(c(0,max(data$M)))
+
+```
+
+Recruitment occurs all along the year and its variations are implemented based on the study of Tia et al (2017), who describes *P. senegalensis* highest recruitment in April. 
+
+## 3.3.) Model execution
+
+### 3.3.1) First model
+
+Then, knowing extrapolated catch-at-age in number for each fishery, natural mortality, growth estimates, recruitment and effort variations, we can apply the rectified pseudo-cohort analysis after calibrating the FT as the mean of the three precedent quarters, which provide F and N estimates (Figure 4).
+
+```{r, include = F, echo = F, fig.height = 5, fig.width = 10}
+
+
+espece <- "Pseudotolithus senegalensis"
+Linf <- 44.4
+K <- 0.35
+t0 <- -0.24
+a <- 0.006
+b <- 3.08
+M_inf <- 0.2
+list_age <- seq(0.125,2.875, by = 0.25)
+
+
+age <- length(list_age)
+
+
+Mat_R <- rep(c(1),4) # Supposed constant here
+Prop_R <- c(0.3,0.3,0.2,0.2, rep(0,8))
+
+Mat_E <- df_Effort[,c(2:3)]
+#Mat_E <- data.frame(effortA = rep(1,age))
+
+#Mat_M <- M_Lorenzen(list_age, M_inf, K, t0)/step_time
+#Mat_M <- rep(0.34, age)/step_time # value estimated by Sidibe (2003) and divided by step_time # Supposed constant here
+step_time <- 4
+quarter = T
+#(412.2 + 376.3)/(367.5+358.7+361.5+393.9+405.8+412)
+FT <- 0.343
+Mat_M <- Mat_M_dem
+Mat_C <- Mat_C_dem
+plot_dem <- F_pseudo_rectif(FT = 0.343, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time = 4, Prop_R, quarter = quarter, ngroup = F)
+
+#plot <- F_pseudo_rectif_bis(FT = 0.05, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time = 4)
+
+#Rinit <- R_estimate(FT = 0.2, age, Mat_C, Mat_E = Mat_E, Mat_R, Mat_M)
+#R_pseudo_rectif(Rinit, Mat_C, Mat_R, Mat_E, Mat_M)
+Mat_C_dem <- Mat_C
+Mat_F_dem <- Mat_F
+Mat_M <- Mat_M_dem
+Linf_dem <- Linf
+K_dem <- K
+t0_dem <- t0
+
+mf <- seq(0, 2, by=0.05)
+
+yield_recrut(a, b, Linf_dem, K_dem, t0_dem, list_age, Mat_F_dem, Mat_M, mf, F0.1 = T)
+```
+
+### 3.3.2) Second model
+
+```{r, include = F, echo = F, fig.height = 5, fig.width = 10, warning=F}
+#Mat_C <- Capture_senegalensis 
+
+espece <- "Pseudotolithus senegalensis"
+Linf <- 52.7
+K <- 0.35
+t0 <- -0.44
+a<- 0.006
+b <- 3.08
+M_inf <- 0.2
+list_age <- seq(0.125,2.875, by = 0.25)
+
+age <- length(list_age)
+
+
+step_time <- 4
+quarter = T
+#(412.2 + 376.3)/(367.5+358.7+361.5+393.9+405.8+412)
+Mat_M <- Mat_M_lit
+Mat_C <- Mat_C_lit
+plot_lit <- F_pseudo_rectif(FT = 0.15, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time = 4, Prop_R, quarter = quarter, ngroup = F)
+
+Mat_C_lit <- Mat_C
+Mat_F_lit <- Mat_F
+Mat_M <- Mat_M_lit
+Linf_lit <- Linf
+K_lit <- K
+t0_lit <- t0
+
+
+mf <- seq(0, 2, by=0.01)
+
+yield_recrut(a, b, Linf_lit, K_lit, t0_lit, list_age, Mat_F_lit, Mat_M, mf, F0.1 = T)
+```
+
+
+```{r, echo = F, fig.height = 6, fig.width = 18, position = "c", fig.cap = "Figure 4 - (a) Total catch at age in 2020 (b) Fishing mortality at age (c) Numbers at age by rectified pseudo-cohort analysis for two different growth estimates (Demerstem: strong line. Literature : dashed line)"}
+#---------------------------------------------------------
+#    This code is only done to present the results 
+#         It is not expected to understand it
+#---------------------------------------------------------
+
+plot_pseudo_catch <- data.frame(C = c(apply(Mat_C_dem,1, FUN = sum), apply(Mat_C_lit,1, FUN = sum)), Age = rep(list_age, 2), model = c(rep("demerstem", 12), rep("literature", 12))) %>%  mutate(title = "Catch at age - Pseudotolithus senegalensis") %>%  ggplot(aes(x = Age, y = C, linetype = model)) + 
+  geom_line(size = 1.1) + 
+  geom_point(size = 2) + 
+  facet_grid(~title) + 
+  theme_nice() + 
+  ylab("Fishing mortality F") + 
+  xlab("Age") + 
+  theme(legend.text = element_text(size = 20),
+        axis.title.y =element_text(size=16),
+        legend.key.size = unit(1.1, 'cm'))
+
+plot_pseudo_F <- rbind(plot_dem[[2]][["data"]], plot_lit[[2]][["data"]]) %>%  
+  mutate(model = c(rep("demerstem", 12), rep("literature", 12))) %>%  
+  ggplot(aes(x = Age, y = Mat_F, linetype = model)) + 
+  geom_line(size = 1.1) + 
+  geom_point(size = 2) + 
+  facet_grid(~title) + 
+  theme_nice() + 
+  ylab("Fishing mortality F") + 
+  xlab("Age") + 
+  theme(legend.text = element_text(size = 20),
+        axis.title.y =element_text(size=16),
+        legend.key.size = unit(1.1, 'cm'))
+
+plot_pseudo_N <-  rbind(plot_dem[[3]][["data"]], plot_lit[[3]][["data"]]) %>%  
+  mutate(model = c(rep("demerstem", 12), rep("literature", 12))) %>%  
+  ggplot(aes(x = Age, y = Mat_N2, linetype = model)) + 
+  geom_line(size = 1.1) + 
+  geom_point(size = 2) + 
+  facet_grid(~title) + 
+  theme_nice() + 
+  ylab("Fishing mortality F") + 
+  xlab("Age") + 
+  theme(legend.text = element_text(size = 20),
+        axis.title.y =element_text(size=16),
+        legend.key.size = unit(1.1, 'cm'))
+
+# test_dem <- ggplot_build(plot_dem[[1]])
+# test_lit <- ggplot_build(plot_lit[[1]])
+# test_dem$data[[1]] <- rbind(test_dem$data[[1]],test_lit$data[[1]]) %>% mutate(model = c(rep("demerstem", 12), rep("literature", 12)))
+# test_dem[["layers"]][[1]][["mapping"]][["linetype"]] <- ~model
+# q <- ggplot_gtable(test_dem)
+# plot(q)
+# 
+# test <- plot_dem[[2]]
+# test[["data"]]<-  rbind(plot_dem[[2]]$data , plot_lit[[2]]$data ) %>% mutate(model = c(rep("demerstem", 12), rep("literature", 12)))
+# test[["layers"]][[1]][["mapping"]][["linetype"]] <- ~model
+# plot(test)
+
+
+ggarrange(plot_pseudo_catch + annotate(geom="text", x=0.2, y=1.9e7, label="(a)", size = 7), 
+          plot_pseudo_F + annotate(geom="text", x=0.2, y=0.8, label="(b)", size = 7),
+          plot_pseudo_N + annotate(geom="text", x=0.2, y=1.55e8, label="(c)", size = 7), ncol = 3, nrow=1, legend ="bottom") 
+```
+
+As previously identified, catch-at-age are strongly fluctuating between models and it has important consequences on the abundance and fishing mortality estimates. The fishing pattern indicates a high fishing mortality for last age groups (2-3 years) in both model. Note that abundance is increasing because recruitment is considered during the whole year.
+
+Finally, the yield per recruit diagnosis for the stock of *P. senegalensis* of Ghana-Côte d'Ivoire varies greatly depending on the model. Nevertheless, using $F0.1$ as a proxy to estimate $F_{MSY}$ and $B_{MSY}$ (Deriso, 1987; ICES, 2016) indicates an overexploited stock, i.e. the fishing effort applied during the period 2018-2020 exceeded the fishing effort corresponding to the maximum yield per recruit (Figure 5). 
+
+```{r, echo = F, fig.width = 8, fig.height = 5, position = "c", fig.cap = "Figure 5 - Stock assessment of P. senegalensis in Ghana/Cote d'Ivoire for the different growth parameters examined, demerstem (solid curves) and literature (dotted curves)."}
+#---------------------------------------------------------
+#    This code is only done to present the results 
+#         It is not expected to understand it
+#---------------------------------------------------------
+
+mf <- seq(0, 2, by=0.01)
+ Mat_N2 <- matrix(NA, nrow = age, ncol = length(mf))
+  Mat_Y <- matrix(NA, nrow = age, ncol = length(mf))
+  age.sim <- list_age
+  Mat_W_lit <- a * ((Linf_lit * (1 - exp(-K_lit * (age.sim - t0_lit))))^b)
+  age <- length(age.sim)
+  Mat_N2[1, ] <- 1
+  for (i in 1:length(mf)) {
+    for (j in 2:age) {
+      Mat_N2[j, i] <- Mat_N2[j - 1, i] * exp(-mf[i] * 
+                                               Mat_F_lit[j - 1] - Mat_M_lit[j - 1])
+    }
+  }
+  for (i in 1:length(mf)) {
+    for (j in 1:age - 1) {
+      Mat_Y[j, i] <- Mat_W_lit[j] * (mf[i] * Mat_F_lit[j]/(mf[i] * 
+                                                     Mat_F_lit[j] + Mat_M_lit[j])) * Mat_N2[j, i] * (1 - 
+                                                                                               exp(-mf[i] * Mat_F_lit[j] - Mat_M_lit[j]))
+    }
+  }
+  for (i in 1:length(mf)) {
+    Mat_Y[age, i] <- Mat_W_lit[age] * (mf[i] * Mat_F_lit[age]/(mf[i] * 
+                                                         Mat_F_lit[age] + Mat_M_lit[age])) * Mat_N2[age, i]
+  }
+  Mat_N2_lit <- Mat_N2
+  Mat_Ytot_lit <- apply(Mat_Y, 2, sum)
+  
+  
+  
+  
+  
+ Mat_N2 <- matrix(NA, nrow = age, ncol = length(mf))
+  Mat_Y <- matrix(NA, nrow = age, ncol = length(mf))
+  age.sim <- list_age
+  Mat_W_dem <- a * ((Linf_dem * (1 - exp(-K_dem * (age.sim - t0_dem))))^b)
+  age <- length(age.sim)
+  Mat_N2[1, ] <- 1
+  for (i in 1:length(mf)) {
+    for (j in 2:age) {
+      Mat_N2[j, i] <- Mat_N2[j - 1, i] * exp(-mf[i] * 
+                                               Mat_F_dem[j - 1] - Mat_M_dem[j - 1])
+    }
+  }
+  for (i in 1:length(mf)) {
+    for (j in 1:age - 1) {
+      Mat_Y[j, i] <- Mat_W_dem[j] * (mf[i] * Mat_F_dem[j]/(mf[i] * 
+                                                     Mat_F_dem[j] + Mat_M_dem[j])) * Mat_N2[j, i] * (1 - 
+                                                                                               exp(-mf[i] * Mat_F_dem[j] - Mat_M_dem[j]))
+    }
+  }
+  for (i in 1:length(mf)) {
+    Mat_Y[age, i] <- Mat_W_dem[age] * (mf[i] * Mat_F_dem[age]/(mf[i] * 
+                                                         Mat_F_dem[age] + Mat_M_dem[age])) * Mat_N2[age, i]
+  }
+  Mat_N2_dem <- Mat_N2
+  Mat_Ytot_dem <- apply(Mat_Y, 2, sum)  
+  
+
+  
+  
+  
+   par(mar = c(5, 4, 4, 6) + 0.1)
+  plot(mf, Mat_Ytot_lit, type = "l", lwd = 2, xlab = "", ylab = "", 
+       ylim = c(0, max(Mat_Ytot_lit) + max(Mat_Ytot_lit)/10), main = c(" - Yield per recruit & biomass curve - ", 
+                                                               espece), axes = F,  lty = "dashed")
+   lines(mf, Mat_Ytot_dem, type = "l", lwd = 2, xlab = "", ylab = "", 
+        ylim = c(0, max(Mat_Ytot_dem) + max(Mat_Ytot_dem)/10), main = c(" - Yield per recruit & biomass curve - ", 
+                                                               espece), axes = F)
+  axis(2, ylim = c(0, 1), col = "black", las = 1)
+  mtext("Yield per recruit", side = 2, line = 2.5)
+  box()
+  abline(v = 1, col = "red", lwd = 1)
+ # abline(v = 1, h = Mat_Ytot_lit[match(1, mf)], col = "red", lwd = 1)
+clip(x1 =0, x2 = 3, y1 = 0, y2 = max(Mat_Ytot_lit))
+  res <- (round((Mat_Ytot_lit[match(mf[2] - mf[1], mf)])/(mf[2] -
+      mf[1]), digit = 2))/10
+    Mat_Ytot_B <- Mat_Ytot_lit[-1]
+    Mat_Ytot_A <- Mat_Ytot_lit[-(length(mf))]
+    diff <- (Mat_Ytot_B - Mat_Ytot_A)/(mf[2] - mf[1])
+    
+    Fproxy_lit<- mf[which.min(abs(diff - res)) + 1]
+    
+    abline(v = Fproxy_lit, col = "red",
+      lwd = 1, lty = 2)
+    legend(legend = c("Present", "F0.1"), col = c("red",
+      "red"), lty = c(1, 2), lwd = c(1, 1), x = "bottomright",
+      cex = 1, bty = "n")
+ clip(x1 =0, x2 = 3, y1 = 0, y2 = max(Mat_Ytot_dem))
+  res <- (round((Mat_Ytot_dem[match(mf[2] - mf[1], mf)])/(mf[2] - 
+      mf[1]), digit = 2))/10
+    Mat_Ytot_B <- Mat_Ytot_dem[-1]
+    Mat_Ytot_A <- Mat_Ytot_dem[-(length(mf))]
+    diff <- (Mat_Ytot_B - Mat_Ytot_A)/(mf[2] - mf[1])
+    
+    Fproxy_dem <- mf[which.min(abs(diff - res)) + 1]
+    
+    abline(v = Fproxy_dem, col = "red", 
+      lwd = 1, lty = 2)
+    legend(legend = c("Present", "F0.1"), col = c("red", 
+      "red"), lty = c(1, 2), lwd = c(1, 1), x = "bottomright", 
+      cex = 1, bty = "n")
+
+  B4_dem <- as.data.frame(Mat_N2_dem) * Mat_W_dem
+  B4_lit <- as.data.frame(Mat_N2_lit) * Mat_W_lit
+  Btot_dem <- apply(B4_dem, 2, sum)
+  Btot_lit <- apply(B4_lit, 2, sum)
+  par(new = TRUE)
+    plot(mf, Btot_lit, xlab = "", ylab = "", type = "l", lty = "dashed", lwd = 2, 
+       col = "blue", ylim = c(0, max(Btot_lit)), axes = FALSE)
+  lines(mf, Btot_dem, xlab = "", ylab = "", type = "l", lwd = 2, 
+       col = "blue", ylim = c(0, max(Btot_dem)), axes = FALSE)
+  mtext("Biomass (g)", side = 4, col = "blue", line = 2.5)
+  axis(4, col = "blue", col.axis = "blue", las = 1, ylim = c(min(Btot_lit), 
+                                                             max(Btot_lit)))
+  axis(1, ylim = c(min(mf), max(mf)), col = "black", las = 1)
+  mtext("Effort multiplier", side = 1, col = "black", line = 2)  
+  Btot_lit[which.min(abs(diff - res)) + 1]
+  
+  Bproxylit <- Btot_lit[100]/Btot_lit[100*Fproxy_lit]
+  Bproxydem <- Btot_dem[100]/Btot_dem[100*Fproxy_dem]
+  
+print(paste0("B/Bproxydem = ", round(1/Fproxy_dem,2)))
+print(paste0("B/Bproxydem = ", round(Bproxydem,2)))
+
+print(paste0("F/Fproxylit = ", round(1/Fproxy_lit,2)))
+print(paste0("B/Bproxylit = ", round(Bproxylit,2)))
+
+```
+
+
+Estimated $F/F_{MSY}$ and $B/B_{MSY}$ indicating current stock status (2020) are 
+
+$$
+
+{F/F_{proxydem} = 3.2} \\
+
+{B/B_{proxydem} = 0.76}
+$$
+$$
+{F/F_{proxylit} = 3.85}\\
+
+{B/B_{proxylit} = 0.45}
+$$
+
+
+
+# 4. Discussion
+
+As shown by Schwamborn, (2018), the lack of large individuals may affect the performance of length-based methods, as it will inevitably underestimate the asymptotic length by the common $L_{max}$ approach (estimating asymptotic length from the maximum length in the sample). In addition, large individuals may become scarce in over-exploited fisheries (Barnett et al., 2017; Hiyama and Kitahara, 1993), and this impacts the accuracy of growth estimates based on length frequencies (Wang et al, 2023). However, these growth parameter estimates are necessary to work with polymodal decomposition. Therefore, we have performed an analysis using two different growth estimates, one from demerstem samples (2020) and estimates from previous literature. As suggested by previous literature (Barnett et al, 2017; Schwamborn, 2018; Wang et al, 2023), this might influence results when large individuals are missing by affecting the accuracy of growth estimates based on LFQ and the performance of length-based methods . 
+
+In fact, the asymptotic length ($L_∞$) value is a key parameter of initial life-history, and sensitivity analysis showed that biases on $L_∞$ has a strong influence on the reference points of conservation of mature individuals, spawning potential ratio, fishing mortality and the biomass relative to the maximum sustainable yield (Froese et al, 2018, Hordyck et al, 2019, Medeiros-Lea, et al, 2022). Hence, misleading estimates of this parameter in the case of a lack of large individuals is due to a stock being overfished would greatly impact the diagnostic.
+
+Moreover, considering data quality, several **hypothese**, in addition to model assumptions, were assumed, most often to fill the data gap in catch or length frequencies time series. Depending on the growth law applied, pseudo-cohort analysis exhibits strong differences in the estimates of $B_{MSY}$ and $F_{MSY}$ proxies. 
+
+Hence, in this study case, the lack of reliability of certain input data means that the diagnosis must be interpreted with caution. Nevertheless, the multiplicity of methods and results makes it possible to propose a diagnosis of overexploitation of the stock. Thus, catch and effort should be reduced and minimum landing size should be increased. In addition, sampling needs to be strengthened to obtain better quality in ageing data (e.g. sclerochronology, otolithometry, mark/recapture). However, as stock identity (Garcia et al, in prep) suggested different stocks of *P. senegalensis* in Côte d'Ivoire and Ghana, further studies are needed.
+
+# References
+
+Barnett, L.A.K., Branch, T.A., Ranasinghe, R.A., Essington, T.E., 2017. Old-growth fishes
+become scarce under fishing. Curr. Biol. 27, 2843–2848
+
+Chassot, E. et al., 2006. Corrected pseudo-cohort analysis: Principles, interest and 
+application in West-African fisheries (Scientific Report-Document 4, Improve Scientific 
+and Technical Advices for fisheries Management).
+
+Chassot, E. et al., 2008. Conversion taille/âge par décomposition polymodale des
+fréquences de taille (Scientific Report-Document 4, Improve Scientific 
+and Technical Advices for fisheries Management).
+
+Deriso, R. 5. 1987. Optimal $b.l criteria and their relationship to maximum sustainable yieid. Can. J.Fish.
+Aquat. Sci. 44BSuppl. 2): 339-348.
+
+FAO. 2019. FAO Yearbook. Rome: Fishery and Aquaculture Statistics 2017
+
+Fridriksson, A., 1934. On the calculation of age distribution within a stock of cod by means of relatively few age-determination as a key to measurements on a large scale. Rapp. P.-v. Réun. Cons. perm. Inter. Explor. Mer 86, 1-14.
+
+Froese, R., Winker, H., Coro, G., Demirel, N., Tsikliras, A. C., Dimarchopoulou, D., et al. 2018. A new approach for estimating stock status from length frequency data. ICES J. Mar. Sci. 76, 350–351.
+
+Gascuel, D., 1994. Une méthode simple d'ajustement des clés taille/âge : application aux captures d'albacore (*Thunnus albacares*) de l'Atlantique Est. Canadian Journal of Fisheries and Aquatic Sciences 51 : 723-733.
+
+Gulland, J.A., 1965. Estimation of mortality rates. Annex to Arctic Fisheries Working Group Report (mimeo).
+
+Hiyama, Y., Kitahara, T., 1993. Theoretical consideration of effect of fishing mortality on
+growth and reproduction of fish populations. Res. Popul. Ecol. (Kyoto) 35, 285–294.
+
+Hoenig, J.M., 1983. Empirical use of longevity data to estimate mortality rates. Fish.
+Bull. 82, 898–903.
+
+Hordyk, A. R., Prince, J. D., Carruthers, T. R., and Walters, C. J., 2018. Comment
+on “A newapproach for estimating stock status from length frequency data” by
+Froese et al. ICES J. Mar. Sci. 76, 457–460
+
+ICES. 2016. Report of the Workshop to consider MSY proxies for stocks in ICES cate-
+gory 3 and 4 stocks in Western Waters (WKProxy), 3–6 November 2015, ICES Head-
+quarters, Copenhagen. ICES CM 2015/ACOM:61. 183 pp
+
+Jones, R., 1961. The assessment of the long-term effects of changes in gear selectivity and fishing effort. Marine Resources of Scotland, 2, 19p.
+
+Laurec A., Santarelli-Chaurand L., 1986. Analyse rectifiée des pseudo-cohortes (Analyse
+des cohortes à partir d'une année de structures démographiques des captures
+corrections des variations d'effort et/ou de recrutement), 19 pp. Unpublished report.
+
+Lorenzen, K., 1996. The relationship between body weight and natural mortality in fish:
+a comparison of natural ecosystems and aquaculture. J. Fish. Biol. 49, 627–647.
+
+Lorenzen, K., 2000. Allometry of natural mortality as a basis for assessing optimal release
+size in fish stocking programmes. Can. J. Fish. Aquat. Sci. 57, 2374–2381.
+
+Lorenzen, K., Camp, E.V., Garlock, T.M., 2022. Natural mortality and body size in fish
+populations. Fish. Res. 252, 106327
+
+Magnusson A., Hilborn R., 2007. What makes fisheries data informative? Fish and fisheries 8, 337–358. 
+
+Mesnil, B., 1980. Théorie et pratique de l'analyse des cohortes. Revue des Travaux de l'Institut des Pêches Maritimes, 44, 119–155.
+
+Medeiros-Leal, W., Santos, R., Peixoto, U., Casal Ribeiro, M., Novoa, A., Sigler, M., Pinho, M., 2023. Performance of length-based assessment in predicting small-scale multispecies fishery sustainability. Reviews in Fish Biology and Fisheries. 1-34.
+
+Mildenberger, T.K., 2017. Single-species Fish Stock Assessment with TropFishR.
+
+Mildenberger, T.K., Taylor, M.H., Wolff, M., 2017. TropFishR: an R package for fisheries analysis with length-frequency data. Methods Ecol. Evol.
+
+Murphy, G.I., 1965. A solution of the catch equation. Journal of the Fisheries Research Board of Canada, 22(1), 191-2002.
+
+Pauly, D., 1980. On the interrelationships between natural mortality, growth parameters,
+and mean environmental temperature in 175 fish stocks. ICES J. Mar. Sci. 39,
+175–192.
+
+Powers, J. E., 2014. Age-specific natural mortality rates in stock assessments: size-based vs. density-dependent. – ICES Journal of Marine Science, 71:1629–1637.
+
+Schwamborn, R., 2018. How reliable are the Powell–Wetherall plot method and the
+maximum-length approach? Implications for length-based studies of growth and
+mortality. Rev. Fish Biol. Fish. 28, 587–605.
+
+Tia C.B., Konan J.K., Sylla  S., Kouamelan P.E., Atse  C.B., 2017. Population Parameters and Stock Assessment of the Cassava Croaker *Pseudotolithus senegalensis* 
+(Valenciennes, 1833) in the Coastal Waters of Côte d’Ivoire. IJSRM. Human. 6(2):79-95. 
+
+Troadec, J.P., 1967.  Biologie et dynamique d'un Sciaenidae ouest-africain *Pseudotolithus senegalensis*. Thèse de doctorat, Faculté des Sciences de l'Universit~d'Aix-Marseille II.
+
+Wang, K.; Zhang, C.; Sun, M.; Xu, B.; Ji, Y.; Xue, Y.; Ren, Y. Fishing Pressure and Lifespan Affect the Estimation of Growth Parameters Using ELEFAN. Fish. Res. 2021,238, 105903.
+
+Winker, H., Carvalho, F., Kapur, M., 2018. JABBA: Just Another Bayesian Biomass Assessment. Fish. Res. 204, 275–288. 
+
+Zhang,K.,Li,J.,Hou,G.,Huang,Z.,Shi,D.,Chen,Z.,etal.(2021a).Length-based assessment of
+ﬁsh stocks in a data-poor, jointly exploited (China and Vietnam) ﬁshing ground, northern South China Sea. Front. Mar. Sci. 8, 718052
+

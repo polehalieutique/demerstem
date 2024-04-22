@@ -38,5 +38,6 @@ Depends:
     cowplot,
     officer,
     flextable,
+    rmdformats,
     propagate
 VignetteBuilder: knitr
