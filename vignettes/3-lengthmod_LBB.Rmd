@@ -1,10 +1,17 @@
 ---
 title: "Modèle basé sur les tailles : LBB"
-output: rmarkdown::html_vignette
+author : "Auteur : Florian Quemper"
+date: "Date du fichier : 22/04/2024"
+output :
+   rmdformats::readthedown:
+     toc_depth: 6
+     code_folding: show
+editor_options:
+   chunk_output_type: console
 vignette: >
-  %\VignetteIndexEntry{Modèle basé sur les tailles : LBB}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{Modèle basé sur les tailles : Pseudo-cohortes rectifiées}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r, include = FALSE}
