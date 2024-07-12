@@ -1,4 +1,4 @@
-# Demerstem <img src="sticker_demerstem.png" alt="drawing" width="120" align="right"/></img>
+# demerstem <img src="sticker_demerstem.png" alt="drawing" width="120" align="right"/></img>
 
 
 ## Overview
