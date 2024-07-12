@@ -2,7 +2,7 @@
 
 ## Overview
 
-![alt text](./sticker_demerstem.jpg?raw=true)
+![alt text](./sticker_demerstem.png?raw=true)
 
 use_logo("sticker_demerstem.png", geometry = "240x278", retina = TRUE)
 
