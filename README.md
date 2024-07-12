@@ -1,14 +1,11 @@
-# Demerstem
+# Demerstem <img src="sticker_demerstem.png" alt="drawing" width="120" align="right"/></img>
+
 
 ## Overview
 
-![alt text](./sticker_demerstem.png?raw=true)
 
-<img src="sticker_demerstem.png" alt="drawing" width="50"/>
 
-img[alt=sticker_demerstem] { width: 50px; }
 
-use_logo("./sticker_demerstem.png", geometry = "240x278", retina = TRUE)
 
 This packages aims to provide function to help for stocks assessment process
 
