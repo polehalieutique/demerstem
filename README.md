@@ -4,6 +4,8 @@
 
 ![alt text](./sticker_demerstem.png?raw=true)
 
+<img src="sticker_demerstem.png" alt="drawing" width="50"/>
+
 img[alt=sticker_demerstem] { width: 50px; }
 
 use_logo("./sticker_demerstem.png", geometry = "240x278", retina = TRUE)
