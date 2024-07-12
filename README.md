@@ -4,7 +4,7 @@
 
 ![alt text](./sticker_demerstem.png?raw=true)
 
-use_logo("sticker_demerstem.png", geometry = "240x278", retina = TRUE)
+use_logo("./sticker_demerstem.png", geometry = "240x278", retina = TRUE)
 
 This packages aims to provide function to help for stocks assessment process
 
