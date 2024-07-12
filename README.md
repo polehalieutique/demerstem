@@ -2,7 +2,9 @@
 
 ## Overview
 
-use_logo("sticker_demerstem.png", geometry = "240x278", retina = TRUE)
+![alt text](./sticker_demerstem.png?raw=true)
+
+use_logo("./sticker_demerstem.png", geometry = "240x278", retina = TRUE)
 
 ![alt text](https://github.com/polehalieutique/demerstem/sticker_demerstem.jpg?raw=true)
 
