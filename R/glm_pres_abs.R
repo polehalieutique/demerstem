@@ -64,6 +64,16 @@ glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FA
     formula <- formula_select
   }
 
+  print("#-----------------------------------------------#/n \n
+        /n\n
+        /n\n
+        /n\n
+                               OUTPUTS
+        /n\n
+        /n\n
+        /n\n
+        #------------------------------------------------#")
+
     # Print du modele sélectionné
     if (formula_select == "auto"){
       print("The statiscally selected model is :")
