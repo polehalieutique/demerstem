@@ -18,35 +18,42 @@
 
 #' @examples
 #' data(tableau_sc)
-#' glm_pres <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions = FALSE, limit=0.0001, formula_select = "presence ~ strate + annee + saison")
+#' glm_pres <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", title="SC", list_param=c("annee", "saison"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions = FALSE, limit=0.0001, formula_select = "presence ~ annee + saison")
 #' @export
 
 model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id,
           catch_col, interactions = FALSE, limit, formula_select,
-          plot = FALSE, summary = FALSE)
+          plot = FALSE, summary = FALSE, type = 2)
 {
   list_graph <- NULL
   print("SOUS-MODELE PRESENCE ABSENCE")
   tableau_pres <- table_pres_abs(tab, esp, list_param, var_eff_list,
                                  espece_id, catch_col, limit)
   parameters <- list_param
-  facteur <- parameters[1]
+  # if (any(str_detect(parameters, 'annee')))
+  # {facteur <- 'annee'}
+  # else if (any(str_detect(parameters, 'decennie')))
+  # {facteur <- 'decennie'}
+  # else
+  #   {facteur <- parameters[1]}
   if (plot == TRUE) {
     tableau_pres$facteur = factor(tableau_pres[, facteur])
     tableau_pres$title <- paste("presence/absence - ", title,
                                 "\n", facteur)
-    plot_1 <- ggplot(tableau_pres, aes(facteur, fill = factor(presence))) +
-      geom_bar() + facet_grid(~title) + theme_nice() +
-      theme(axis.text.x = element_text(angle = 60, size = 9),
-            plot.title = element_text(size = 11, face = "bold"),
-            axis.title.x = element_blank(), axis.title.y = element_text(size = 9),
-            legend.title = element_text(size = 10), legend.text = element_text(size = 10))
-    list_graph[[length(list_graph) + 1]] <- list(plot_1)
+    # plot_1 <- ggplot(tableau_pres, aes(facteur, fill = factor(presence))) +
+    #   geom_bar() + facet_grid(~title) + theme_nice() +
+    #   theme(axis.text.x = element_text(angle = 60, size = 9),
+    #         plot.title = element_text(size = 11, face = "bold"),
+    #         axis.title.x = element_blank(), axis.title.y = element_text(size = 9),
+    #         legend.title = element_text(size = 10), legend.text = element_text(size = 10))
+    # list_graph[[length(list_graph) + 1]] <- plot_1
     plot_2 <- ggarrange(plotlist = lapply(parameters, pres_facto,
                                           tab = tableau_pres, title), ncol = 2, nrow = 2,
                         common.legend = TRUE, legend = "bottom")
-    list_graph[[length(list_graph) + 1]] <- list(plot_2)
+    list_graph[[length(list_graph) + 1]] <- plot_2
   }
+
+  # change constraints in case interactions are identified
   for (i in 1:length(parameters)) {
     tableau_pres[, parameters[i]] <- as.factor(tableau_pres[,
                                                             parameters[i]])
@@ -56,7 +63,8 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
                                                                               parameters[i]]))
   }
   glm_presabs <- glm_pres_abs(tableau_pres = tableau_pres,
-                              parameters, formula_select, summary)
+                              parameters, formula_select, summary, type)
+
   vect_param <- c(attr(glm_presabs[[1]]$terms, "term.label"))
   table_interact <- c()
   table_pres <- as.data.frame(coef(summary(glm_presabs[[1]])))
@@ -66,8 +74,13 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
   plot_interac_1 <- NULL
   plot_interac_2 <- NULL
   inter_glm <- NULL
-  for (j in 1:length(vect_param)) {
 
+  if (formula_select == "presence ~ 1")
+    {return(list(glm_presabs[[3]], list_graph))}
+
+
+  for (j in 1:length(vect_param)) {
+# AovSum from FactomineR would directly give coeff with inv.logit tfn accordingly apllied...
     table_tempo <- as.data.frame(dummy.coef(glm_presabs[[1]])[j +
                                                                 1])
     table_tempo$namemodality <- rownames(table_tempo)
@@ -75,13 +88,16 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
     table_tempo$variable <- vect_param[j]
     colnames(table_tempo) <- c("estimates", "modality",
                                "variable")
+    # detect if ..?
     if (as.numeric(gregexpr(pattern = ":", as.character(attr(glm_presabs[[1]]$term,
                                                              "term.labels"))[j])) > 0) {
       table_tempo <- table_tempo %>% filter(estimates !=
                                               0)
     }
+    # add intercept
     table_tempo$corrected_estimates <- table_tempo$estimates +
       table_pres[1, 1]
+    # inv.logit transformation
     table_tempo$corrected_estimates <- 100 * (exp(table_tempo$corrected_estimates)/(1 +
                                                                                exp(table_tempo$corrected_estimates)))
     if (as.numeric(gregexpr(pattern = ":", as.character(attr(glm_presabs[[1]]$term,
@@ -106,19 +122,19 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
           labs(x = vect_param[tempo])
       })
     }
-    if (plot == TRUE) {
-      if (vect_param[j] == facteur) {
-        plot_3 <- ggplot(table_tempo) + geom_bar(aes(x = modality,
-                                                     y = corrected_estimates), stat = "identity",
-                                                 color = "black", fill = "grey") + ylab("% presence") +
-          facet_grid(~title) + theme_nice() + theme(axis.text.x = element_text(angle = 60,
-                                                                               size = 9), plot.title = element_text(size = 10,
-                                                                                                                    face = "bold"), axis.title.x = element_blank(),
-                                                    axis.title.y = element_text(size = 9), legend.title = element_text(size = 10),
-                                                    legend.text = element_text(size = 10)) + labs(x = vect_param[j])
-        list_graph[[length(list_graph) + 1]] <- list(plot_3)
-      }
-    }
+    # if (plot == TRUE) {
+    #   if (vect_param[j] == facteur) {
+    #     plot_3 <- ggplot(table_tempo) + geom_bar(aes(x = modality,
+    #                                                  y = corrected_estimates), stat = "identity",
+    #                                              color = "black", fill = "grey") + ylab("% presence") +
+    #       facet_grid(~title) + theme_nice() + theme(axis.text.x = element_text(angle = 60,
+    #                                                                            size = 9), plot.title = element_text(size = 10,
+    #                                                                                                                 face = "bold"), axis.title.x = element_blank(),
+    #                                                 axis.title.y = element_text(size = 9), legend.title = element_text(size = 10),
+    #                                                 legend.text = element_text(size = 10)) + labs(x = vect_param[j])
+    #     list_graph[[length(list_graph) + 1]] <- plot_3
+    #   }
+    # }
     table_tempo$title <- NULL
     table_interact <- rbind(table_interact, table_tempo)
     if (interactions == TRUE) {
@@ -175,10 +191,10 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
       }
     }
   }
-  list_graph[[length(list_graph) + 1]] <- list(plot_interac_1)
-  list_graph[[length(list_graph) + 1]] <- list(plot_interac_2)
+  list_graph[[length(list_graph) + 1]] <- c(plot_interac_1, plot_interac_2)
   plot_6 <- ggarrange(plotlist = list_plot, ncol = 2, nrow = 2,
                       common.legend = TRUE, legend = "bottom")
-  list_graph[[length(list_graph) + 1]] <- list(plot_6)
+  list_graph[[length(list_graph) + 1]] <- plot_6
+
   return(list(glm_presabs[[3]], list_graph))
 }

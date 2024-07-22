@@ -17,7 +17,7 @@ model_ai_plus(
   formula_select,
   plot = FALSE,
   summary = FALSE,
-  force_interaction = FALSE
+  type = 2
 )
 }
 \arguments{

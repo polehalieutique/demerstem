@@ -1,4 +1,6 @@
-#' This function removes the modality under-represented in the dataset, depending on the value of the threshold value
+#' This function removes the modality under-represented in the dataset, depending on the threshold value
+#'
+#'
 #' @param tab : dataset table
 #' @param factor : the factor from which we test each modality
 #' @param limit : percentage representing the limit value under which the modality is removed

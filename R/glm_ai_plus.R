@@ -24,7 +24,7 @@
 #' @export
 
 
-glm_ai_plus <- function(tableau_ab, parameters, formula_select, summary=FALSE, force_interaction = FALSE){
+glm_ai_plus <- function(tableau_ab, parameters, formula_select, summary=FALSE, type = 2){
   #passer les parametres en facteur
 
   lapply(tableau_ab[,parameters], as.factor)
@@ -70,40 +70,58 @@ glm_ai_plus <- function(tableau_ab, parameters, formula_select, summary=FALSE, f
 
   # resume modele et graphiques residus
   Model <- glm(as.formula(formula) , family=gaussian, data=tableau_ab)
+  print(formula)
   print(paste0( "AIC = ",round(AIC(Model),3)))
-  print(summary(aov(Model)))
+
+  if (type == 3){
+    ANOVA <- Anova(Model, type = 3, test = "F")
+  }
+  else {
+    ANOVA <- Anova(Model, type = 2, test = "F")
+  }
+
+  print(ANOVA)
+
   print("% of variability explained by each effect : ")
-  table_var <- round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)
-  table_var[2] <- round((summary(aov(Model))[[1]][2])*100/(sum(summary(aov(Model))[[1]][2])-summary(aov(Model))[[1]][length(summary(aov(Model))[[1]][,2]),2]))
-  table_var[length(summary(aov(Model))[[1]][,2]),2] <- NA
-  names(table_var) <- c("% variance",paste0("||    % variance of explained (", 100 - table_var[length(summary(aov(Model))[[1]][,2]),1],"%)"))
-  names(table_var[2]) <- paste0("% variance of explained (",round(100 - table_var[length(parameters),1],1),"%)")
+  table_var <- 100 * round(ANOVA[1]/sum(ANOVA[1]),3)
+  table_var[2] <- round(ANOVA[1]*100/(sum(ANOVA[1])-tail(ANOVA[1],1)[[1]]))
+  s <- length(table_var[[1]])
+  table_var[s,2] <- NA
+  names(table_var) <- c("% variance",
+                        paste0("% variance of explained (", 100 - table_var[s,1],"%)"))
   print.data.frame(table_var)
 
-  table_var <- summary(aov(Model))[[1]][1]
+
+
+  table_var <- ANOVA[1]
   table_var[1] <- row.names(table_var)
-  table_var[2] <- summary(aov(Model))[[1]][1]
-  table_var[3] <- round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)
-  table_var[4] <- round((summary(aov(Model))[[1]][2])*100/(sum(summary(aov(Model))[[1]][2])-summary(aov(Model))[[1]][length(summary(aov(Model))[[1]][,2]),2]))
-  table_var[length(summary(aov(Model))[[1]][,2]),4] <- NA
-  table_var[5] <- summary(aov(Model))[[1]][5]
-  table_var[6] <- summary(aov(Model))[[1]][5]
-  for ( k in 1:(dim(table_var[5])[1]-1)) {
+  table_var[2] <- ANOVA[2]
+  table_var[3] <- 100 * round(ANOVA[1]/sum(ANOVA[1]),3)
+  table_var[4] <- round(ANOVA[1]*100/(sum(ANOVA[1])-tail(ANOVA[1],1)[[1]]))
 
-    if(summary(aov(Model))[[1]][k,5]< 1) {table_var[k,5] <- "< 1"
-    table_var[k,6] <- " "}
+  table_var[s,4] <- NA
+  table_var[5] <- ANOVA[4]
+  table_var[6] <- ANOVA[4]
 
-    if(summary(aov(Model))[[1]][k,5]< 0.1) {table_var[k,5] <- "< 0.1"
-    table_var[k,6] <- "."}
+  if (formula != "presence ~ 1"){
 
-    if(summary(aov(Model))[[1]][k,5]< 0.05) {table_var[k,5] <- "< 0.05"
-    table_var[k,6] <- "*"}
+    for ( k in 1:(dim(table_var[5])[1]-1)) {
 
-    if(summary(aov(Model))[[1]][k,5]< 0.01) {table_var[k,5] <- "< 0.01"
-    table_var[k,6] <- "**"}
+      if(ANOVA[k,4]< 1) {table_var[k,5] <- "< 1"
+      table_var[k,6] <- " "}
 
-    if(summary(aov(Model))[[1]][k,5]< 0.001) {table_var[k,5] <- "< 0.001"
-    table_var[k,6] <- "***"}
+      if(ANOVA[k,4]< 0.1) {table_var[k,5] <- "< 0.1"
+      table_var[k,6] <- "."}
+
+      if(ANOVA[k,4]< 0.05) {table_var[k,5] <- "< 0.05"
+      table_var[k,6] <- "*"}
+
+      if(ANOVA[k,4]< 0.01) {table_var[k,5] <- "< 0.01"
+      table_var[k,6] <- "**"}
+
+      if(ANOVA[k,4]< 0.001) {table_var[k,5] <- "< 0.001"
+      table_var[k,6] <- "***"}
+    }
   }
 
 
@@ -125,7 +143,7 @@ glm_ai_plus <- function(tableau_ab, parameters, formula_select, summary=FALSE, f
     qqline(res1)
     plot(Model, 4)
   }
-  return(list(Model, summary(aov(Model)), table_var))
+  return(list(Model, ANOVA, table_var))
 }
 
 

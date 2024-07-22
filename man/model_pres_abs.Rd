@@ -16,7 +16,8 @@ model_pres_abs(
   limit,
   formula_select,
   plot = FALSE,
-  summary = FALSE
+  summary = FALSE,
+  type = 2
 )
 }
 \arguments{
@@ -51,5 +52,5 @@ model_pres_abs(
 }
 \examples{
 data(tableau_sc)
-glm_pres <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions = FALSE, limit=0.0001, formula_select = "presence ~ strate + annee + saison")
+glm_pres <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", title="SC", list_param=c("annee", "saison"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions = FALSE, limit=0.0001, formula_select = "presence ~ annee + saison")
 }

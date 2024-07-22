@@ -4,13 +4,7 @@
 \alias{glm_ai_plus}
 \title{Fit a Generalized Linear Models on abundance data}
 \usage{
-glm_ai_plus(
-  tableau_ab,
-  parameters,
-  formula_select,
-  summary = FALSE,
-  force_interaction = FALSE
-)
+glm_ai_plus(tableau_ab, parameters, formula_select, summary = FALSE, type = 2)
 }
 \arguments{
 \item{tableau_ab}{table of abundance data, extracted from the output of table_pres_abs}

@@ -4,7 +4,13 @@
 \alias{glm_pres_abs}
 \title{Fit a Generalized Linear Models on presence/absence data}
 \usage{
-glm_pres_abs(tableau_pres, parameters, formula_select, summary = FALSE)
+glm_pres_abs(
+  tableau_pres,
+  parameters,
+  formula_select,
+  summary = FALSE,
+  type = 2
+)
 }
 \arguments{
 \item{tableau_pres}{table of presence and absence data, coming as the output of table_pres_abs}
@@ -13,7 +19,7 @@ glm_pres_abs(tableau_pres, parameters, formula_select, summary = FALSE)
 
 \item{formula_select}{if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.}
 
-\item{force_interaction}{Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.}
+\item{force_interaction}{EDIT : removed because too complex. ### Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.}
 }
 \value{
 \code{glm_pres_abs} can either return the best GLM model based on AIC comparison, or return the outputs of the GLM based on the formula given in \emph{formula_select}

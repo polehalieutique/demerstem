@@ -22,7 +22,7 @@
 #'
 #' @export
 
-model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id, catch_col, interactions=FALSE, limit , formula_select, plot = FALSE, summary = FALSE, force_interaction = FALSE){
+model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id, catch_col, interactions=FALSE, limit , formula_select, plot = FALSE, summary = FALSE, type = 2){
   list_graph <- NULL
   print("SOUS-MODELE ABONDANCE")
   tableau_pres <- table_pres_abs(tab, esp, list_param, var_eff_list,
@@ -32,35 +32,37 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
   facteur <- parameters[1]
   if (plot == TRUE) {
     tableau_ab$facteur = factor(tableau_ab[, facteur])
-    tableau_ab$title <- paste("Observation density - ",
-                              title, "\n", facteur)
-    plot_1 <- ggplot(tableau_ab, aes(facteur)) + geom_bar(fill = "#00BFC4") +
-      facet_grid(~title) + theme_nice() + theme(axis.text.x = element_text(angle = 60,
-                                                                           size = 9), plot.title = element_text(size = 11,
-                                                                                                                face = "bold"), axis.title.x = element_blank(),
-                                                axis.title.y = element_text(size = 9), legend.title = element_text(size = 10),
-                                                legend.text = element_text(size = 10))
-    list_graph[[length(list_graph) + 1]] <- list(plot_1)
+    # tableau_ab$title <- paste("Observation density - ",
+    #                           title, "\n", facteur)
+    # plot_1 <- ggplot(tableau_ab, aes(facteur)) + geom_bar(fill = "#00BFC4") +
+    #   facet_grid(~title) + theme_nice() + theme(axis.text.x = element_text(angle = 60,
+    #                                                                        size = 9), plot.title = element_text(size = 11,
+    #                                                                                                             face = "bold"), axis.title.x = element_blank(),
+    #                                             axis.title.y = element_text(size = 9), legend.title = element_text(size = 10),
+    #                                             legend.text = element_text(size = 10))
+    # list_graph[[length(list_graph) + 1]] <- list(plot_1)
     plot_2 <- ggarrange(plotlist = lapply(parameters, moda_facto,
                                           tab = tableau_ab, title), ncol = 2, nrow = 2, common.legend = TRUE,
                         legend = "bottom")
-    list_graph[[length(list_graph) + 1]] <- list(plot_2)
-    requete <- tableau_ab %>% dplyr::group_by(facteur, annee) %>%
+    list_graph[[length(list_graph) + 1]] <- plot_2
+    requete <- tableau_ab %>% dplyr::group_by(facteur) %>%
       dplyr::summarise(mean_ind_ab = mean(i_ab))
     requete$title <- paste("CPUE - ", title, "\n", facteur)
-    plot_3 <- ggplot(requete, aes(annee, mean_ind_ab)) +
-      geom_point(aes(col = facteur), size = 1.5) + geom_line(aes(group = facteur,
-                                                                 color = facteur), size = 1.2) + theme_nice() + facet_grid(~title) +
+    plot_3 <- ggplot(requete, aes(facteur, mean_ind_ab)) +
+      geom_line(color = 'black', aes(group = 1), size = 1)  +
+      geom_point(aes(col = facteur), size = 1.5) +
+      theme_nice() +
+      facet_grid(~title) +
       theme(axis.text.x = element_text(angle = 60, size = 9),
             strip.text.x = element_text(face = "bold"),
             axis.title.x = element_blank(), axis.title.y = element_text(size = 9),
             legend.title = element_text(size = 10), legend.text = element_text(size = 10)) +
       ylab("mean CPUE") + theme(legend.key.size = unit(0.4,
                                                        "cm"), legend.title = element_text(size = 7), legend.text = element_text(size = 6))
-    list_graph[[length(list_graph) + 1]] <- list(plot_3)
-    plot_4 <- ggarrange(plotlist = lapply(parameters, evo_facto,
+
+    plot_4 <- ggarrange(plotlist = lapply(parameters[-1], evo_facto,
                                           tab = tableau_ab, title), ncol = 2, nrow = 2)
-    list_graph[[length(list_graph) + 1]] <- list(plot_4)
+    list_graph[[length(list_graph) + 1]] <- list(plot_3, plot_4)
   }
   for (i in 1:length(parameters)) {
     tableau_ab[, parameters[i]] <- as.factor(tableau_ab[,
@@ -71,7 +73,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
                                                                           parameters[i]]))
   }
   glm_indice_ab <- glm_ai_plus(tableau_ab = tableau_ab, parameters,
-                               formula_select, summary)
+                               formula_select, summary, type)
   VAR <- var(residuals(glm_indice_ab[[1]]))
   vect_param <- c(attr(glm_indice_ab[[1]]$terms, "term.label"))
   table_interact <- c()
@@ -83,8 +85,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
   plot_interac_2 <- NULL
   inter_glm <- NULL
   for (j in 1:length(vect_param)) {
-    table_tempo <- as.data.frame(dummy.coef(glm_indice_ab[[1]])[j +
-                                                                  1])
+    table_tempo <- as.data.frame(dummy.coef(glm_indice_ab[[1]])[j+1])
     table_tempo$namemodality <- rownames(table_tempo)
     rownames(table_tempo) <- NULL
     table_tempo$variable <- vect_param[j]
@@ -157,17 +158,18 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
           inter_glm[[k]][,1] <- factor(inter_glm[[k]][,1], levels=levels(tableau_ab[,variable1]))
           inter_glm[[k]][,2] <- factor(inter_glm[[k]][,2], levels=levels(tableau_ab[,variable2]))
           inter_glm[[k]]$title <- paste("Interaction - density \n ", attr(glm_indice_ab[[1]]$term, "term.labels")[j])
-
+          inter_glm[[k]] <- inter_glm[[k]] %>%  mutate(fit_exp = exp(fit+0.5*VAR), ymin = exp(lower + 0.5*VAR), ymax=exp(upper + 0.5*VAR))
 
           plot_interac_1 <- local({ k<- k
-          ggplot(data=inter_glm[[k]], aes(x=inter_glm[[k]][,1], y=exp(fit+0.5*VAR), group=inter_glm[[k]][,2])) +
+          ggplot(data=inter_glm[[k]], aes(x=inter_glm[[k]][,1], y= fit_exp , group=inter_glm[[k]][,2])) +
             geom_line(size=2, aes(color=inter_glm[[k]][,2]))+
-            geom_ribbon(aes(ymin=exp(fit+0.5*VAR) - exp(se + 0.5*VAR), ymax=exp(fit+0.5*VAR) + exp(se + 0.5*VAR),fill=inter_glm[[k]][,2]),alpha=.2)+
+            geom_ribbon(aes(ymin = ymin, ymax = ymax,fill=inter_glm[[k]][,2]),alpha=.2)+
             labs(x = variable1,
                  y = "Predicted density",
                  color = variable2, fill = variable2) +
             facet_grid(~title) +
             theme_nice()+
+            ylim(c(0,max(inter_glm[[k]]$fit_exp))) +
             #theme(text = element_text(size=12),
             #legend.text = element_text(size=12),
             #legend.direction = "horizontal",
@@ -202,8 +204,8 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
       }
     }
   }
-  list_graph[[length(list_graph) + 1]] <- list(plot_interac_1)
-  list_graph[[length(list_graph) + 1]] <- list(plot_interac_2)
+
+  list_graph[[length(list_graph) + 1]] <- list(plot_interac_1, plot_interac_2)
   plot_8 <- ggarrange(plotlist = list_plot, ncol = 2, nrow = 2,
                       common.legend = TRUE, legend = "bottom")
   list_graph[[length(list_graph) + 1]] <- list(plot_8)

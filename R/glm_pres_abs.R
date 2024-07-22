@@ -2,11 +2,11 @@
 #'
 #' \code{glm_pres_abs} returns the best GLM model possible for the presence/absence data, based on an AIC selection process (formula_select = "auto"). It runs the GLMs, plot the residuals analysis graphs and return the GLM outputs.
 #'
-#' @param tableau_pres             table of presence and absence data, coming as the output of table_pres_abs
+#' @param tableau_pres     table of presence and absence data, coming as the output of table_pres_abs
 #' @param parameters      list of parameters to test
 #' @param formula_select  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
-#' @param force_interaction Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.
-
+#' @param force_interaction EDIT : removed because too complex. ### Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.
+#'
 #'
 #' @return \code{glm_pres_abs} can either return the best GLM model based on AIC comparison, or return the outputs of the GLM based on the formula given in \emph{formula_select}
 #'
@@ -25,7 +25,7 @@
 #' @export
 
 
-glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FALSE)
+glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FALSE, type = 2)
 {
 
   # parameters as factors
@@ -36,7 +36,7 @@ glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FA
     a <- paste(a, parameters[i], "+")}
   a <- paste(a, parameters[length(parameters)])
   formula <- paste("presence ~", a)
-  formula_inter <- paste("presence ~ (", a, ")^2") #order 2 interactions
+  formula_inter <- paste0("presence ~ (", a, ")^2") #order 2 interactions
 
 
   if (formula_select == "auto"){
@@ -77,48 +77,63 @@ glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FA
   print(formula)
   print(paste0( "AIC = ",round(AIC(Model),3)))
 
+  if (type == 3){
+    ANOVA <- Anova(Model, type = 3, test = "F")
+    }
+  else {
+    ANOVA <- Anova(Model, type = 2, test = "F")
+  }
 
-  print(summary(aov(Model)))
+  print(ANOVA)
+
   print("% of variability explained by each effect : ")
-  table_var <- round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)
-  table_var[2] <- round((summary(aov(Model))[[1]][2])*100/(sum(summary(aov(Model))[[1]][2])-summary(aov(Model))[[1]][length(summary(aov(Model))[[1]][,2]),2]))
-  table_var[length(summary(aov(Model))[[1]][,2]),2] <- NA
-  names(table_var) <- c("% variance",paste0("% variance of explained (", 100 - table_var[length(summary(aov(Model))[[1]][,2]),1],"%)"))
-  names(table_var[2]) <- paste0("% variance of explained (",round(100 - table_var[length(parameters),1],1),"%)")
+  table_var <- 100 * round(ANOVA[1]/sum(ANOVA[1]),3)
+  table_var[2] <- round(ANOVA[1]*100/(sum(ANOVA[1])-tail(ANOVA[1],1)[[1]]))
+  s <- length(table_var[[1]])
+  table_var[s,2] <- NA
+  names(table_var) <- c("% variance",
+                        paste0("% variance of explained (", 100 - table_var[s,3],"%)"))
   print.data.frame(table_var)
 
-  table_var <- summary(aov(Model))[[1]][1]
+
+
+  table_var <- ANOVA[1]
   table_var[1] <- row.names(table_var)
-  table_var[2] <- summary(aov(Model))[[1]][1]
-  table_var[3] <- round(summary(aov(Model))[[1]][2]*100/sum(summary(aov(Model))[[1]][2]),1)
-  table_var[4] <- round((summary(aov(Model))[[1]][2])*100/(sum(summary(aov(Model))[[1]][2])-summary(aov(Model))[[1]][length(summary(aov(Model))[[1]][,2]),2]))
-  table_var[length(summary(aov(Model))[[1]][,2]),4] <- NA
-  table_var[5] <- summary(aov(Model))[[1]][5]
-  table_var[6] <- summary(aov(Model))[[1]][5]
+  table_var[2] <- ANOVA[2]
+  table_var[3] <- 100 * round(ANOVA[1]/sum(ANOVA[1]),3)
+  table_var[4] <- round(ANOVA[1]*100/(sum(ANOVA[1])-tail(ANOVA[1],1)[[1]]))
+
+  table_var[s,4] <- NA
+  table_var[5] <- ANOVA[4]
+  table_var[6] <- ANOVA[4]
+
+  if (formula != "presence ~ 1"){
+
 for ( k in 1:(dim(table_var[5])[1]-1)) {
 
-  if(summary(aov(Model))[[1]][k,5]< 1) {table_var[k,5] <- "< 1"
+  if(ANOVA[k,4]< 1) {table_var[k,5] <- "< 1"
   table_var[k,6] <- " "}
 
-  if(summary(aov(Model))[[1]][k,5]< 0.1) {table_var[k,5] <- "< 0.1"
+  if(ANOVA[k,4]< 0.1) {table_var[k,5] <- "< 0.1"
   table_var[k,6] <- "."}
 
-  if(summary(aov(Model))[[1]][k,5]< 0.05) {table_var[k,5] <- "< 0.05"
+  if(ANOVA[k,4]< 0.05) {table_var[k,5] <- "< 0.05"
   table_var[k,6] <- "*"}
 
-  if(summary(aov(Model))[[1]][k,5]< 0.01) {table_var[k,5] <- "< 0.01"
+  if(ANOVA[k,4]< 0.01) {table_var[k,5] <- "< 0.01"
   table_var[k,6] <- "**"}
 
-  if(summary(aov(Model))[[1]][k,5]< 0.001) {table_var[k,5] <- "< 0.001"
+  if(ANOVA[k,4]< 0.001) {table_var[k,5] <- "< 0.001"
   table_var[k,6] <- "***"}
 }
+    }
 
-
+  if (formula != "presence ~ 1"){
   names(table_var) <- c("Effect", "Df",
                         "% variance",
-                        paste0("% of explained (", 100 - table_var[length(summary(aov(Model))[[1]][,2]),3],"%)"),
+                        paste0("% variance of explained (", 100 - table_var[s,3],"%)"),
                         "P-value",
-                        "signif.")
+                        "signif.")}
 
   if (summary == TRUE) {
     print(summary(Model))
@@ -131,6 +146,6 @@ for ( k in 1:(dim(table_var[5])[1]-1)) {
     qqline(res1)
     plot(Model, 4)
   }
-  return(list(Model, summary(aov(Model)), table_var))
+  return(list(Model, ANOVA, table_var))
 }
 

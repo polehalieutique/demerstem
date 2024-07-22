@@ -2,7 +2,7 @@
 % Please edit documentation in R/moda_removal.R
 \name{moda_removal}
 \alias{moda_removal}
-\title{This function removes the modality under-represented in the dataset, depending on the value of the threshold value}
+\title{This function removes the modality under-represented in the dataset, depending on the threshold value}
 \usage{
 moda_removal(tab, factor, limit, ope_id2)
 }
@@ -16,7 +16,7 @@ moda_removal(tab, factor, limit, ope_id2)
 \item{ope_id2}{: vector used in the join}
 }
 \description{
-This function removes the modality under-represented in the dataset, depending on the value of the threshold value
+This function removes the modality under-represented in the dataset, depending on the threshold value
 }
 \examples{
 tabz <- moda_removal(tableau_ab, names_factor, 0.05, ope_id2)

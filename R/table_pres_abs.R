@@ -39,18 +39,18 @@ table_pres_abs <- function(tab, esp, list_param, var_eff_list, espece_id, catch_
   tab_posit <- tab %>% mutate(presence=as.numeric(tab[,espece_id] == esp)) %>% filter(presence==1)
 
 
-  # Calcul de l indice d_abondance and we remove rows without effort.
+  # Calcul de l indice d_abondance and we remove rows without effort (later, kept for pres/abs analysis).
   col_effort <- var_eff_list
   print(paste("effort = ", col_effort))
   print(paste(sum(is.na(tab_posit[,col_effort]) | tab_posit[,col_effort]==0),"over", nrow(tab_posit),
-              "lines with effort = 0 or NA")) # indicate number of data lost
+              "lines with effort = 0 or NA while catches are available, are then lost")) # indicate number of data lost
 
-  #calcul de la cpue
+  #calcul de la cpue (Les Inf seront retirése qd seront utilisées les abondances)
   tab_posit <- tab_posit %>% mutate(i_ab=tab_posit[,catch_col]/tab_posit[,col_effort])
   print(paste("i_ab =", catch_col, "/" ,col_effort))
 
 
-  # Aggreger par station/operation
+  # Aggreger par station/operation : Identifier si il y a des réplicats sur une station (qui ne devraient pas exister)
   names.use <- names(tab_posit)[(names(tab_posit) %in% ope_id)]
   tab_posit_old <- tab_posit
   tab_posit <- tab_posit_old %>% dplyr::group_by(across(names.use)) %>% dplyr::summarise(i_ab = sum(i_ab), .groups = 'drop') %>% ungroup() # RQ1
