@@ -14,6 +14,11 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
 ---
 
+<style>
+body {
+text-align: justify}
+</style>
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
