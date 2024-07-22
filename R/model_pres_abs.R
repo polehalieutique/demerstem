@@ -40,13 +40,13 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
     tableau_pres$facteur = factor(tableau_pres[, facteur])
     tableau_pres$title <- paste("presence/absence - ", title,
                                 "\n", facteur)
-    # plot_1 <- ggplot(tableau_pres, aes(facteur, fill = factor(presence))) +
-    #   geom_bar() + facet_grid(~title) + theme_nice() +
-    #   theme(axis.text.x = element_text(angle = 60, size = 9),
-    #         plot.title = element_text(size = 11, face = "bold"),
-    #         axis.title.x = element_blank(), axis.title.y = element_text(size = 9),
-    #         legend.title = element_text(size = 10), legend.text = element_text(size = 10))
-    # list_graph[[length(list_graph) + 1]] <- plot_1
+    plot_1 <- ggplot(tableau_pres, aes(facteur, fill = factor(presence))) +
+      geom_bar() + facet_grid(~title) + theme_nice() +
+      theme(axis.text.x = element_text(angle = 60, size = 9),
+            plot.title = element_text(size = 11, face = "bold"),
+            axis.title.x = element_blank(), axis.title.y = element_text(size = 9),
+            legend.title = element_text(size = 10), legend.text = element_text(size = 10))
+    list_graph[[length(list_graph) + 1]] <- plot_1
     plot_2 <- ggarrange(plotlist = lapply(parameters, pres_facto,
                                           tab = tableau_pres, title), ncol = 2, nrow = 2,
                         common.legend = TRUE, legend = "bottom")

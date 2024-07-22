@@ -40,11 +40,30 @@ glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FA
 
 
   if (formula_select == "auto"){
-    print("stepAIC selection starting with the full model :")
+    cat("
+    ---------------------------------------------------------
+
+
+        stepAIC selection starting with the full model :
+
+
+    ---------------------------------------------------------
+
+        ")
     model_sature <- glm(formula = formula_inter, family=binomial, data=tableau_pres)
     test_sature <- stepAIC(model_sature, scope=(lower=~1)) #trace=TRUE
 
-    print("stepAIC selection starting with the minimal model :")
+    cat("
+    ---------------------------------------------------------
+
+
+        stepAIC selection starting with the minimal model :
+
+
+    ---------------------------------------------------------
+
+        ")
+
     model_cst <- glm(formula = presence ~ 1, family=binomial, data=tableau_pres)
     test_cst <- stepAIC(model_cst, scope=(upper=paste("~ (", a,")^2"))) #trace=TRUE
 
@@ -53,6 +72,9 @@ glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FA
     if (AIC(test_sature) < AIC(test_cst)){
       Model <- test_sature
       formula <- test_sature$formula
+    } else if (AIC(test_sature) == AIC(test_cst)) {
+      Model <- test_cst
+      formula <- test_cst$formula
     } else {
       Model <- test_cst
       formula <- test_cst$formula
@@ -64,28 +86,43 @@ glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FA
     formula <- formula_select
   }
 
-  print("#-----------------------------------------------#/n \n
-        /n\n
-        /n\n
-        /n\n
-                               OUTPUTS
-        /n\n
-        /n\n
-        /n\n
-        #------------------------------------------------#")
+
+cat("
+#------------------------------------------------#
+
+
+
+                    OUTPUTS
+
+
+
+#------------------------------------------------#
+
+")
 
     # Print du modele sélectionné
     if (formula_select == "auto"){
-      print("The statiscally selected model is :")
+      cat("The statiscally selected model is :")
 
     } else {
-      print("The model you have selected :")
+      cat("The model you have selected :")
 
     }
+cat("
 
+    ")
   Model <- glm(as.formula(formula), family=binomial, data=tableau_pres)
+
   print(formula)
-  print(paste0( "AIC = ",round(AIC(Model),3)))
+
+  cat("
+
+    ")
+  cat(paste0( "AIC = ",round(AIC(Model),3)))
+
+  cat("
+
+    ")
 
   if (type == 3){
     ANOVA <- Anova(Model, type = 3, test = "F")
@@ -96,13 +133,13 @@ glm_pres_abs <- function (tableau_pres, parameters, formula_select, summary = FA
 
   print(ANOVA)
 
-  print("% of variability explained by each effect : ")
+  cat("% of variability explained by each effect : ")
   table_var <- 100 * round(ANOVA[1]/sum(ANOVA[1]),3)
   table_var[2] <- round(ANOVA[1]*100/(sum(ANOVA[1])-tail(ANOVA[1],1)[[1]]))
   s <- length(table_var[[1]])
   table_var[s,2] <- NA
   names(table_var) <- c("% variance",
-                        paste0("% variance of explained (", 100 - table_var[s,3],"%)"))
+                        paste0("% variance of explained (", 100 - table_var[s,1],"%)"))
   print.data.frame(table_var)
 
 
