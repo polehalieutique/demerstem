@@ -30,12 +30,12 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
   tableau_pres <- table_pres_abs(tab, esp, list_param, var_eff_list,
                                  espece_id, catch_col, limit)
   parameters <- list_param
-  # if (any(str_detect(parameters, 'annee')))
-  # {facteur <- 'annee'}
-  # else if (any(str_detect(parameters, 'decennie')))
-  # {facteur <- 'decennie'}
-  # else
-  #   {facteur <- parameters[1]}
+  if (any(str_detect(parameters, 'annee')))
+  {facteur <- 'annee'}
+  else if (any(str_detect(parameters, 'decennie')))
+  {facteur <- 'decennie'}
+  else
+    {facteur <- parameters[1]}
   if (plot == TRUE) {
     tableau_pres$facteur = factor(tableau_pres[, facteur])
     tableau_pres$title <- paste("presence/absence - ", title,
