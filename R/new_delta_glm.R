@@ -83,7 +83,7 @@ delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list, es
     Table_Pred$estimation <- Table_Pred$estimation * Table_Pred$proportion
     Table_Pred$proportion <- NULL
   }
-  if (temporal.factor != 0) {
+  if (temporal_factor != 0) {
     Table_Pred <- Table_Pred %>% group_by_at(vars(one_of(list_param[!list_param==temporal_factor]))) %>%  summarise(estimation = mean(estimation))
   }
   final_predict <- Table_Pred %>% group_by(annee) %>%  summarise(biomasse = sum(estimation))
