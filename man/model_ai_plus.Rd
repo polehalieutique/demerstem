@@ -45,7 +45,7 @@ model_ai_plus(
 
 \item{summary}{FALSE by default. If TRUE, print the summary of the selected GLM}
 
-\item{force_interaction}{Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.}
+\item{type}{To study marginal effects with Anova type III in case of interaction}
 }
 \description{
 \code{model_ai_plus} runs the actions for the GLM modeling process on abundance data.
