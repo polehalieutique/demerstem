@@ -1,6 +1,6 @@
 #' Delta coupling of 2 GLMs
 #'
-#' \code{new_delta_glm} realize the delta-coupling using the 2 precedents GLMs outputs (filtered with year modality only), extract the year factor, calculate the AI and display the plots.
+#' \code{delta_glm} realize the delta-coupling using the 2 precedents GLMs outputs (filtered with year modality only), extract the year factor, calculate the AI and display the plots.
 #' Presence/Absence-GLM modeling process
 #'
 #' @param   tab_pres        input dataset table used for
@@ -21,11 +21,17 @@
 #' glm_pres <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions = FALSE, limit=0.0001, formula_select = "presence ~ strate + annee + saison")
 #' @export
 
-new_delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list, espece_id, catch_col, limit,
+delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list, espece_id, catch_col, limit,
                           formula_select_pres,
-                          formula_select_ia, repartition = 0, data_type) {
+                          formula_select_ia, repartition = 0, temporal_factor = 0, data_type) {
 
-  print("SOUS-MODELE PRESENCE ABSENCE")
+  cat("
+-----------------------------------------
+
+   --  SOUS-MODELE PRESENCE/ABSENCE --
+
+-----------------------------------------
+        ")
   tableau_pres <- table_pres_abs(tab = tab_pres, esp, list_param, var_eff_list, espece_id, catch_col, limit)
   parameters <- list_param
 
@@ -35,7 +41,13 @@ new_delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list
     contrasts(tableau_pres[,parameters[i]]) <- contr.sum(levels(tableau_pres[,parameters[i]]))
   }
 
-  print("SOUS-MODELE ABONDANCE")
+  cat("
+-----------------------------------------
+
+   --     SOUS-MODELE ABONDANCE     --
+
+-----------------------------------------
+        ")
   tab_ia_pres <- table_pres_abs(tab_ia, esp, list_param,  var_eff_list, espece_id, catch_col, limit)
   tableau_ab <- filter(tab_ia_pres, i_ab>0)
 
@@ -54,6 +66,7 @@ new_delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list
   Table_Pred <- expand.grid(c(tibble))
   results <- Table_Pred
 
+  # Correction de Laurent au modèle lognormal qui n'est pas réalisée avec une fonction de lien donc pas automatiquement calculée par predict.glm
   Table_Pred$i_ab <- exp(predict.glm(glm_indice_ab[[1]], results , type = "r", se = T)$fit + 0.5*((predict.glm(glm_indice_ab[[1]],results , type = "r", se = T)$se.fit)^2))
   Table_Pred$pres <- predict.glm(glm_presabs[[1]],results , type = "r", se = T)$fit
 
@@ -65,15 +78,16 @@ new_delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list
   # results %>% group_by(annee) %>%  summarise(mean_year = mean(i_ab)) %>%  ggplot() + geom_bar( aes(x = annee, y = mean_year), stat = 'identity')
 
   Table_Pred$estimation <- Table_Pred$i_ab * Table_Pred$pres
-  if (is.list(repartition)==T) { # Could be changed, but it works
-  for (k in 1:length(repartition)) {
-    Table_Pred <- Table_Pred %>%  full_join(repartition[[k]])
+  if (is.data.frame(repartition)==T) {
+    Table_Pred <- Table_Pred %>%  full_join(repartition)
     Table_Pred$estimation <- Table_Pred$estimation * Table_Pred$proportion
     Table_Pred$proportion <- NULL
   }
+  if (temporal.factor != 0) {
+    Table_Pred <- Table_Pred %>% group_by_at(vars(one_of(list_param[!list_param==temporal_factor]))) %>%  summarise(estimation = mean(estimation))
   }
-  final_predict <- Table_Pred %>% group_by(annee) %>%  summarise(mean_year = mean(estimation))
-  names(final_predict)[names(final_predict) == 'mean_year'] <- data_type
+  final_predict <- Table_Pred %>% group_by(annee) %>%  summarise(biomasse = sum(estimation))
+  names(final_predict)[names(final_predict) == 'biomasse'] <- data_type
   final_predict <- as.data.frame(final_predict)
 
   #Plot avec Annee as numeric
@@ -95,7 +109,7 @@ new_delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list
   print(g3)
   list_graph <- list(g1,g3)
   final_predict$title <- NULL
-  return (list(final_predict,Table_Pred, list_graph))
+  return (list(final_predict, Table_Pred, list_graph))
 
 }
 

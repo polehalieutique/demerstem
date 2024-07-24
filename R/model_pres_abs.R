@@ -14,7 +14,7 @@
 #' @param   formula_select  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
 #' @param   plot            FALSE by default. If TRUE, print the data presentation histograms
 #' @param   summary         FALSE by default. If TRUE, print the summary of the selected GLM
-#' @param   force_interaction Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.
+#' @param   type  To study marginal effects with Anova type III in case of interaction
 
 #' @examples
 #' data(tableau_sc)
@@ -26,7 +26,13 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
           plot = FALSE, summary = FALSE, type = 2)
 {
   list_graph <- NULL
-  print("SOUS-MODELE PRESENCE ABSENCE")
+  cat("
+-----------------------------------------
+
+   --  SOUS-MODELE PRESENCE/ABSENCE --
+
+-----------------------------------------
+        ")
   tableau_pres <- table_pres_abs(tab, esp, list_param, var_eff_list,
                                  espece_id, catch_col, limit)
   parameters <- list_param
@@ -46,11 +52,11 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
             plot.title = element_text(size = 11, face = "bold"),
             axis.title.x = element_blank(), axis.title.y = element_text(size = 9),
             legend.title = element_text(size = 10), legend.text = element_text(size = 10))
-    list_graph[[length(list_graph) + 1]] <- plot_1
+    #list_graph[[length(list_graph) + 1]] <- plot_1
     plot_2 <- ggarrange(plotlist = lapply(parameters, pres_facto,
                                           tab = tableau_pres, title), ncol = 2, nrow = 2,
                         common.legend = TRUE, legend = "bottom")
-    list_graph[[length(list_graph) + 1]] <- plot_2
+    list_graph[[length(list_graph) + 1]] <- list(plot_1, plot_2)
   }
 
   # change constraints in case interactions are identified
@@ -80,17 +86,17 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
 
 
   for (j in 1:length(vect_param)) {
-# AovSum from FactomineR would directly give coeff with inv.logit tfn accordingly apllied...
-    table_tempo <- as.data.frame(dummy.coef(glm_presabs[[1]])[j +
-                                                                1])
+
+    table_tempo <- as.data.frame(dummy.coef(glm_presabs[[1]])[j + 1])
     table_tempo$namemodality <- rownames(table_tempo)
     rownames(table_tempo) <- NULL
     table_tempo$variable <- vect_param[j]
     colnames(table_tempo) <- c("estimates", "modality",
                                "variable")
-    # detect if ..?
+    # if it's an interaction
     if (as.numeric(gregexpr(pattern = ":", as.character(attr(glm_presabs[[1]]$term,
                                                              "term.labels"))[j])) > 0) {
+      # filtre les 0 si il s'agit d'une interaction...?
       table_tempo <- table_tempo %>% filter(estimates !=
                                               0)
     }
@@ -98,8 +104,9 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
     table_tempo$corrected_estimates <- table_tempo$estimates +
       table_pres[1, 1]
     # inv.logit transformation
-    table_tempo$corrected_estimates <- 100 * (exp(table_tempo$corrected_estimates)/(1 +
-                                                                               exp(table_tempo$corrected_estimates)))
+    table_tempo$corrected_estimates <- 100 * (exp(table_tempo$corrected_estimates)/(1 + exp(table_tempo$corrected_estimates)))
+
+    # if not an interaction
     if (as.numeric(gregexpr(pattern = ":", as.character(attr(glm_presabs[[1]]$term,
                                                              "term.labels"))[j])) < 0) {
       count <- count + 1
@@ -196,5 +203,5 @@ model_pres_abs <- function (tab, esp, title, list_param, var_eff_list, espece_id
                       common.legend = TRUE, legend = "bottom")
   list_graph[[length(list_graph) + 1]] <- plot_6
 
-  return(list(glm_presabs[[3]], list_graph))
+  return(list(glm_presabs[[3]], list_graph, table_interact))
 }

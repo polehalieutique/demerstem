@@ -14,7 +14,7 @@
 #' @param   formula_select  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
 #' @param   plot            FALSE by default. If TRUE, print the data presentation histograms
 #' @param   summary         FALSE by default. If TRUE, print the summary of the selected GLM
-#' @param   force_interaction Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.
+#' @param   type  To study marginal effects with Anova type III in case of interaction
 
 #' @examples
 #'  data(tableau_sc)
@@ -32,19 +32,19 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
   facteur <- parameters[1]
   if (plot == TRUE) {
     tableau_ab$facteur = factor(tableau_ab[, facteur])
-    # tableau_ab$title <- paste("Observation density - ",
-    #                           title, "\n", facteur)
-    # plot_1 <- ggplot(tableau_ab, aes(facteur)) + geom_bar(fill = "#00BFC4") +
-    #   facet_grid(~title) + theme_nice() + theme(axis.text.x = element_text(angle = 60,
-    #                                                                        size = 9), plot.title = element_text(size = 11,
-    #                                                                                                             face = "bold"), axis.title.x = element_blank(),
-    #                                             axis.title.y = element_text(size = 9), legend.title = element_text(size = 10),
-    #                                             legend.text = element_text(size = 10))
-    # list_graph[[length(list_graph) + 1]] <- list(plot_1)
+    tableau_ab$title <- paste("Observation density - ",
+                              title, "\n", facteur)
+    plot_1 <- ggplot(tableau_ab, aes(facteur)) + geom_bar(fill = "#00BFC4") +
+      facet_grid(~title) + theme_nice() + theme(axis.text.x = element_text(angle = 60,
+                                                                           size = 9), plot.title = element_text(size = 11,
+                                                                                                                face = "bold"), axis.title.x = element_blank(),
+                                                axis.title.y = element_text(size = 9), legend.title = element_text(size = 10),
+                                                legend.text = element_text(size = 10))
+    #list_graph[[length(list_graph) + 1]] <- list(plot_1)
     plot_2 <- ggarrange(plotlist = lapply(parameters, moda_facto,
                                           tab = tableau_ab, title), ncol = 2, nrow = 2, common.legend = TRUE,
                         legend = "bottom")
-    list_graph[[length(list_graph) + 1]] <- plot_2
+    list_graph[[length(list_graph) + 1]] <- list(plot_1, plot_2)
     requete <- tableau_ab %>% dplyr::group_by(facteur) %>%
       dplyr::summarise(mean_ind_ab = mean(i_ab))
     requete$title <- paste("CPUE - ", title, "\n", facteur)
@@ -132,7 +132,7 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
                                                                                                                     face = "bold"), axis.title.x = element_blank(),
                                                     axis.title.y = element_text(size = 9), legend.title = element_text(size = 10),
                                                     legend.text = element_text(size = 10)) + labs(x = vect_param[j])
-        list_graph[[length(list_graph) + 1]] <- list(plot_5)
+        #list_graph[[length(list_graph) + 1]] <- list(plot_5)
       }
     }
     table_tempo$title <- NULL
@@ -208,6 +208,6 @@ model_ai_plus <- function(tab, esp, title, list_param,  var_eff_list, espece_id,
   list_graph[[length(list_graph) + 1]] <- list(plot_interac_1, plot_interac_2)
   plot_8 <- ggarrange(plotlist = list_plot, ncol = 2, nrow = 2,
                       common.legend = TRUE, legend = "bottom")
-  list_graph[[length(list_graph) + 1]] <- list(plot_8)
+  list_graph[[length(list_graph) + 1]] <- list(plot_5, plot_8)
   return(list(glm_indice_ab[[3]], list_graph))
 }
