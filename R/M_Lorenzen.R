@@ -8,6 +8,7 @@
 #' @param t0 Growth parameter
 #'
 #' @examples
+#'
 #' list_age <- seq(0,3, by = 0.25)
 #' M_inf <- 0.2
 #' K <- 0.35
