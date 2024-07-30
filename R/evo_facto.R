@@ -1,5 +1,5 @@
 #' evolution de l'abondance par parametre (fonction graphique)
-# fonction graphique
+#' \code{evo_facto} fonction graphique
 #' @param tab tableau de données
 #' @param facteur facteur
 #' @param titre titre du graphique

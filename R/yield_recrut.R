@@ -1,19 +1,32 @@
-#'  yield_recrut
+#'  Diagnosis on stock from F estimate
 #'
 #' \code{yield_recrut} function to be optimized by stats::optimize, hence gives an estimation by iteration of F minimum value
 #'
-#' @param   a          Initial value for pseudo cohort analysis, equivalent to the last year recruitment
-#' @param   b         data frame of catch, each column is a different gear
-#' @param   Linf         vector of recruitment, if unknown, considered constant
-#' @param   K         data frame of effort, each column is a different gear
-#' @param   t0         vector of mortality biological parameter
-#' @param   Mat_N2
-#' @param   Mat_Y
-#' @param   Mat_F
-#' @param   Mat_W
+#' @param   a         Weight-size relationship parameter
+#' @param   b         Weight-size relationship parameter
+#' @param   Linf      Asymptotic length
+#' @param   K         Growth parameter
+#' @param   t0        Growth parameter
+#' @param   Mat_F     Vector of F
+#' @param   Mat_W     Can be used instead to growth paramters
+#' @param   mf        F multiplicator range
 #'
 #' @examples
-#' -- IN PROCESS --
+#'
+#' a <- 0.006
+#' b <- 3.08
+#'
+#' Linf <- 44.4
+#' K <- 0.35
+#' t0 <- -0.24
+#'
+#' list_age <- seq(1, 10, by = 1)
+#'
+#' Mat_F <- c(40.102259e-05, 4.102259e-05, 5.102259e-05, 4.818126e-04 ,1.173966e-03, 20.173184e-02, 9.366615e-02, 2.059620e-01, 3.454309e-01, 2.906350e-01, 4.469356e-01, 3.430000e-01)
+#' mf <- seq(0, 2, by=0.05)
+#'
+#' yield_recrut(a, b, Linf, K, t0, list_age, Mat_F, Mat_M, mf)
+#'
 #' @export
 
 yield_recrut<- function(a, b, Linf, K, t0, list_age, Mat_F, Mat_M, mf, F0.1 = F, Mat_W = NA) {

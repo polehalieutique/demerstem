@@ -1,13 +1,13 @@
-#' This function removes the modality under-represented in the dataset, depending on the threshold value
+#' moda_removal
+#'
+#' \code{moda_removal} removes the modality under-represented in the dataset, depending on the threshold value
 #'
 #'
 #' @param tab : dataset table
 #' @param factor : the factor from which we test each modality
 #' @param limit : percentage representing the limit value under which the modality is removed
 #' @param ope_id2 : vector used in the join
-
-#' @examples
-#' tabz <- moda_removal(tableau_ab, names_factor, 0.05, ope_id2)
+#'
 #' @export
 #'
 

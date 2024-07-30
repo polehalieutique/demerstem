@@ -1,4 +1,5 @@
 #'  evolution de l'indice d'abondance moyen dans le temps
+#' \code{evo_an} fonction graphique
 #' @param tab tableau de données
 #' @param titre titre du graphique
 

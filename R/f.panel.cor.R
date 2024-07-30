@@ -1,4 +1,5 @@
-#' A faire
+#' Bayesian function (not used for the moment)
+#' \code{panel.cor} fonction graphique
 #' @param x : A faire
 #' @param y  : A faire
 #' @param digit: A faire

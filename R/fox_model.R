@@ -1,13 +1,23 @@
-#' fox_model
-#' \code{fox_model} this function develop the Fox global model from IA and Efox series
+#' Fox production model
+#'
+#' \code{fox_model} this function fits the Fox global model from IA and Efox series
 #'
 #'
-#' @param table_Efox  : table with IA and Efox
-#' @param graph_param : vector gathering the graphhics aestetics parameters (format : c(lengthEfox, title, upper_x, upper_y, upper_ybis))
-#' @param log         : by default, fit the model under log transformation of the AI. Else, fit without the log transformation (no start/limit)
+#' @param table_Efox  table with IA and Efox
+#' @param graph_param vector gathering some graphics parameters (format : c(mE_range, title, upper_x, upper_y, upper_ybis))
+#' @param log         by default, fit the model under log transformation of the AI.
+#' @param a_start     Initial value for a
+#' @param b_start     Initial value for b
 #'
 #' @examples
-#'
+#' data(data_IA)
+#' data(captures_aggregees)
+#' data_captures <- captures_aggregees %>%  group_by(year) %>%  summarise(Catch = sum(c))
+#' table_Efox <- fox_effort_calculation(data_IA, data_captures, k=3)
+#' mE_range <- 1.5
+#' title <- "Fox model - Thiof"
+#' graph_param <- c(mE_range, title) #param de mise en forme du graph
+#' fox_model(table_Efox, graph_param, log = T, a_start = 1, b_start = 100)
 #' @export
 
 

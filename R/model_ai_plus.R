@@ -14,7 +14,7 @@
 #' @param   formula_select  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
 #' @param   plot            FALSE by default. If TRUE, print the data presentation histograms
 #' @param   summary         FALSE by default. If TRUE, print the summary of the selected GLM
-#' @param   type  To study marginal effects with Anova type III in case of interaction
+#' @param   type            To study marginal effects with Anova type III in case of interaction
 
 #' @examples
 #'  data(tableau_sc)

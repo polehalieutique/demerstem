@@ -1,4 +1,4 @@
-#' M_Lorenzen
+#' Natural mortality estimate
 #'
 #' \code{M_Lorenzen} Estimate natural mortality accordingly to Lorenzen methods (1996, 2000)
 #'

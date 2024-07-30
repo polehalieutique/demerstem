@@ -1,4 +1,5 @@
-#'  Bayesian global model, on encapsule un modèle global générique dans la fonction
+#' Bayesian function (not used for the moment)
+#' \code{bgm_output_5} fonction graphique
 #' @param mcmc mcmc liste venant de la fonction bgm
 
 #' @examples

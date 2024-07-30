@@ -1,19 +1,39 @@
-#' generalised_model
+#' Generalised production model
 #'
 #'
 #' \code{generalised_model} Generalised production model from IA and Efox series
 #'
 #' @param table_Efox      : table with IA and Efox
 #' @param graph_param     : vector gathering the graphhics aestetics parameters (format : c(lengthEfox, title, upper_x, upper_y, upper_ybis))
-#' @param log             : by default, fit the model under log transformation of the AI. Else, fit without the log transformation (no start/limit)
+#' @param log             : log transformation (T/F)
 #' @param a               : values of initialisation and range of the parameter a (lower, init, upper)
 #' @param b               : values of initialisation and range of the parameter b
 #' @param m               : values of initialisation and range of the parameter m
 #' @param warning_control : if TRUE, the nls won't stop its process if too many warnings are made.
 #' @param max_iteration   : number of iteration that will be runned.
+#' @param IC              : Confidence Interval
 #'
 #' @examples
 #'
+#' data(data_IA)
+#' data(captures_aggregees)
+#' data_captures <- captures_aggregees %>%  group_by(year) %>%  summarise(Catch = sum(c))
+#' table_Efox <- fox_effort_calculation(data_IA, data_captures, k=3)
+#'
+#'
+#' lengthEfox <- 1.5
+#' title <- "Generalised model - 1st try"
+#' graph_param <- c(lengthEfox, title)
+#'
+#' a_init = 1/sqrt(table_Efox$IA[1])
+#' b_init = 1/sqrt(tail(table_Efox$IA,1)) - 1/(sqrt(table_Efox$IA[1]))
+#'
+#' a <- c(0.0000005, a_init, 0.005)
+#' b <- c(0.0000001, b_init, 0.01)
+#' m <- c(0.5, 0.7, 0.9)
+#'
+#' warning_control=T
+#' generalised_model(table_Efox, graph_param, a, b, m, warning_control, IC = F)
 #' @export
 
 

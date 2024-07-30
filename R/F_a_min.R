@@ -4,7 +4,7 @@
 #'
 #'
 #' @examples
-#' #' Mat_Cage <- apply(Mat_C, 1, sum) # catch sum by age over fleets
+#' Mat_Cage <- apply(Mat_C, 1, sum) # catch sum by age over fleets
 #' Mat_M <- rep(0.2, age)
 #' age <- length(Mat_M) # number of age class
 #' Mat_N2 <- rep(NA,age) # initial abundance

@@ -1,6 +1,6 @@
-#'  F_pseudo_rectif
+#'  Rectified pseudo cohort
 #'
-#' \code{F_pseudo_rectif} returns Initial recruitment estiMate
+#' \code{F_pseudo_rectif} From terminal F, returns N and F estimate and plots. Trimestrial only works when group = 3 or 4.
 #'
 #' @param   FT            Terminal F
 #' @param   Rinit         Initial value for pseudo cohort analysis, equivalent to the last year recruitment
@@ -8,7 +8,31 @@
 #' @param   Mat_R         vector of recruitment, if unknown, considered constant
 #' @param   Mat_E         data frame of effort, each column is a different gear
 #' @param   Mat_M         vector of mortality biological parameter
+#' @param   step_time     Time step for the analysis
+#' @param   Prop_R        Proportion of recruitment if quarter analysis (R can be continuons along the year)
+#' @param   quarter       Boolean indicating if quarterly data is used
+#' @param   ngroup        Number of groups
 #'
+#' @example
+#' espece <- "Pseudotolithus senegalensis"
+#' Linf <- 44.4
+#' K <- 0.35
+#' t0 <- -0.24
+#' a <- 0.006
+#' b <- 3.08
+#' M_inf <- 0.2
+#' list_age <- seq(0.125,2.875, by = 0.25)
+#' age <- length(list_age)
+#' Mat_C <- data.frame(indutrial = c(1,1,1,50000,100000,1e6,4e6,5e6,10e6,5e6,3e6,1e6), artisanal = c(1,1,1,30000,100000,2e6,6e6,10e6,4e6,2e6,3e6,1e6))
+#' Mat_E <- data.frame(indutrial = c(200,400,200,180,488,174,246,237,342,108,206,150), artisanal = c(439,230,279,279,306,318,524,270,270,398,248,65))
+#' Mat_M <- rep(0.2,12)
+#' Mat_R <- rep(c(1),4) # Supposed constant here
+#' Prop_R <- c(0.3,0.3,0.2,0.2, rep(0,8))
+#'step_time <- 4
+#'quarter = T
+#'FT <- 0.343
+#'res <- F_pseudo_rectif(FT = 0.343, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time = 4, Prop_R, quarter = quarter, ngroup = F)
+#'res
 #' @export
 
 F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop_R, quarter, ngroup= F) {
@@ -20,6 +44,7 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop
   Mat_N2<<-rep(NA,age) # effectifs methode rectifiee
   Mat_Cage <<- apply(Mat_C,1,sum)
 
+  # Approximate F from NT and catches
   FT_min<- function (x)
   {
     res <- (Mat_Cage[indice] - (NT * (x/(x + Mat_M[indice]) *
@@ -27,7 +52,7 @@ F_pseudo_rectif <- function(FT, age, Mat_C, Mat_R, Mat_E, Mat_M, step_time, Prop
     res
   }
 
-  # Get Mat_F
+  # returns F and N
   R_pseudo_rectif_bis <-function(init) # init <- Rinit
   {
     Mat_F2 <<- (Mat_C/Mat_Cage)#/step_time # initialisation of F2 as metier ratio (= 1 if only one metier/fleet)

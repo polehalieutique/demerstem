@@ -1,24 +1,45 @@
 #' Delta coupling of 2 GLMs
 #'
-#' \code{delta_glm} realize the delta-coupling using the 2 precedents GLMs outputs (filtered with year modality only), extract the year factor, calculate the AI and display the plots.
-#' Presence/Absence-GLM modeling process
+#' \code{delta_glm} realize the delta-coupling using the 2 precedents GLMs, extract the year factor, calculate the AI and display the plots.
 #'
-#' @param   tab_pres        input dataset table used for
-#' @param   tab_ia          ia
+#'
+#' @param   tab_pres        input dataset table used for pres/abs model
+#' @param   tab_ia          input dataset table used for ia model
 #' @param   esp             exact name of the studied species
-#' @param   title           fraction of the title in the plots
+#' @param   title           title will be displayed in the plots
 #' @param   list_param      list of the tested parameters
 #' @param   var_eff_list    list of the possible fishing effort column
 #' @param   espece_id       exact name of the column indicating the species
 #' @param   catch_col       exact name of the column indicating the catches
 #' @param   limit           percentage representing the limit value under which the modality is removed
-#' @param   formula_select_pres  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
-#' @param   formula_select_ia  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
-#' @param   repartition
-#' @param   data_type
+#' @param   formula_select_pres  specify the final prese/abs model
+#' @param   formula_select_ia  specify the final abundance model
+#' @param   repartition      Surface by region strata (can be absolute value)
+#' @param   temporal_facto   If other than annual and on a smaller time step (seasonal, quarter...). That way biomass mean will be calculated in this time step for each year
+#' @param   data_type        Specify the type of data for the combining of different data_type
 #' @examples
+#'
 #' data(tableau_sc)
-#' glm_pres <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', interactions = FALSE, limit=0.0001, formula_select = "presence ~ strate + annee + saison")
+#' tableau_sc_GIN <- tableau_sc %>% mutate(bathymetrie = case_when(
+#'   profond_deb >= 05  & profond_deb <=10 ~ "5-10m",
+#'   profond_deb > 10 & profond_deb <=15 ~ "10-15m",
+#'  profond_deb > 15 & profond_deb <= 30 ~ "15-30m"
+#' ))
+#'
+#'
+#' repartition <- as.data.frame(cbind(bathymetrie = c("5-10m", "10-15m", "15-30m"),
+#'                                   proportion = c(661.5, 1009.3, 2872.3)))
+#'
+#' repartition$proportion <- as.numeric(repartition$proportion)
+#'
+#' delta_IA <- delta_glm(tab_pres = tableau_sc_GIN, tab_ia = tableau_sc_GIN, esp="PSEUDOTOLITHUS ELONGATUS", title="1st Try",
+#'                       list_param=c("annee", "bathymetrie"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique',
+#'                       catch_col='total_capture', limit=0.0001,
+#'                       formula_select_pres = "presence ~ annee + bathymetrie",
+#'                       formula_select_ia = "log(i_ab) ~ annee + bathymetrie",
+#'                       repartition = repartition,
+#'                       data_type = "SC")
+#'
 #' @export
 
 delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list, espece_id, catch_col, limit,
@@ -57,8 +78,8 @@ delta_glm <- function(tab_pres, tab_ia, esp, title, list_param, var_eff_list, es
     contrasts(tableau_ab[,parameters[i]]) <- contr.sum(levels(tableau_ab[,parameters[i]]))
   }
 
-  glm_presabs <- glm_pres_abs(tableau_pres = tableau_pres, parameters, formula_select_pres, summary = F)
-  glm_indice_ab <- glm_ai_plus(tableau_ab = tableau_ab, parameters, formula_select_ia, summary = F)
+  glm_presabs <- glm_pres_abs(tableau_pres = tableau_pres, parameters, formula_select_pres, summary = F, type = 3)
+  glm_indice_ab <- glm_ai_plus(tableau_ab = tableau_ab, parameters, formula_select_ia, summary = F, type = 3)
 
   tableau_ab[,list_param] <- lapply(tableau_ab[,list_param],factor)
   tibble <- tableau_ab[,list_param] %>% sapply(levels)

@@ -1,0 +1,656 @@
+---
+title: "Vignette demerstem - Delta-GLM"
+author : "Auteur : Florian Quemper"
+date: "Date du fichier : 25/07/2024"
+output :
+   rmdformats::readthedown:
+     toc_depth: 6
+     code_folding: show
+editor_options:
+   chunk_output_type: console
+vignette: >
+  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{Vignette - Delta-GLM avec demerstem}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+```{r setup, warning = FALSE, include = F, echo = F}
+#library(devtools)
+#detach("package:demerstem", unload = TRUE)
+#install_github("polehalieutique/demerstem", force = T)
+
+library(demerstem)
+packageVersion("demerstem")
+```
+
+Ce script vise à accompagner les utilisateurs du package demerstem dans l'application d'un delta-GLM pour extraire un effet année et construire une série d'indices d'abondance. Il vise également à brièvement rappeler des concepts clés en statistiques pour assurer une bonne compréhension de la méthode. 
+
+La problématique rencontrée se décompose en 2 points majeurs : 
+
+• La donnée d'étude est fourni selon un plan d'échantillonnage déséquilibré et cela peut avoir des implications majeures sur la compréhension que l'on se fait s'il n'est pas correctement pris en compte : on parle d'effet de confusion. 
+
+Soit l'exemple suivant : On cherche à estimer la probabilité de présence de thiof sur 2 années. On observe, à partir des 500 données collectées chaque année, que la probabilité est de 0.2 en 2000 et 0.3 en 2020. On pourrait alors conclure (avec beaucoup de simplicité) que l'espèce est de retour et ainsi que le stock est potentiellement en meilleur santé. Or on se rend compte que les données n'ont pas été prélevées à la même **saison** : 
+
+```{r, echo = F }
+
+
+observed_counts <- matrix(c(400, 100, 200, 300), nrow = 2, byrow = TRUE,
+                          dimnames = list(" " = c("Année 2000", "Année 2020"),
+                                          " " = c("Saison Froide", "Saison Chaude")))
+
+observed_counts %>% knitr::kable()
+```
+
+Par ailleurs, on sait que la probabilité d'observer une présence est plus forte à la saison froide qu'en saison chaude En particulier, si on admet que l'on connaît cette probabilité (et **qu'elle est identique chaque année**) et qu'elle vaut 0.35 en saison froide et 0.1 en saison chaude, alors on retrouve bien que la probabilité de présence en 2000 est de 0.3 et de 0.2 en 2020. Si on **rééquilibre** ce plan d'échantillonnage en collectant 250 données à chaque saison, alors on obtiendrait une probabilité de 0.225 en 2000 et en 2020. Ces structurations dans l'échantillonnage peuvent être contrôlées dans des conditions de laboratoire, mais en écologie, de nombreuses variables peuvent intervenir et complexifier les collectes de données (on peut imaginer qu'en 2000, le temps était mauvais et l'une des campagnes halieutique à été décalée d'un mois, correspondant à la saison froide par exemple, ou encore que les collectes réalisées par les observateurs en criée ont été interrompues du fait d'une crise économique/sanitaire pendant plusieurs mois...). 
+
+Si on ne prenait pas en compte cette problématique, on pourrait alors chercher à faire une moyenne simple des CPUE sur une période. 
+Le principe du GLM dans ce cas va alors être celui-ci : on dit que le GLM permet de **rééquilibrer le plan d'échantillonnage** en récupérant l'effet de chaque variable et évitant les effets de confusion (Figure 1). 
+
+```{r, echo = F}
+data(IA_exemple)
+#load("~/GitHub/demerstem/data/IA_exemple.Rdata")
+IA_exemple %>% mutate(title = "CPUE time series - PA \n- Senegal -") %>% ggplot() + 
+  geom_line(aes(group = 1, x = annee, y = mean_PA, colour = 'black'), stat="identity") + 
+  geom_line(aes(group = 1, x = annee, y = PA, colour = 'red'), stat="identity") +
+  facet_grid(~title) + 
+  labs(x = "Year", y = "CPUE") + 
+  theme_nice() + scale_color_manual(values=c('black','red'), name = "Méthode", labels = c("Moyenne simple ", "Delta-GLM"))
+
+```
+
+• Cette méthode permet également d'étudier les interactions entre 2 variables. Autrement dit, en repartant de l'exemple précédent, il est possible que l'effet saison et l'effet année se conjugue, et ainsi que la saison chaude de 2000 soit une année particulière (autrement dit, il n'y a *a priori* pas de raison que la probabilité de rencontre selon la saison chaude ou froide soit constante). Cette interaction est importante à étudier, notamment dans le cadre du changement climatique où on pourrait tout à fait concevoir que les populations se déplacent au cours du temps, auquel cas l'effet région pourrait varier dans le temps (interaction année/région). Ces interactions peuvent s'observer même dans le cas de plans d'échantillonnages équilibrées. Dans le cas où des interactions sont identifiées avec l'effet **année**, il faut alors pouvoir extraire et attribuer la part de variabilité expliquée par l'effet année afin de construire un indice d'abondance. Cette démarche sera explicitée plus loin.
+
+Enfin, on va établir un delta-GLM en combinant 2 modèles ensemble : Un modèle de présence/absence et un modèle d'abondance. En effet, les proportions importantes de zéros dans le jeu de données peuvent se comprendre comme une information à part entière : une absence constitue une information en soit. Cependant une telle modélisation présente des enjeux pratiques (il faut utiliser une fonction mathématique qui permette de modéliser ce nombre important de zéro et la forte dispersion des données d'abondance qui augmente avec la moyenne). Une solution est donc de considérer 2 sous-modèles en étudiant des ANOVA à plusieurs facteurs pour lesquels les hypothèses des modèles linéaires ne sont pas respectées mais que l'on va pouvoir ici relaxer, notamment via l'utilisation d'une fonction de lien. L'objectif est à terme d'extraire la part de variabilité expliquée par l'effet année pour construire un indice d'abondance annuel.
+
+Cependant, le travail de modélisation, de sélectionner les facteurs les plus pertinents et identifier la part de la variabilité qu'ils expliquent, peut se révéler complexe et ce package vise à l'accompagner. Mais à terme, c'est bien à l'utilisateur de faire ses choix et poser les hypothèses qu'il souhaite tester. 
+
+Ce cas d'étude va se focaliser sur une application de la méthode delta-glm avec le package demerstem à partir des données issues des campagnes scientifiques réalisée en Guinée/Guinée-Bissau sur le stock de bobo (*P. elongatus*).
+
+
+# 1) Donnees Scientifiques
+
+On récupère le jeu de données disponible dans le package
+
+```{r}
+data(tableau_sc)
+head(tableau_sc)
+```
+
+on peut voir qu'il est riche en informations qu'il va falloir sélectionner pour construire le modèle.
+
+## 1.1) Définition des strates
+
+Ce travail est essentiel et difficile à restituer dans toute sa complexité, notamment parce qu'il faudra au fur et à mesure tester les stratifications sélectionnées et que la qualité des GLM va directement en découler. Il est absolument nécessaire de prendre le temps de trier et mettre en forme les données qui peuvent contenir des erreurs/aberrations (comme dans tous jeux de données), notamment sur la base d'expertises. Par exemple ici, les données de faible profondeur ne sont pas conservées, le navire scientifique ne pouvant se rendre dans ces zones (Soumah, com pers). 
+
+```{r, echo = T, include = T}
+
+tableau_sc_GIN <- tableau_sc
+
+tableau_sc_GIN <- tableau_sc_GIN %>% mutate(strate_bathymetrique = case_when(
+#profond_deb <= 05 ~ "0-05m", # on retire les données de 0 à 5 par dire d'experts, le navire scientifique ne peut pas aller dans ces eaux de faible profondeur
+profond_deb >= 05  & profond_deb <=10 ~ "5-10m",
+profond_deb > 10 & profond_deb <=15 ~ "10-15m",
+profond_deb > 15 & profond_deb <= 30 ~ "15-30m"
+))
+tableau_sc_GIN$strate_bathymetrique <- factor(tableau_sc_GIN$strate_bathymetrique, levels = c("5-10m", "10-15m", "15-30m"))
+
+tableau_sc_GIN <- tableau_sc_GIN %>% filter(!is.na(strate_bathymetrique))
+```
+
+
+```{r, echo = F, include = F}
+
+#2005 = fin de la campagne de 2004 en réalité. On regroupe
+tableau_sc_GIN <- tableau_sc_GIN %>% mutate(annee=case_when(
+  annee=="2005" ~ "2004",
+  TRUE ~ as.character(annee)
+))
+
+tableau_sc_GIN <- tableau_sc_GIN %>% mutate(decennie = case_when(
+annee %in% 1980:1989 ~ "1980",
+annee %in% 1990:1999 ~ "1990",
+annee %in% 2000:2009 ~ "2000",
+annee %in% 2010:2019 ~ "2010"
+))
+
+tableau_sc_GIN$decennie <- factor(tableau_sc_GIN$decennie, levels = c("1980", "1990", "2000", "2010")) 
+
+tableau_sc_GIN <- tableau_sc_GIN%>%mutate(code_campagne2=case_when(
+   code_campagne2=='GLC'~ "GL",
+   code_campagne2=='PR'~ "GL", #Les campagnes prao sont aussi réalisées avec le GLC
+   TRUE ~ as.character(code_campagne2)
+))
+
+tableau_sc_GIN <- tableau_sc_GIN%>%mutate(code_campagne2=case_when(
+   code_campagne=='UEMOA0512DM'~ "GL",
+   code_campagne=='CHABIS01' ~ "AN",  # Les campagnes en GNB sont réalisées par le André Nizery
+   code_campagne=='CHABIS02' ~ "AN",
+   code_campagne=='CNSHB0621DM' ~ "GL",
+   TRUE ~ as.character(code_campagne2)
+))
+
+# Bathy non gardées car 'extreme' ie on retire toutes les bathy inf à 5m et supérieures à 30m car ce sont necesairement des erreurs : vérifier avec Mohamed.
+
+tableau_sc_GIN$zonation <- abs(tableau_sc_GIN$latitude_deb) + 0.25*abs(tableau_sc_GIN$longitude_deb)
+tableau_sc_GIN <- tableau_sc_GIN %>% mutate(zone = case_when(
+  zonation < 13.30 ~ "sud",
+  zonation >= 13.30 & zonation < 13.85 ~ "centre",
+  zonation >= 13.85 ~ "nord"
+))
+
+#classement des variables = ordre dans lequel elles seront représentées graphiquement
+tableau_sc_GIN$zone <- factor(tableau_sc_GIN$zone, levels = c("nord", "centre", "sud")) 
+tableau_sc_GIN$annee <- as.factor(tableau_sc_GIN$annee)
+
+
+
+tableau_sc_GIN <- tableau_sc_GIN %>% filter(!(annee %in% c(1994))) #année sans présences
+tableau_sc_GIN <- tableau_sc_GIN %>% filter(code_engin!="GN01") #GN01=casier
+tableau_sc_GIN$surface_chalutee <- abs(tableau_sc_GIN$surface_chalutee) # on considère que ces valeurs ont été mal renseignées
+tableau_sc_final <- tableau_sc_GIN %>% filter(code_campagne2 %in% c("GL", "AN")) 
+
+```
+
+
+A retenir, pour la stratification, il faut :
+
+1) S'assurer que les modalités d'une variable (**chaude** / **froide** sont les 2 modalités de la variable **saison**) doivent avoir un nombre de données +/- équivalent (on cherche à équilibrer le plan d'échantillonnage). Si l'on conserve une grosse différence, il faut pouvoir le justifier. 
+
+2) Eviter d'avoir uniquement des absences dans une modalité, toujours un minimum de présence.
+
+Une fois réalisée cette définition des strates, on peut passer à la modélisation des effets, en commençant pas le modèle de prés/absence. La démarche sera similaire dans le cas du modèle d'abondance. 
+
+# 2) Modélisation GLM et estimation des IA
+
+Votre table est à présent prête. Vous pouvez faire tourner les 2 fonctions de modélisation des GLM : *model_ai_plus* et *model_pres_abs*. Pour cela, vous devez d'abord définir les paramètres de ces fonctions.
+
+Ces fonctions permettent à la fois de réaliser :
+
+• Les analyses graphiques en visualisant les données brutes mais également pour mettre en évidence l'existence d'une interaction intéressante à conserver dans le modèle et de chercher à l'expliciter. 
+
+• Un test statistique et identifier quels sont les effets significatifs tout en récupérant leur estimation.  
+
+A noter que les estimations d'une interaction n'a aucun sens si le plan factoriel est incomplet/à trous. 
+
+On propose ici une méthode générique pour étudier les effets et les interactions, en passant par une analyse par décennie avant de s'intéresser à l'analyse annuelle. 
+
+## 2.2) Le GLM presence/absence
+
+### 2.2.1) Analyse par décennie
+
+
+La fonction `model_pres_abs` va prendre différents arguments : 
+
+```{r}
+esp <- "PSEUDOTOLITHUS ELONGATUS"
+espece_id='nom_taxonomique' 
+
+list_param=c("decennie","saison", "strate_bathymetrique", "zone")
+title="scientific"
+
+var_eff_list= c("surface_chalutee") 
+catch_col='total_capture' 
+interactions = TRUE #FALSE
+limit=0.0005
+
+formula_select = "auto"
+```
+
+D'abord, la table va être automatiquement mise à jour en calculant les présence et absence quand l'espèce **`esp`** est renseignée dans la colonne **`espece_id`** (2 premières variables ci-dessus).
+
+• Il faut alors renseigner les variables que l'on souhaite étudier. A noter que ces variables peuvent ne pas toute être utilisée dans le modèle. En revanche on ne peut décrire un modèle pour lequel les paramètres ne sont pas décrits dans **`list_param`**
+
+• Dans **`var_eff_list`** doit être fournit la grandeur utilisée pour calculer les abondances, cela permettra d'identifier dès cette étape si des données sont aberrantes. De même catch_col permet de renseigner quelle colonne doit être utilisée.
+
+• Les interactions peuvent être représentées graphiquement avec le booléen **`interactions`** qui peut prendre la valeur TRUE ou FALSE (T/F).
+
+• Le terme **`limit`** permet de retirer de l'analyse les modalités qui représentent peu de données relativement aux autres modalités de ce facteur (seuil fixé à 0,05 % ici)
+
+• Enfin, **`formula_select`** va permettre de renseigner sur le modèle appliqué : `presence ~ annee + zone` par exemple. L'utilisateur a également la possibilité d'employer la fonctionnalité `auto` qui va tester tous les modèles existants à partir de la liste des paramètres et retourner celui qui présente la valeur AIC la plus faible i.e avec la meilleure qualité d'ajustement (NB : On se limite aux interactions du second degré). Attention cependant, cette fonction peut être longue si trop de facteurs sont testés. Néanmoins, certains effets et en particulier certaines interactions peuvent ne pas être conservées 
+
+• Il est également possible de sélectionner le `type` d'anova (Plus de précisions dans la suite)
+
+Dans le cas où la fonctionnalité `auto` à été sélectionnée, la liste des sorties peut être longue et dense, et elle le sera d'autant plus si le nombre de paramètres analysés est important. On va réaliser une Step_AIC dans les 2 directions : En partant du modèle le plus simple (presence ~ 1 i.e sans aucun facteur, on estime simplement le niveau moyen de présence, l'intercept) et du plus complexe (presence ~ (list_param)² i.e on teste le modèle le plus cmoplexe avec toutes les interactions entre chaque variable) et, pas à pas, on ajoute/retire un effet, regarde la qualité d'ajustement du modèle (critère AIC), puis ajoute/retire un autre effet. Une fois tous les effets étudiés on conserve le modèle pour lequel l'AIC à été le plus diminué puis reproduit à nouveau la démarche, jusq'à ce que l'AIC ne diminue plus. La fonction compare alors si les 2 AIC sont identiques, autrement dit si on a convergé vers le même modèle. 
+
+La majeure partie des tableaux et des graphiques d'intérêts sont stockés dans l'objet ici nommé **`glm_pres_sc`**. Mais certaines sorties, notamment statistiques, peuvent être intéressantes à analyser et ne sont disponibles que lorqu'on fait tourner la fonction :
+
+Pour plus d'informations sur les derniers paramètres vous pouvez questionner la focntion dans votre console `?model_pres_abs`
+
+```{r}
+glm_pres_sc_decennie <-  model_pres_abs(tab=tableau_sc_GIN, esp, title, list_param, var_eff_list, espece_id, catch_col, interactions, limit, formula_select, plot=T, summary = F, type = 3)
+```
+
+
+**`"9 over 847 lines with effort = 0 or NA"`** : 
+La fonction commence par préciser les lignes pour lesquels un effort nul ou non précisé est identifié. Ces données seront par la suite perdues. 
+
+**`"passing from 847 lines to 847 lines with presences, aggregating by station or fishing operation"`** : 
+La fonction va également agréger les données par station/opération de pêche et renvoie un message d'erreur si il y a des réplicats (ce qui ne devrait âs être le cas à cette échelle)
+
+Dans le cas d'une StepAIC c'est l'ensemble des modèles testés qui sont décrits. Le modèle final avec l'AIC la plus faible est conservé et les sorties statistiques sont fournies. Un second tableau précise la part de la variablité expliquée par chaque variable. Couplé avec la significativité et le nombre de degrés de liberté, cela permet de sélectionner les effets les plus intéressants. 
+
+Les sorties statistiques sont également conservés dans la liste que l'on créé (ici appelée `glm_pres_sc`), et on peut les appeler avec la commande `glm_pres_sc[[1]]`. De même, l'ensemble des graphiques de récuperer ces objets en manipulant la liste `glm_pres_sc[[2]]`. Enfin la table avec les estimations peut être récupérée avec en récupérant la troisième liste `glm_pres_sc[[3]]`
+
+```{r}
+glm_pres_sc_decennie[[2]][[1]]
+```
+
+
+En premier sont conservées les observations brutes, avec en rouge les absences `0` et en bleu les présence `1`. 
+
+
+```{r}
+glm_pres_sc_decennie[[2]][[3]]
+```
+
+Le dernier niveau renferme les estimations par modalités, on peut par exemple observer que la probabilité de présence est de 60 % dans les eaux de 5-10 m de profondeur et que la probabilité d'observer un bobo était ainsi maximale en saison humide, au nord et dans les années 1990. A moins qu'il n'existe une interaction à prendre en compte....
+
+
+
+
+```{r}
+formula = "presence ~ decennie*strate_bathymetrique"
+
+glm_pres_sc <-  model_pres_abs(tab=tableau_sc_GIN, esp, title, list_param, var_eff_list, espece_id, catch_col, interactions, limit, formula_select = formula, plot=T, summary = F, type = 3)
+```
+
+Cette seconde analyse met en évidence une interaction entre la décennie et la bathymétrie qui explique près de 2% de deviance, il sera donc intéressant de l'étudier un peu plus dans la suite.
+
+### 2.2.2) Analyse annuelle
+
+Ainsi, cette première partie nous permet d'étudier les interactions à une dimension temporelle plus large et identifier celles qui peuvent être intéressantes à prendre en compte dans la suite de l'analyse. En particulier s'il est nécessaire de retirer certaines années pour conserver une interaction pour lequel le plan d'échantillonnage est incomplet (à trous). Ici il faudra retirer les années entre 1963 et 1983. En particulier, on se rend compte que cela correspond à une période de campagnes spécifiques pour lesquels les estimations sembles aberrantes, on les filtre donc. Idéalement il faudrait réaliser à nouveau les analyses par décennie. 
+
+```{r}
+table(tableau_sc_GIN$strate_bathymetrique, tableau_sc_GIN$annee)
+table(tableau_sc_GIN$zone, tableau_sc_GIN$annee)
+```
+
+On va donc filtrer ces données puis appliquer une Anova de type 3 pour étudier l'interaction entre la bathymétrie et l'année. 
+Attention à bien changer la liste des paramètres pour y faire apparaître l'année. 
+
+```{r}
+list_param=c("annee","saison", "strate_bathymetrique", "zone")
+formula = "presence ~ annee*strate_bathymetrique"
+
+#tableau_sc_GIN <- tableau_sc_GIN %>% filter(!(annee %in% c(2009,2015,2016,2017)))
+tableau_sc_f <- tableau_sc_GIN %>% filter(code_campagne2 %in% c("GL", "AN")) 
+
+glm_pres_sc <-  model_pres_abs(tab=tableau_sc_f, esp, title, list_param, var_eff_list, espece_id, catch_col, interactions, limit, formula_select = formula, plot=T, summary = F, type = 3)
+```
+ 
+Le modèle ne converge pas et renvoie des estimations aberrantes. Cela peut s'expliquer par l'absence de données de présence sur un certaine nombre de croisement année:strate_bathymetrique, comme on peut le voir sur le graphique ci-dessous. Ainsi, c'est un modèle sans interactions qui est conservé. Il faudrait alors prendre le temps de vérifier toutes les autres interactions pour s'assurer qu'elles ne sont pas significatives même avec le modèle annuel et les étudier visuellement.
+ 
+```{r}
+glm_pres_sc[[2]][[2]][[2]]
+```
+ 
+On sélectionne le modèle final suivant :
+
+```{r}
+formula = "presence ~ strate_bathymetrique + annee + zone"
+
+glm_pres_sc_final <-  model_pres_abs(tab=tableau_sc_f, esp, title, list_param, var_eff_list, espece_id, catch_col, interactions, limit, formula_select = formula, plot=T, summary = F)
+```
+
+
+A noter qu'on applique une anova de type 2 ou de type 3 n'a alors aucune importance. En l'absence d'interaction les sorties statistiques seront similaires.  
+
+## 2.3) GLM des abondances positives
+
+De la même manière, une telle analyse peut être conduite avec un glm sur les abondances via la fonction `model_ai_plus`
+
+```{r}
+
+esp <- "PSEUDOTOLITHUS ELONGATUS"
+list_param=c("decennie","saison", "strate_bathymetrique", "zone")
+title="scientific"
+espece_id='nom_taxonomique' 
+var_eff_list= c("surface_chalutee") 
+catch_col='total_capture' 
+interactions=T
+limit=0.0005
+
+glm_ab_sc <-  model_ai_plus(tab=tableau_sc_f, esp, title, list_param, var_eff_list, espece_id, catch_col, interactions = T, limit, formula_select = "auto", plot=T, summary = F, type = 3)
+```
+
+La seule interaction intéressante semble decennie:bathymétrie qu'il faudrait prendre le temps de plus étudier. 
+De la même manière que précédemment, il est possible de récupérer des graphiques sur les données brutes, avec le nombre de données de présence utilisées....
+
+```{r}
+glm_ab_sc[[2]][[1]]
+```
+
+
+...en reconstruisant une simple moyenne des indices d'abondances / cpue mesurées...
+
+ 
+```{r}
+glm_ab_sc[[2]][[2]]
+```
+
+...puis les interactions...
+
+```{r}
+glm_ab_sc[[2]][[3]]
+```
+ 
+et les estimations pour chaque modalité
+  
+```{r}
+glm_ab_sc[[2]][[4]]
+```
+ 
+ 
+On se contentera ici de décrire le modèle le plus simple pour l'analyse annuelle
+
+Remarque : Attention à bien appliquer une transformation log en écrivant le modèle :
+
+```{r}
+list_param=c("annee","saison", "strate_bathymetrique", "zone")
+
+formula = "i_ab ~ strate_bathymetrique + annee + zone"
+
+model_ai_plus(tab=tableau_sc_f, esp, title, list_param, var_eff_list, espece_id, catch_col, interactions, limit, formula_select = formula, plot=T, summary = T)[[2]][[4]]
+```
+
+
+On peut étudier les résidus avec le paramètre `summary = T`. Les estimations n'ont aucun sens.
+
+```{r}
+list_param=c("annee","saison", "strate_bathymetrique", "zone")
+
+formula = "log(i_ab) ~ strate_bathymetrique + annee + zone"
+
+glm_ai_sc_final <-  model_ai_plus(tab=tableau_sc_f, esp, title, list_param, var_eff_list, espece_id, catch_col, interactions, limit, formula_select = formula, plot=T, summary = F)
+```
+
+
+## 2.4) Delta-glm
+
+Finalement, une fois réalisés les 2 sous-modèles, on peut les combiner via la fonction `delta_glm`
+
+Pour cela, il suffit de rappeler les précédents modèles utilisés. La structure est semblable. A noter cependant que connaissant les surfaces des différentes strates spatiales (région et bathymétrie) il est possible de récupérer la biomasse totale prédite dans chacune de ses zones et ainsi la biomasse annuelle. Un indice d'abondance peut alors être construit en définissant une année de référence. Néanmoins, il faut être vigilant si réalise considère un facteur intrannuel (Saison, Trimestre, Mois...) à ce qu'on récupère l'estimation sur ces périodes temporelles pour construire la moyenne annuelle. Pour cela il suffit de renseigner la variable via le paramètre `temporal_factor`. 
+
+```{r}
+
+formula_select_pres = "presence ~ strate_bathymetrique + annee + zone"
+formula_select_ia = "log(i_ab) ~ annee + strate_bathymetrique + zone"
+tab_pres <- tableau_sc_f
+tab_ia <- tableau_sc_f
+title <- "Abundance indices - Scientific"
+list_param <- c("annee", "strate_bathymetrique", "zone")
+var_eff_list <- "surface_chalutee"
+esp <- "PSEUDOTOLITHUS ELONGATUS"
+espece_id='nom_taxonomique' 
+catch_col='total_capture' 
+data_type = "Scientific_Survey_GIN"
+limit=0.0005
+
+repartition <- as.data.frame(cbind(zone = c(rep("sud",3), rep("centre",3), rep("nord",3)), 
+                                   strate_bathymetrique = rep(c("5-10m", "10-15m", "15-30m"),3), 
+                                   proportion = c(661.5, 1009.3, 2872.3, 626.6, 1014, 3069, 2522, 1389, 5536)))
+
+repartition$proportion <- as.numeric(repartition$proportion)
+
+IA_SC <- delta_glm(tab_pres, tab_ia, esp, title, list_param, var_eff_list, espece_id, catch_col, limit, formula_select_pres,formula_select_ia, data_type = data_type, repartition = repartition)
+```
+
+
+Au premier niveau sont disponibles les valeurs en absolues. On peut sélectionner l'année de référence comme étant la première année par exemple...
+
+```{r}
+head(IA_SC[[1]])
+
+IA_SC[[1]][,2]/IA_SC[[1]][1,2]
+```
+
+Le second niveau fournit le tableau les prédictions pour chaque combinaison de strate et pour chaque modèle (de présence/absence, des abondances et le delta-glm)
+
+```{r}
+head(IA_SC[[2]])
+```
+
+Et le dernier niveau permet de récupérer les graphiques illustrés en sortie de fonction.
+
+Le travail ayant été réalisé pour les données scientifiques, il reste à reproduire cette démarche avec les données de pêche artisanale et industrielle avant de pouvoir coupler les différents indices d'abondance. Au terme de quoi on peut obtenir une liste des différents indices d'abondance. 
+
+# 3) Groupement des indices d'abondance 
+
+```{r, include = F, echo = F}
+
+tableau_pa2 <- tableau_pa #pour "sauvegarder" le tableau d'origine
+
+tableau_pa2 <- tableau_pa2 %>% mutate(engin_peche2 = case_when(
+engin_peche =="FMEg" ~ "FME",engin_peche =="FMEG" ~ "FME",engin_peche =="FMEE" ~ "FME",
+engin_peche =="FMEM" ~ "FME", engin_peche =="fmem" ~ "FME",engin_peche =="FMEO" ~ "FME",
+engin_peche == "FMCg"  ~ "FMC",engin_peche =="FMCgm" ~ "FMC",engin_peche =="FMCgmG" ~ "FMC",
+engin_peche =="FMCtgm" ~ "FMC", engin_peche =="FMCtgmG" ~ "FMC", engin_peche =="FMCpm" ~ "FMC",
+engin_peche =="FMCl" ~ "FMC", engin_peche =="fmcl" ~ "FMC", engin_peche =="FMCy"~ "FMC" ,
+engin_peche =="fmcy"~ "FMC" , engin_peche =="FMF"~ "FMC" , engin_peche =="fmcy"~ "FMC" ,
+engin_peche =="Fmcy"~ "FMC" , engin_peche =="SP"~ "FMC" , engin_peche =="FSR"~ "FMC" ,
+engin_peche =="FMDE"~ "FMD" , engin_peche =="FMDf"~ "FMD" , engin_peche =="fmdf"~ "FMD" ,
+engin_peche =="FMdf"~ "FMD" , engin_peche =="FMDk"~ "FMD" , engin_peche =="FMDK"~ "FMD" ,
+engin_peche =="FMDF"~ "FMD" , engin_peche =="FMDs"~ "FMD" , engin_peche =="FMDS"~ "FMD" ,
+engin_peche =="FMD"~ "FMD" , engin_peche =="PA"~ "HA" , engin_peche =="PAG"~ "HA" ,
+engin_peche =="LIG"~ "HA" , engin_peche =="LI"~ "HA" , engin_peche =="FT"~ "FT" ))
+
+# tableau_pa2 <- tableau_pa2 %>%  group_by(across(-c(engin_peche, nb_sorties, captures))) %>% summarise(nb_sorties = sum(nb_sorties), captures = sum(captures)) %>%  ungroup() %>%  as.data.frame()
+#  
+
+#J'enleve l'information de l'ancien engin de peche
+tableau_pa2 %>% dplyr::select(-engin_peche)->tableau_pa2
+#Je cree un vecteur des strates pour tableau_pa2 (l'ensemble des champs exceptés les valeurs de captures et d'efforts)
+groupement<-names(tableau_pa2 %>% dplyr::select (-c(nb_sorties,captures,nb_sorties)))
+
+#Je somme mes 3 valeurs - 2 effort, 1 captures sur les nouvelles strates
+tableau_pa2 %>% dplyr::group_by_at(groupement[!groupement=='espece']) %>% dplyr::summarize(nb_sorties=sum(nb_sorties),nb_jour_peche=sum(nb_jour_peche))->effort_tableau_pa2
+
+tableau_pa2 %>% dplyr::filter(espece=='BOBO') %>%
+  dplyr::group_by_at(groupement) %>%
+  dplyr::summarize(captures=sum(captures))->captures_tableau_pa2
+
+left_join(effort_tableau_pa2,captures_tableau_pa2) %>% as.data.frame()->tableau_pa2
+
+print(paste("Nombre de ligne avant correction/regroupement strate engins",dim(tableau_pa)[1]," et apres ",dim(tableau_pa2)[1]))
+
+tableau_pa2 <- tableau_pa2 %>%  dplyr::rename(engin = "engin_peche2")
+
+tableau_pa2 <- tableau_pa2 %>%  dplyr::select(-zone) %>% mutate(zone = case_when(
+port_site =="KATIBINYI" ~ "NORD",port_site =="DOUGOULA" ~ "NORD",port_site =="KAMSAR GUEMEYIRE" ~ "NORD",
+port_site =="KAMSAR PORT NÃ‰NÃ‰" ~ "NORD",port_site =="KATCHEK" ~ "NORD",
+port_site =="KONDEYRE" ~ "CENTRE",port_site =="KOUKOUDE" ~ "CENTRE",port_site =="TOUNYIFILYDI" ~ "CENTRE",
+port_site =="KINDIADI" ~ "CENTRE",port_site =="TABORIAH" ~ "CENTRE",port_site =="BONGOLON" ~ "CENTRE",
+port_site =="SAKAMA" ~ "CENTRE",port_site =="SOUMBA" ~ "SUD",
+port_site =="NONGO" ~ "SUD", port_site =="KAPORO" ~ "SUD", port_site =="LANDREAH" ~ "SUD", port_site =="ROGBANE" ~ "SUD",port_site =="FOTOBA" ~ "SUD", port_site =="BOULBINET" ~ "SUD",
+port_site =="BONFI" ~ "SUD",port_site =="DABONDI YAKOUMBAYA" ~ "SUD",port_site =="FABAN" ~ "SUD",
+port_site =="DIXINN PORT 3" ~ "SUD",port_site =="BOOM" ~ "SUD",
+port_site =="KONIMODIAH" ~ "SUD",port_site =="MATAKANG" ~ "SUD",port_site =="KHOUNYI" ~ "SUD" ))
+
+tableau_pa2 <- tableau_pa2 %>% mutate(decennie = case_when(
+annee %in% 1990:1999 ~ "1990",
+annee %in% 2000:2009 ~ "2000",
+annee %in% 2010:2019 ~ "2010"
+))
+
+tableau_pa2$annee <- as.factor(tableau_pa2$annee) 
+
+
+tableau_pa4 <- tableau_pa2 %>% filter(!(annee %in% c(1999, 2003, 2006, 2015, 2016, 2017, 2021)),
+                                      type_pirogue!="FL")
+
+tableau_pa_final <- tableau_pa4 %>% filter(engin %in% c("FME","FMD","FMC","HA"))%>% as.data.frame()
+
+```
+
+
+```{r, include = F, out.width = "50%"}
+
+formula_select_pres = "presence ~  annee + engin + zone"
+formula_select_ia = "log(i_ab) ~  annee + engin + zone + engin:zone"
+tab_pres <- tableau_pa_final  #tableau_pa_final
+tab_ia <- tableau_pa_final  #tableau_pa_final
+title <- "Abundance indices - Artisanal revue"
+list_param=c("annee","engin","zone")
+data_type = "Artisanal_Fishery"
+esp="BOBO"
+espece_id='espece'
+var_eff_list= c("nb_jour_peche")
+catch_col='captures'
+limit=0.00005
+
+zone <- c("NORD", "CENTRE", "SUD")
+proportion <- c(9447, 4709.6, 4543) # Nord (1º), PC (1.1º), Sud(1.4º)
+repartition <- as.data.frame(cbind(zone, proportion))
+repartition$proportion <- as.numeric(repartition$proportion)
+
+
+IA_PA <- delta_glm(tab_pres, tab_ia, esp, title, list_param, var_eff_list, espece_id, catch_col, limit, formula_select_pres,formula_select_ia, data_type = data_type, repartition = repartition)
+
+```
+
+
+```{r, include = F, echo = F}
+## PI
+tableau_pi2 <- tableau_pi #"sauvegarde"
+
+tableau_pi2$annee <- as.factor(tableau_pi2$annee)
+tableau_pi2$saison <- as.factor(tableau_pi2$saison)
+
+tableau_pi2 <- tableau_pi2 %>% mutate(puissance2 = case_when(
+puissance < 1000 ~ " < 1000",
+puissance >= 1000 & puissance <1500  ~ "1000-1499",
+puissance >= 1500 ~ "1500 et plus"))
+
+tableau_pi2$puissance2 <- factor(tableau_pi2$puissance2, levels = c(" < 1000", "1000-1499", "1500 et plus"))
+
+tableau_pi2 <- tableau_pi2 %>% mutate(tjb2 = case_when(
+tjb < 150 ~ " < 150",
+tjb >= 150 & tjb <250  ~ "150-249",
+tjb >= 250 & tjb <300  ~ "250-299",
+tjb >= 300 ~ "300 et plus"))
+
+tableau_pi2$tjb2 <- factor(tableau_pi2$tjb2, levels = c(" < 150", "150-249", "250-299", "300 et plus"))
+
+
+tableau_pi2 <- tableau_pi2 %>% mutate(longueur2 = case_when(
+longueur < 39 ~ " < 39",
+longueur >= 39   & longueur < 45  ~ "39-45",
+longueur >= 45 ~ "45 et plus"))
+
+tableau_pi2$longueur2 <- factor(tableau_pi2$longueur2, levels = c(" < 39", "39-45", "45 et plus"))
+
+
+tableau_pi2 <- tableau_pi2 %>%  filter(licence=="CEPHALOPODE"  | licence=="P. DEMERSALE")
+
+tableau_pi2$licence <- as.factor(tableau_pi2$licence)
+
+tableau_pi2 <- tableau_pi2 %>% filter(code_pays=="GIN") # aucune données de capture pour le bobo en GNB PI
+
+tableau_pi2 <- tableau_pi2 %>% mutate(bathymetrie = case_when(
+profondeur <= 10 ~ "0-10m",
+profondeur > 10 & profondeur <=20 ~ "10-20m",
+profondeur > 20 & profondeur <= 30 ~ "20-30m",
+profondeur > 30 ~ ">30m"))
+tableau_pi2$bathymetrie <- factor(tableau_pi2$bathymetrie, levels = c("0-10m", "10-20m", "20-30m", ">30m"))
+
+tableau_pi2 <- tableau_pi2 %>% mutate(saison = case_when(
+mois <= 4 | mois >= 11~ "SEC",
+mois > 4 & mois <11 ~ "HUMIDE"))
+
+tableau_pi2 <- tableau_pi2 %>% mutate(decennie = case_when(
+annee %in% 1990:1999 ~ "1990",
+annee %in% 2000:2009 ~ "2000",
+annee %in% 2010:2019 ~ "2010"
+))
+
+tableau_pi2 <- tableau_pi2 %>%  filter(annee != 2010) # 7 observations en 2010
+
+## Test zonation selon valeur latitude ET longitude : marche pas pour l'instant
+
+tableau_pi2 <-  tableau_pi2 %>% filter(code_pays=="GIN") %>%  mutate(longitude_fin = -abs(longitude_fin)) 
+
+tableau_pi2 <- tableau_pi2 %>% filter(longitude_fin > -20) %>% filter(longitude_fin < -13.20) # retire toutes les données avec des NA... 
+tableau_pi2 <- tableau_pi2 %>% filter(8 < latitude_fin) %>% filter(latitude_fin < 12.35)
+tableau_pi2$zonation <- abs(tableau_pi2$latitude_fin) + 0.25*abs(tableau_pi2$longitude_fin)
+tableau_pi_final <- tableau_pi2 %>% mutate(zone = case_when(
+  zonation < 13.30 ~ "sud",
+  zonation >= 13.30 & zonation < 13.85 ~ "centre",
+  zonation >= 13.85 ~ "nord"
+))
+tableau_pi_final$zone <- factor(tableau_pi_final$zone, levels = c("nord", "centre", "sud")) 
+
+```
+
+```{r, include = F, out.width = "50%"}
+
+formula_select_pres = "presence ~  annee + bathymetrie + puissance2 + licence "
+formula_select_ia = "log(i_ab) ~ annee  + bathymetrie + puissance2 + mois + zone + licence"
+tab_pres <- tableau_pi_final
+tab_ia <- tableau_pi_final
+title <- "Abundance indices - Industrial"
+list_param <- c("annee", "bathymetrie", "puissance2", "mois" ,"zone", "licence")
+data_type = "Industrial_Fishery"
+esp="PSEUDOTOLITHUS ELONGATUS"
+espece_id='espece'
+var_eff_list= c("nombre_operation") #"duree_peche",
+catch_col='capture_retenue'
+limit=0.0005
+
+zone <- c("sud", "centre", "nord")
+proportion <- c(4546.7, 4709.6, 9447) 
+repartition <- as.data.frame(cbind(zone, proportion))
+repartition$proportion <- as.numeric(repartition$proportion)
+
+repartition <- list(repartition)
+
+IA_PI <- delta_glm(tab_pres, tab_ia, esp, title, list_param, var_eff_list, espece_id, catch_col, limit, formula_select_pres,formula_select_ia, data_type = data_type, repartition = repartition)
+```
+
+Une fois estimés ces 3 indices d'abondance, on peut les réunir dans une seule et même table en vue de les corriger d'une dérive de puissance des pêches et les regrouper
+
+
+```{r}
+data_IA_raw <- full_join(IA_SC[[1]], IA_PA[[1]] , by = "annee") %>%  full_join(IA_PI[[1]] , by = "annee")
+
+head(data_IA_raw)
+```
+
+La fonction `mean_ai` va permettre de réaliser ces différentes modifications, notamment d'appliquer une standardisation par rapport à un indice d'abondance de référence (la survey scientifique par exemple), une correction de la dérive de puissance des pêche et une moyenne lissante. 
+
+```{r}
+MOY = TRUE #lissage par une moyenne sur 3 ans
+vect_year_elim <- c() #c(1990,2019)
+type_ref = "Scientific_Survey_GIN"
+type_other = c("Artisanal_Fishery", "Industrial_Fishery")
+fish_power = c(0.05,0.05)
+title <- "Abundances indices"
+IA_final_raw <- mean_ai(data_IA_raw, MOY, vect_year_elim, type_ref, type_other, fish_power, title)
+
+
+```
+
+Ce dernier objet permet de récupérer l'ensemble des Indices d'abondance utilisés et calculés
+
+```{r}
+IA_final_raw[[1]]
+```
+
+Quatre graphiques sont disponibles : 
+
+1) IA après standardisation,
+
+2) (1) + dérive des pêches, 
+
+3) (2) + moyenne entre les IA recalculés
+
+4) (3) + moyenne lissante sur 3 ans
+
+```{r}
+IA_final_raw[[2]]
+```
+

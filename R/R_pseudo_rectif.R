@@ -1,6 +1,6 @@
 #'  R_pseudo_rectif
 #'
-#' \code{R_pseudo_rectif} returns abundance, capturability and fishing mortality of a class age (F and N) - readapted from Chassot et al. 2008
+#' \code{R_pseudo_rectif} returns abundance, capturability and fishing mortality of a class age (F and N) from initial recruitment - readapted from Chassot et al. 2008
 #'
 #'
 #' @param   Rinit         Initial value for pseudo cohort analysis, equivalent to the last year recruitment

@@ -1,18 +1,19 @@
 #' Fit a Generalized Linear Models on abundance data
 #'
-#' \code{glm_ai_plus} returns the best GLM model possible for the abundance data, based on an AIC selection process (formula_select = "auto"). It runs the GLMs, plot the residuals analysis graphs and return the GLM outputs.
+#' \code{glm_ai_plus} returns a GLM model on abundance data. It can run a StepAIC if specified. It runs the GLMs, plot the residuals analysis graphs and return the GLM outputs.
 #'
 #' @param tableau_ab             table of abundance data, extracted from the output of table_pres_abs
 #' @param parameters      list of parameters to test
 #' @param formula_select  if "auto", the function select which formula as the lowest AIC. Else, run the selected formula.
-#' @param force_interaction Factorial plan can be incomplete, thus Anova type III won't work. Allow to coerce an examination of interactions by using Anova type I.
-
+#' @param summary         To show residuals plots.
+#' @param type            To study marginal effects with Anova type III in case of interaction
+#'
 #' @return \code{glm_ai_plus} can either return the best GLM model based on AIC comparison, or return the outputs of the GLM based on the formula given in \emph{formula_select}
-
+#'
 #' @examples
 #' data(tableau_sc)
-#' list_param <- c("annee", "strate", "saison")
-#' table_ex <- table_pres_abs(tableau_sc, effort="auto", esp="PSEUDOTOLITHUS ELONGATUS", list_param=c("annee", "saison", "strate"), espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', limit=0.0001)
+#' list_param <- c("annee", "saison")
+#' table_ex <- table_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", list_param=c("annee", "saison", "strate"), espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', limit=0.0001)
 #' table_ex_abundance <- filter(table_ex, presence==1)
 #' param <- param_use(table_ex_abundance, list_param)
 #' for (i in 1:length(param)){

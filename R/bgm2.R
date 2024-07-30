@@ -1,4 +1,5 @@
-#'  Bayesian global model, on encapsule un modèle global générique dans la fonction
+#' Bayesian function (not used for the moment)
+#' \code{bgm2} fonction graphique
 #' @param tab_input mcmc list
 #' @param n_proj nombre d'annee de projection
 #' @examples

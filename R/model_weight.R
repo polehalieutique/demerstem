@@ -1,15 +1,23 @@
-#'  Weight size relationship and plot
+#'  Weight size relationship
 #'
-#' \code{model_weight} estimates R_init
+#' \code{model_weight} estimates a and b parameter from length and weight observations.
 #'
 #' @param   data_weight          data with weight and size vectors
 #' @param   a                    initialisation of a (set at 0.05)
 #' @param   b                    initialisation of b (set at 2.5)
 #'
 #' @examples
-#'  data(data_weight_size)
-#'  data_weight_size <- na.omit(data_weight_size)
-#'  model_weight(data_weight_size)
+#'  df_wg_size = data_frame(length = seq(from = 0, to = 50, by = 0.5)) %>% mutate(weight = 0.015*(length^3.2))
+#'  weight <- NULL
+#'  length <- NULL
+#'  l <- 0
+#'  for (k in df_wg_size$weight) {
+#'  weight <- c(weight, rnorm(10, k, k/10))
+#'  length <- c(length, rep(l, 10))
+#'  l <- l + 0.5}
+#'  df_size <- data_frame(length, weight)
+#'  plot(df_size)
+#'  model_weight(df_size)
 #' @export
 
 model_weight <- function(data_weight, a= 0.05, b=2.5) {

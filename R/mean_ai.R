@@ -6,25 +6,15 @@
 #' @param data_IA         data table containing the year in the first column, and the different AI series on the following ones
 #' @param MOY             if TRUE, then mean_3years is run
 #' @param vect_year_elim  vector containing the years to delete. Else, empty vector c()
+#' @param type_ref        Select AI for standardisation.
+#' @param type_other      Select others AI
+#' @param fish_power      A vector containing technological creep for each AI in type_other. Not applied if equal zero.
 #'
 #' @examples
-#' data(tableau_sc)
-#' data(tableau_pa)
-#' data(tableau_pi)
+#' data(data_IA_JABBA)
+#' data_IA_test <- data_IA_JABBA %>%  dplyr:::select(c(annee, ScientificSurvey_SEN, Artisanal_SEN))
+#' mean_ai(data_IA=data_IA_test, MOY=T, vect_year_elim=c(), type_ref = "ScientificSurvey_SEN", type_other = "Artisanal_SEN", fish_power = c(0.05), title = "1st Try")
 #'
-#' glm_abundance_SC <- model_ai_plus(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"), espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', interactions="N", limit=0.001, formula_select = "log(i_ab+0.0001) ~ strate + annee + saison")
-#' glm_pres_abs_SC <- model_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="SC", list_param=c("annee", "saison", "strate"), espece_id='nom_taxonomique', var_eff_list=c("surface_chalutee"), catch_col='total_capture', interactions="N", limit=0.0001, formula_select = "presence ~ strate + annee + saison")
-#' AI_SC <- delta_glm(glm_pres_abs_SC, glm_abundance_SC, title="Scientific campaign GIN BOBO", type = "SC")
-#'
-#' glm_abundance_PA <- model_ai_plus(tableau_pa, esp="BOBO", effort="auto", title="PA", list_param=c("annee", "zone","engin_peche2"), espece_id='espece', var_eff_list=c("nb_jour_peche"), catch_col='captures', interactions="N", limit=0.001, formula_select = "log(i_ab + 1e-04) ~ as.factor(annee) + as.factor(zone) + as.factor(engin_peche2)")
-#' glm_pres_abs_PA <- model_pres_abs(tableau_pa, esp="BOBO", effort="auto", title="PA", list_param=c("annee", "zone","engin_peche2"), espece_id='espece', var_eff_list=c("nb_jour_peche"), catch_col='captures', interactions="N", limit=0.0001, formula_select = "presence ~ as.factor(annee) + as.factor(zone) + as.factor(engin_peche2)")
-#' AI_PA <- delta_glm(glm_pres_abs_PA, glm_abundance_PA, title="Artisanal Fishery GIN BOBO", type = "PA")
-#'
-#' glm_abundance_PI <- model_ai_plus(tableau_pi, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="PI", list_param=c("annee", "licence"), espece_id='espece', var_eff_list=c("nombre_operation", "duree_peche"), catch_col='capture_retenue', interactions="N", limit=0.001, formula_select = "log(i_ab + 1e-04) ~ as.factor(annee) + as.factor(licence)")
-#' glm_pres_abs_PI <- model_pres_abs(tableau_pi, esp="PSEUDOTOLITHUS ELONGATUS", effort="auto", title="PI", list_param=c("annee", "licence"), espece_id='espece', var_eff_list=c("nombre_operation", "duree_peche"), catch_col='capture_retenue', interactions="N", limit=0.0001, formula_select = "presence ~ as.factor(annee) + as.factor(licence)")
-#' AI_PI <- delta_glm(glm_pres_abs_PI, glm_abundance_PI, title="Industrial Fishery GIN BOBO", type = "PI")
-#'
-#' mean_ai(nb_table=3, MOY="Y", vect_year_elim=c(), AI_SC, AI_PA, AI_PI)
 #' @export
 
 
@@ -53,12 +43,6 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
   #-----------------------------------------------
 
   data_IA_fp_0 <- data_IA
-  ## on applique la dérive des puissances de pêche à chaque IA identifié comme pêche
-  for (k in 1:length(type_other)) {
-    Annee.indice <- as.numeric(data_IA_fp_0$year) - min(data_IA_fp_0$year[which(data_IA_fp_0[,2 + k] > 0)]) + 1
-
-    data_IA_fp_0[, 2 + k] <- data_IA_fp_0[, 2 + k] * 1/(1 + 0)^(Annee.indice -1)
-  }
 
   # get year for which value is available for every IA
   data_IA_fp_0$Any_NA <- apply(data_IA_fp_0, 1, function(x) anyNA(x))
@@ -67,7 +51,7 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
   if (is.null(tab_moy)) {
     return("no common years")
   }
-
+  # standardisation using mean on common year
   else{
     data_IA_fp_0_st  <- data_IA_fp_0 %>%  dplyr::select(-Any_NA)
     #data_IA_fp_st_transit <- data_IA_fp_0_st
@@ -162,6 +146,26 @@ mean_ai <- function (data_IA, MOY = TRUE, vect_year_elim, type_ref, type_other,
   }
 
   data_IA <- data_int
+
+  #--------------
+  # plot with tech creep
+  #--------------
+  # 1. without mean
+  data_IA_0 <- data_IA
+  #data_IA_0[,c(2:ncol(data_IA_0))] <- data_IA_0[,c(2:ncol(data_IA_0))]/dplyr::first(na.omit(data_IA_0[, type_ref]))[1]
+  IA_long_2 <- reshape2::melt(data_IA_0, id.vars = "year")
+  IA_long_2$variable <- as.factor(IA_long_2$variable)
+  IA_long_2$title <- title
+
+  plot_standard_creep <- ggplot(IA_long_2) +
+    geom_line(aes(x = year, y = value, color = variable)) +
+    geom_point(aes(x = year, y = value, color = variable)) +
+    facet_grid(~title) + labs(x = "Year", y = "Abundance indices", color = "Variable") + theme_nice()
+
+  list_graph[[length(list_graph) + 1]] <- plot_standard_creep
+
+
+  # 1. with mean
   data_IA$AI_standard <- apply(as.data.frame(data_IA[, -1]),
                                1, function(x) mean(x, na.rm = T))
   #data_IA[,c(2:ncol(data_IA))] <- data_IA[,c(2:ncol(data_IA))]/dplyr::first(na.omit(data_IA[, type_ref]))[1]

@@ -1,6 +1,6 @@
 #'  R_estimate
 #'
-#' \code{R_estimate} returns Initial recruitment estiMate
+#' \code{R_estimate} returns Initial recruitment estimate
 #'
 #' @param   FT            Terminal F
 #' @param   Rinit         Initial value for pseudo cohort analysis, equivalent to the last year recruitment

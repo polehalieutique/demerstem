@@ -1,14 +1,12 @@
-#'  Présentation des facteurs
+#' pres_facto
+#'
+#' \code{pres_facto} Fonction to present observations for each factor
+#'
 #' @param tab tableau de données
 #' @param facteur facteurs
 #' @param titre titre du graphique
-
-#' @examples
-#' PA #
-#' tableau_pa_pres <- indice_ab_pres (tableau_pa, "commercial", "auto", esp="BOBO", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, seuil=0.005)
-#' lapply(param_pa, pres_facto, tab=tableau_pa_ab, "PA") # peche artisanale
-
-
+#'
+#'
 #' @export
 
 pres_facto <- function(facteur, tab, titre){

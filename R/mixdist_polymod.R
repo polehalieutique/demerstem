@@ -1,60 +1,116 @@
-#'  mixdist_polymod
+#'  Polymodal decomposition
 #'
-#' \code{mixdist_polymod} returns the polymodal decomposition of length frequencies in age class
+#' \code{mixdist_polymod} returns the numbers-at-age using a polymodal decomposition of length frequencies. Can be done by year or other period (quarter, semester, month...) by specifying it.
 #'
-#' @param   data_freq       input dataset table
-#' @param   title           fraction of the title in the plots
+#' @param   data_freq       Input dataset table. Must include a gear column and total by size and gear in total_gear. It should be extrapolated.
+#' @param   title           Title in the plots
 #' @param   K               value for K
 #' @param   L_inf           value for L_inf
 #' @param   t0              value for t0
-#' @param   fix_mu          Fix values for mean
-#' @param   fix_sigma       Fix values for standard deviation
-#' @param   lmsd            just for this one
+#' @param   fix_mu          Vector with mean length values-at-age to fix
+#' @param   fix_sigma       Vector with standard deviation values-at-age to fix
+#' @param   get_lmsd        When TRUE, a linear model is done on sd, values are saved and retruned. Otherwise sigma are fixed accrodingly to "fix_sigma"
 #' @param   ngroup          number of age class
+#' @param   plot            To plot values.
 #' @param   step_class      length step between two length class
-#' @param   age             ## May be removed
+#' @param   sigma_adjust    In some case, algorith may not be able to converge, relax hypothesis on sigma (sigma_value = 1 for exemple)
+#' @param   age             Age at which begin polymodal decomposition. Set on zero.
 #'
 #' @examples
-#'  data(freq_landings)
-#'  data_freq <- freq_landings
-#'  espece <- 'Pseudotolithus senegalensis'
-#'  ngroup <- 3
 #'
-#' S_landings <- 28.76
-#' K_landings <- 0.36
-#' L_landings <- 50.4
-#' t0_landings <- -0.22
-#' a <- 0.005
-#' b <- 3.16
+#'#--------------------------------------------------
 #'
 #'
-#' data_freq <- data_freq %>%  mutate(weight_sampling = total_sampling * a*lclass^b/1000)
-#' #data_catch_month <- data.frame(Wtot = rep(c(1000,2000,3000,5000,1000,3000),4), year = rep(rep(c(2000,2001),3),4), month = rep(seq(1:12),2))
-#' data_catch_month <- data.frame(Wtot = rep(180000,12), month = rep(seq(1:12)))
-#' data_catch_month <- data_catch_month %>% group_by(month) %>% dplyr::summarise(Wtot= mean(Wtot)) #mean over the years
-#' data_freq <- merge(data_freq, data_catch_month, by = "month")
-#' data_freq <- data_freq %>% group_by(month) %>%  dplyr::mutate(W_sampling = sum(weight_sampling),
-#'                                                               N_sampling = sum(total_sampling),
-#'                                                               Ntot= floor(Wtot * N_sampling/W_sampling),
-#'                                                               total = floor(total_sampling*Ntot/N_sampling))
-#' ngroup <- 3
-#' fixmu <- rep(T, ngroup)
-#' fixsigma <- rep(F, ngroup)
-#' step_class <- 1
-#' step_time <- 4
-#' month_recrue <- 3
-#' mixdist_polymod(data_freq, K = K_landings, L_inf = L_landings, t0 = t0_landings,
-#'                 step_class = 1, step_time = 4, ngroup = 3, month_recrue = 3,
-#'                 fix_mu = fixmu, fix_sigma = fixsigma, sigma_adjust = 0,
-#'                 lmsd = lmsd, get_lmsd = T, plot = T)
+#'                 Data Extrapolation
+#'
+#'
+#'#--------------------------------------------------
+#'
+#'  data(data_LF_LBB)
+#'  data_catch_quarter = data_frame(gear = c(rep("Artisanal",4), rep("Industrial",4)),
+#'  step_time = rep(c(1:4),2),
+#'  capture = c(1153, 1042, 1046, 1132, 1206, 1124, 1155, 1176))
+#'  data_freq <- data_LF_LBB %>%  group_by(lclass, month) %>%  dplyr::summarise(total_sampling=sum(frequence, na.rm = T))
+#'# biological parameters from literature or estimated in previous work
+#'
+#'Linf <- 44.4 # Asymptotic length
+#'K <- 0.34 # Growth parameter
+#'t0 <- -0.24 # theoric age for length 0 cm
+#'
+#'a <- 0.006 # parameters from length-size relationship
+#'b <- 3.08
+#'
+#'
+#'# 6. Preparing length frequencies data. We remove data from San Pedro because samples weren't consistent.
+#'data_freq_mixdist <- data_LF_LBB %>%
+#'  filter(data_type == "Data Bio DEMERSTEM", data_from != "San Pedro") %>%
+#'  mutate(gear = case_when(
+#'    data_from == "Abidjan" ~ 'Industrial',
+#'    data_from %in% c("Tadkoradi","Tema") ~ "Artisanal")) %>%
+#'  mutate(step_time = ceiling((month)/(12/step_time)))
+#'
+#'data_freq_mixdist %>%  group_by(lclass, month, gear) %>% mutate(total = sum(frequence,na.rm = T)) %>%  ggplot(aes(x = lclass, y = total)) + geom_bar(stat = 'identity') + facet_grid(month~gear)
+#'
+#'# 7. Extrapolation of length frequencies
+#'data_freq_mixdist <- data_freq_mixdist %>%
+#'  group_by(lclass, step_time, gear) %>%
+#'  dplyr::summarise(total_sampling=sum(frequence, na.rm = T)) %>%  mutate(weight_sampling = total_sampling * a*lclass^b/1000)
+#'
+#'
+#'
+#'data_freq_mixdist <- data_freq_mixdist %>% full_join(data_catch_quarter, by = c("step_time", "gear")) %>% dplyr::rename(Wtot = capture) %>%  mutate(Wtot = 1000 * Wtot)
+#'
+#'
+#'data_freq_mixdist <- data_freq_mixdist %>% group_by(step_time, gear) %>%  dplyr::mutate(W_sampling = sum(weight_sampling),
+#'                                                                                        N_sampling = sum(total_sampling),
+#'                                                                                        Ntot= floor(Wtot * N_sampling/W_sampling),
+#'                                                                                        total_gear = floor(total_sampling*Ntot/N_sampling)) %>%  na.omit()
+#'
+#'#--------------------------------------------------
+#'
+#'
+#'            Polymodal decomposition
+#'
+#'
+#'#--------------------------------------------------
+#'espece <- "P. senegalensis"
+#'
+#'Linf <- 44.4 # Asymptotic length
+#'K <- 0.34 # Growth parameter
+#'t0 <- -0.24 # theoric age for length 0 cm
+#'
+#'ngroup <- 3 # number of age group we want to detect
+#'fixmu <- rep(T, ngroup) # We fix the mean length at age using growth parameters estimated/from literature : We specify 'TRUE'
+#'fixsigma <- rep(F, ngroup) # We want to get an estimation of sigma : We specify 'FALSE'
+#'step_time = 4 # We will try to examine at a quarter level.
+#'
+#'mixdist_polymod(data_freq = data_freq_mixdist,
+#'                K,
+#'                Linf,
+#'                t0,
+#'                step_class = 1, # bin size
+#'                step_time = step_time,
+#'                ngroup = ngroup,
+#'                fix_mu = fixmu,
+#'                fix_sigma = fixsigma,
+#'                sigma_adjust = 2,
+#'                get_lmsd = T, # We will perform a linear model with these data
+#'                plot = T)
+#'
+#'
 #'
 #' @export
-mixdist_polymod <- function (data_freq, K, L_inf, t0, fix_mu, fix_sigma, lmsd,
-                             ngroup, step_class, step_time, month_recrue = 1, get_lmsd = FALSE,
+mixdist_polymod <- function (data_freq, K, L_inf, t0, fix_mu, fix_sigma,
+                             ngroup, step_class, step_time, get_lmsd = FALSE,
                              plot = FALSE, sigma_adjust = 1, age = 0)
 {
 
-  print("Polymodal decomposition of length frequencies")
+  cat("----------------------------------------------
+
+       Polymodal decomposition of length frequencies
+
+      -----------------------------------------------")
+
   data_mix <- as.list(list(NULL))
   data_count <- as.list(list(NULL))
   data_count_gear <- as.list(list(NULL))

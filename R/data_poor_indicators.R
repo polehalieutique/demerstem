@@ -1,14 +1,13 @@
-#'  data_poor_indicators
+#'  Estimate some data poors indicators
 #'
-#' \code{data_poor_indicators} estimates R_init
+#' \code{data_poor_indicators}
 #'
 #' @param   Catch_IA          data with weight and size vectors
-#' @param   L_inf
+#' @param   L_inf             Asymptotic length
 #' @param   year              Year of interest you want to study and for which will be calculated 'f'
 #' @param   plot              if TRUE, plot all the years
 #' @examples
-#'  data(data_weight_size)
-#'  model_weight(data_weight_size)
+#'
 #'
 #' @export
 

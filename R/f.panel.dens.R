@@ -1,4 +1,5 @@
-#' A faire
+#' Bayesian function (not used for the moment)
+#' \code{panel.dens} fonction graphique
 #' @param x : A faire
 #' @examples
 #'
