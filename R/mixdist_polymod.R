@@ -10,6 +10,7 @@
 #' @param   fix_mu          Vector with mean length values-at-age to fix
 #' @param   fix_sigma       Vector with standard deviation values-at-age to fix
 #' @param   get_lmsd        When TRUE, a linear model is done on sd, values are saved and retruned. Otherwise sigma are fixed accrodingly to "fix_sigma"
+#' @param   lmsd            Linear model object from previous model
 #' @param   ngroup          number of age class
 #' @param   plot            To plot values.
 #' @param   step_class      length step between two length class
@@ -101,7 +102,7 @@
 #'
 #' @export
 mixdist_polymod <- function (data_freq, K, L_inf, t0, fix_mu, fix_sigma,
-                             ngroup, step_class, step_time, get_lmsd = FALSE,
+                             ngroup, step_class, step_time, get_lmsd = FALSE, lmsd,
                              plot = FALSE, sigma_adjust = 1, age = 0)
 {
 

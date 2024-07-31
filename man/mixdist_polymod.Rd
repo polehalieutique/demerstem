@@ -15,6 +15,7 @@ mixdist_polymod(
   step_class,
   step_time,
   get_lmsd = FALSE,
+  lmsd,
   plot = FALSE,
   sigma_adjust = 1,
   age = 0
@@ -38,6 +39,8 @@ mixdist_polymod(
 \item{step_class}{length step between two length class}
 
 \item{get_lmsd}{When TRUE, a linear model is done on sd, values are saved and retruned. Otherwise sigma are fixed accrodingly to "fix_sigma"}
+
+\item{lmsd}{Linear model object from previous model}
 
 \item{plot}{To plot values.}
 
