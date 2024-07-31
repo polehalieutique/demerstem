@@ -1,8 +1,8 @@
-#'  pope_abundance
+#'  pope_N
 #'
-#' \code{pope_abundance} estimates N
+#' \code{pope_N} estimates N
 #'
-#' @param   age    from VPA_pope
+#' @param   indice    from F_pseudo_rectif
 #'
 #'
 #' @examples

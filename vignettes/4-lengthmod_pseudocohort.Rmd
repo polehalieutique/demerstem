@@ -402,7 +402,7 @@ step_time = 4
 step_class = 1
 
 mixdist_polymod(data_freq = data_freq_mixdist, K, L_inf, t0, 
-                step_class = 1, step_time, ngroup = ngroup, month_recrue = 1,
+                step_class = 1, step_time, ngroup = ngroup,
                 fix_mu = fixmu, fix_sigma = fixsigma, sigma_adjust = 0,
                 lmsd = lmsd, get_lmsd = F, plot = T, age = 0)
 mean_lit <- mean

@@ -1,7 +1,8 @@
 # demerstem <img src="sticker_demerstem.png" alt="drawing" width="120" align="right"/></img>
 
+## DEMERSTEM project - Overview
 
-## Overview
+**The EU DEMERSTEM project (http://pescao-demerstem.org) aims to improve knowledge on stocks in ECOWAS area.**
 
 This package aims to provide function to help for stocks assessment process in West Africa DLS context. 
 Surplus-production and length-based model are available, in particular it provides : 
@@ -10,7 +11,10 @@ Surplus-production and length-based model are available, in particular it provid
 3. Polymodal decomposition to extract numbers-at-age
 4. Rectified pseudo-cohort to estimate F-at-age and elaborate a diagnosis on stock status 
 
-Ce package a été developpé durant le projet DEMERSTEM en appui à l'évaluation des stocks d'Afrique de l'Ouest en contexte data-limited.
+
+**Le projet Européen DEMERSTEM (http://pescao-demerstem.org) vise à améliorer les connaissances sur les stocks dans la région CEDEAO.** 
+
+Ce package a été developpé en appui à l'évaluation des stocks d'Afrique de l'Ouest en contexte data-limited.
 Des modèles basés sur les tailles et de production sont disponibles. En particulier on retrouve : 
 1. Une méthode d'estimation d'indices d'abondance par delta-GLM
 2. Un modèle de production ajusté en pseudo-équilibre.
@@ -27,10 +31,15 @@ library(devtools)
 # You also need to install Jags for bayesian simulation
 Disponible ici : https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/
 
-# Vous pouvez alors installer le package 
+# Then, you can install the package
 
 install_github("polehalieutique/demerstem")
 
 library(demerstem)
 packageVersion("demerstem")
 ```
+
+## Getting Started
+
+Once the demerstem package is installed, a set of vignettes and data are available in order to take first steps with the package. 
+

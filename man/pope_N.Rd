@@ -2,13 +2,13 @@
 % Please edit documentation in R/pope_N.R
 \name{pope_N}
 \alias{pope_N}
-\title{pope_abundance}
+\title{pope_N}
 \usage{
 pope_N(indice)
 }
 \arguments{
-\item{age}{from VPA_pope}
+\item{indice}{from F_pseudo_rectif}
 }
 \description{
-\code{pope_abundance} estimates N
+\code{pope_N} estimates N
 }
