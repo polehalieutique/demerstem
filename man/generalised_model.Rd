@@ -2,7 +2,7 @@
 % Please edit documentation in R/generalised_model.R
 \name{generalised_model}
 \alias{generalised_model}
-\title{generalised_model}
+\title{Generalised production model}
 \usage{
 generalised_model(
   table_Efox,
@@ -30,8 +30,32 @@ generalised_model(
 
 \item{max_iteration}{: number of iteration that will be runned.}
 
-\item{log}{: by default, fit the model under log transformation of the AI. Else, fit without the log transformation (no start/limit)}
+\item{IC}{: Confidence Interval}
+
+\item{log}{: log transformation (T/F)}
 }
 \description{
 \code{generalised_model} Generalised production model from IA and Efox series
+}
+\examples{
+
+data(data_IA)
+data(captures_aggregees)
+data_captures <- captures_aggregees \%>\%  group_by(year) \%>\%  summarise(Catch = sum(c))
+table_Efox <- fox_effort_calculation(data_IA, data_captures, k=3)
+
+
+lengthEfox <- 1.5
+title <- "Generalised model - 1st try"
+graph_param <- c(lengthEfox, title)
+
+a_init = 1/sqrt(table_Efox$IA[1])
+b_init = 1/sqrt(tail(table_Efox$IA,1)) - 1/(sqrt(table_Efox$IA[1]))
+
+a <- c(0.0000005, a_init, 0.005)
+b <- c(0.0000001, b_init, 0.01)
+m <- c(0.5, 0.7, 0.9)
+
+warning_control=T
+generalised_model(table_Efox, graph_param, a, b, m, warning_control, IC = F)
 }

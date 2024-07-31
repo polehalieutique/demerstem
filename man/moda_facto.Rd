@@ -2,7 +2,7 @@
 % Please edit documentation in R/moda_facto.R
 \name{moda_facto}
 \alias{moda_facto}
-\title{nombre de donnees par modalite de chaque parametre}
+\title{moda_facto}
 \usage{
 moda_facto(tab, facteur, title)
 }
@@ -14,12 +14,5 @@ moda_facto(tab, facteur, title)
 \item{title}{title}
 }
 \description{
-nombre de donnees par modalite de chaque parametre
-}
-\examples{
-PA #
-tableau_pa_pres <- indice_ab_pres (tableau_pa, "commercial", "auto", esp="BOBO", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, seuil=0.005)
-lapply(param_pa, moda_facto, tab=tableau_pa_ab, "PA") # peche artisanale
-lapply(param_pi, moda_facto, tab=tableau_pi_ab, "PI") # peche industrielle
-lapply(param_sc, moda_facto, tab=tableau_sc_ab, "SC") # campagnes scientifiques
+\code{moda_facto} représente les données disponibles par modalite de chaque variable
 }

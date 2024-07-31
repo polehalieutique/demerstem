@@ -2,7 +2,7 @@
 % Please edit documentation in R/pres_facto.R
 \name{pres_facto}
 \alias{pres_facto}
-\title{Présentation des facteurs}
+\title{pres_facto}
 \usage{
 pres_facto(facteur, tab, titre)
 }
@@ -14,10 +14,5 @@ pres_facto(facteur, tab, titre)
 \item{titre}{titre du graphique}
 }
 \description{
-Présentation des facteurs
-}
-\examples{
-PA #
-tableau_pa_pres <- indice_ab_pres (tableau_pa, "commercial", "auto", esp="BOBO", list_param,  espece_id_list, var_eff_list, ope_id, col_capture, seuil=0.005)
-lapply(param_pa, pres_facto, tab=tableau_pa_ab, "PA") # peche artisanale
+\code{pres_facto} Fonction to present observations for each factor
 }

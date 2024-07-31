@@ -2,7 +2,8 @@
 % Please edit documentation in R/evo_an.R
 \name{evo_an}
 \alias{evo_an}
-\title{evolution de l'indice d'abondance moyen dans le temps}
+\title{evolution de l'indice d'abondance moyen dans le temps
+\code{evo_an} fonction graphique}
 \usage{
 evo_an(tab, titre)
 }
@@ -13,6 +14,7 @@ evo_an(tab, titre)
 }
 \description{
 evolution de l'indice d'abondance moyen dans le temps
+\code{evo_an} fonction graphique
 }
 \examples{
 PA #

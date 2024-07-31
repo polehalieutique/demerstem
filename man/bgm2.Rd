@@ -2,7 +2,8 @@
 % Please edit documentation in R/bgm2.R
 \name{bgm2}
 \alias{bgm2}
-\title{Bayesian global model, on encapsule un modèle global générique dans la fonction}
+\title{Bayesian function (not used for the moment)
+\code{bgm2} fonction graphique}
 \usage{
 bgm2(tab_input, min_c, max_c, Er, CVr, CV_Cobs, CV_Iobs, n_proj = 0)
 }
@@ -12,7 +13,8 @@ bgm2(tab_input, min_c, max_c, Er, CVr, CV_Cobs, CV_Iobs, n_proj = 0)
 \item{n_proj}{nombre d'annee de projection}
 }
 \description{
-Bayesian global model, on encapsule un modèle global générique dans la fonction
+Bayesian function (not used for the moment)
+\code{bgm2} fonction graphique
 }
 \examples{
 

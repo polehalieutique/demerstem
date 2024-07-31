@@ -18,7 +18,7 @@ R_pseudo_rectif(Rinit, Mat_C, Mat_R, Mat_E, Mat_M)
 \item{Mat_M}{vector of mortality biological parameter}
 }
 \description{
-\code{R_pseudo_rectif} returns abundance, capturability and fishing mortality of a class age (F and N) - readapted from Chassot et al. 2008
+\code{R_pseudo_rectif} returns abundance, capturability and fishing mortality of a class age (F and N) from initial recruitment - readapted from Chassot et al. 2008
 }
 \examples{
 #exemple tiré de Bertignac, 1987

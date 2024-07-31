@@ -20,5 +20,5 @@ R_estimate(FT, age, Mat_C, Mat_R, Mat_E, Mat_M)
 \item{Rinit}{Initial value for pseudo cohort analysis, equivalent to the last year recruitment}
 }
 \description{
-\code{R_estimate} returns Initial recruitment estiMate
+\code{R_estimate} returns Initial recruitment estimate
 }

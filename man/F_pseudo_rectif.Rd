@@ -2,7 +2,7 @@
 % Please edit documentation in R/F_pseudo_rectif.R
 \name{F_pseudo_rectif}
 \alias{F_pseudo_rectif}
-\title{F_pseudo_rectif}
+\title{Rectified pseudo cohort}
 \usage{
 F_pseudo_rectif(
   FT,
@@ -28,8 +28,16 @@ F_pseudo_rectif(
 
 \item{Mat_M}{vector of mortality biological parameter}
 
+\item{step_time}{Time step for the analysis}
+
+\item{Prop_R}{Proportion of recruitment if quarter analysis (R can be continuons along the year)}
+
+\item{quarter}{Boolean indicating if quarterly data is used}
+
+\item{ngroup}{Number of groups}
+
 \item{Rinit}{Initial value for pseudo cohort analysis, equivalent to the last year recruitment}
 }
 \description{
-\code{F_pseudo_rectif} returns Initial recruitment estiMate
+\code{F_pseudo_rectif} From terminal F, returns N and F estimate and plots. Trimestrial only works when group = 3 or 4.
 }

@@ -6,7 +6,6 @@ Author: Pierre Calvy, Fabien Bourinet, Florian Quemper, Didier Gascuel et Jérô
 Maintainer: Jérôme Guitton <jerome.guitton@agrocampus-ouest.fr>
 Description: Before modelling, this package provides functions to create abundance indice from artisanal, industrial or scientific fisheries using GLM models.
     It also provide easy to use function for global model and assessment model based on length frequency
-  
 Suggests: 
     DBI,
     knitr,

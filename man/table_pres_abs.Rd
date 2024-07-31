@@ -30,7 +30,7 @@ It creates the \emph{i_ab} and the \emph{presence} columns, and apply the modali
 }
 \examples{
 data(tableau_sc)
-table_pres_abs(tableau_sc, effort="auto", esp="PSEUDOTOLITHUS ELONGATUS", list_param=c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', limit=0.0001)
+table_pres_abs(tableau_sc, esp="PSEUDOTOLITHUS ELONGATUS", list_param=c("annee", "saison", "strate"), var_eff_list=c("surface_chalutee"), espece_id='nom_taxonomique', catch_col='total_capture', limit=0.0001)
 
 
 }

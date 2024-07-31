@@ -2,7 +2,8 @@
 % Please edit documentation in R/f.panel.cor.R
 \name{panel.cor}
 \alias{panel.cor}
-\title{A faire}
+\title{Bayesian function (not used for the moment)
+\code{panel.cor} fonction graphique}
 \usage{
 panel.cor(x, y, digits = 2, prefix = "", cex.cor)
 }
@@ -18,7 +19,8 @@ panel.cor(x, y, digits = 2, prefix = "", cex.cor)
 \item{cex.cor:}{A faire}
 }
 \description{
-A faire
+Bayesian function (not used for the moment)
+\code{panel.cor} fonction graphique
 }
 \examples{
 

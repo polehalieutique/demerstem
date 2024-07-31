@@ -24,6 +24,7 @@ method_shepherd(data_freq, K, L_inf, step_class, plot = FALSE)
 }
 \examples{
 data(length_frequency)
+data_freq <- length_frequency \%>\%  group_by(lclass, month) \%>\%  dplyr::summarise(total_sampling=sum(frequence, na.rm = T))
 lmax <- 48 # choose lmax according to some bibliography
 K <- seq(0.33, 0.40, 0.01)
 L_inf <- seq(0.95*lmax, 1.05 * lmax, 0.01)

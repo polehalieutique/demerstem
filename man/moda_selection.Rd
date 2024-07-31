@@ -2,7 +2,7 @@
 % Please edit documentation in R/moda_selection.R
 \name{moda_selection}
 \alias{moda_selection}
-\title{this function will select the modality that will be removed for each tested factor}
+\title{moda_selection}
 \usage{
 moda_selection(tab, factor_list, limit, ope_id2)
 }
@@ -16,8 +16,5 @@ moda_selection(tab, factor_list, limit, ope_id2)
 \item{ope_id2}{: vector used in the join}
 }
 \description{
-this function will select the modality that will be removed for each tested factor
-}
-\examples{
-tabz <- moda_selection(tableau_ab, names_facteur, 0.05, ope_id2)
+\code{moda_selection} select the modality that will be removed for each tested factor
 }

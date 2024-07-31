@@ -2,7 +2,7 @@
 % Please edit documentation in R/model_weight.R
 \name{model_weight}
 \alias{model_weight}
-\title{Weight size relationship and plot}
+\title{Weight size relationship}
 \usage{
 model_weight(data_weight, a = 0.05, b = 2.5)
 }
@@ -14,10 +14,18 @@ model_weight(data_weight, a = 0.05, b = 2.5)
 \item{b}{initialisation of b (set at 2.5)}
 }
 \description{
-\code{model_weight} estimates R_init
+\code{model_weight} estimates a and b parameter from length and weight observations.
 }
 \examples{
- data(data_weight_size)
- data_weight_size <- na.omit(data_weight_size)
- model_weight(data_weight_size)
+ df_wg_size = data_frame(length = seq(from = 0, to = 50, by = 0.5)) \%>\% mutate(weight = 0.015*(length^3.2))
+ weight <- NULL
+ length <- NULL
+ l <- 0
+ for (k in df_wg_size$weight) {
+ weight <- c(weight, rnorm(10, k, k/10))
+ length <- c(length, rep(l, 10))
+ l <- l + 0.5}
+ df_size <- data_frame(length, weight)
+ plot(df_size)
+ model_weight(df_size)
 }

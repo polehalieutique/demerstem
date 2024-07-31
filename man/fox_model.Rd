@@ -2,8 +2,7 @@
 % Please edit documentation in R/fox_model.R
 \name{fox_model}
 \alias{fox_model}
-\title{fox_model
-\code{fox_model} this function develop the Fox global model from IA and Efox series}
+\title{Fox production model}
 \usage{
 fox_model(
   table_Efox,
@@ -15,13 +14,26 @@ fox_model(
 )
 }
 \arguments{
-\item{table_Efox}{: table with IA and Efox}
+\item{table_Efox}{table with IA and Efox}
 
-\item{graph_param}{: vector gathering the graphhics aestetics parameters (format : c(lengthEfox, title, upper_x, upper_y, upper_ybis))}
+\item{graph_param}{vector gathering some graphics parameters (format : c(mE_range, title, upper_x, upper_y, upper_ybis))}
 
-\item{log}{: by default, fit the model under log transformation of the AI. Else, fit without the log transformation (no start/limit)}
+\item{a_start}{Initial value for a}
+
+\item{b_start}{Initial value for b}
+
+\item{log}{by default, fit the model under log transformation of the AI.}
 }
 \description{
-fox_model
-\code{fox_model} this function develop the Fox global model from IA and Efox series
+\code{fox_model} this function fits the Fox global model from IA and Efox series
+}
+\examples{
+data(data_IA)
+data(captures_aggregees)
+data_captures <- captures_aggregees \%>\%  group_by(year) \%>\%  summarise(Catch = sum(c))
+table_Efox <- fox_effort_calculation(data_IA, data_captures, k=3)
+mE_range <- 1.5
+title <- "Fox model - Thiof"
+graph_param <- c(mE_range, title) #param de mise en forme du graph
+fox_model(table_Efox, graph_param, log = T, a_start = 1, b_start = 100)
 }

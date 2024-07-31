@@ -2,7 +2,8 @@
 % Please edit documentation in R/bgm.R
 \name{bgm}
 \alias{bgm}
-\title{Bayesian global model, on encapsule un modèle global générique dans la fonction}
+\title{Bayesian function (not used for the moment)
+\code{bgm} fonction graphique}
 \usage{
 bgm(
   model_file,
@@ -23,7 +24,8 @@ bgm(
 \item{n_proj}{nombre d'annee de projection}
 }
 \description{
-Bayesian global model, on encapsule un modèle global générique dans la fonction
+Bayesian function (not used for the moment)
+\code{bgm} fonction graphique
 }
 \examples{
 

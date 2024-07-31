@@ -2,7 +2,7 @@
 % Please edit documentation in R/fox_effort_calculation.R
 \name{fox_effort_calculation}
 \alias{fox_effort_calculation}
-\title{Calculate the Fox fishing effort}
+\title{Calculate Fox fishing effort}
 \usage{
 fox_effort_calculation(data, catch_table, k)
 }
@@ -17,10 +17,8 @@ fox_effort_calculation(data, catch_table, k)
 \code{fox_effort_calculation} calculate the fishing effort E, the corresponding Fox effort Efox ; standardised on the last year (= most recent year : mEfox = 1)
 }
 \examples{
-year <- c(1985:1995)
-mean_standard_AI <- c(4,8,2,4,6,5,7,8,2,2,1)
-catch <- c(1000, 1400, 1500, 1700, 2100, 2200, 1500, 1600, 1400, 1200, 1000)
-data_ex <- as.data.frame(cbind(year, mean_standard_AI))
-catch_ex <- as.data.frame(cbind(year, catch))
-fox_effort_calculation(data_ex, catch_ex, k=3)
+data(data_IA)
+data(captures_aggregees)
+data_captures <- captures_aggregees \%>\%  group_by(year) \%>\%  summarise(Catch = sum(c))
+fox_effort_calculation(data_IA, data_captures, k=3)
 }

@@ -2,7 +2,8 @@
 % Please edit documentation in R/f.density.bivar.R
 \name{f.density.bivar}
 \alias{f.density.bivar}
-\title{A faire}
+\title{Bayesian function (not used for the moment)
+\code{f.density.bivar} fonction graphique}
 \usage{
 f.density.bivar(x, y, nlevels, nb.points)
 }
@@ -16,7 +17,8 @@ f.density.bivar(x, y, nlevels, nb.points)
 \item{nlevels:}{A faire}
 }
 \description{
-A faire
+Bayesian function (not used for the moment)
+\code{f.density.bivar} fonction graphique
 }
 \examples{
 

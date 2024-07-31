@@ -2,7 +2,8 @@
 % Please edit documentation in R/f.panel.dens.R
 \name{panel.dens}
 \alias{panel.dens}
-\title{A faire}
+\title{Bayesian function (not used for the moment)
+\code{panel.dens} fonction graphique}
 \usage{
 panel.dens(x, ...)
 }
@@ -10,7 +11,8 @@ panel.dens(x, ...)
 \item{x}{: A faire}
 }
 \description{
-A faire
+Bayesian function (not used for the moment)
+\code{panel.dens} fonction graphique
 }
 \examples{
 

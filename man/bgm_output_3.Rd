@@ -2,7 +2,8 @@
 % Please edit documentation in R/bgm_output_3.R
 \name{bgm_output_3}
 \alias{bgm_output_3}
-\title{Bayesian global model, on encapsule un modèle global générique dans la fonction}
+\title{Bayesian function (not used for the moment)
+\code{bgm_output_5} fonction graphique}
 \usage{
 bgm_output_3(mcmc, data, n_proj = 0, multiple = FALSE)
 }
@@ -10,5 +11,6 @@ bgm_output_3(mcmc, data, n_proj = 0, multiple = FALSE)
 \item{mcmc}{mcmc liste venant de la fonction bgm}
 }
 \description{
-Bayesian global model, on encapsule un modèle global générique dans la fonction
+Bayesian function (not used for the moment)
+\code{bgm_output_5} fonction graphique
 }

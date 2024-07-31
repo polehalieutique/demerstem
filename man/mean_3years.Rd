@@ -14,7 +14,7 @@ mean_3years(data)
 }
 \examples{
 year <- c(1985:1995)
-mean_standard_AI <- c(4,8,2,4,6,5,7,8,2,2,1)
-data_ex <- as.data.frame(cbind(year, mean_standard_AI))
+AI_standard <- rnorm(10,0.5,0.1)
+data_ex <- as.data.frame(cbind(year, AI_standard))
 mean_3years(data_ex)
 }

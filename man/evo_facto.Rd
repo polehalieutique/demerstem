@@ -2,7 +2,8 @@
 % Please edit documentation in R/evo_facto.R
 \name{evo_facto}
 \alias{evo_facto}
-\title{evolution de l'abondance par parametre (fonction graphique)}
+\title{evolution de l'abondance par parametre (fonction graphique)
+\code{evo_facto} fonction graphique}
 \usage{
 evo_facto(tab, facteur, titre)
 }
@@ -15,6 +16,7 @@ evo_facto(tab, facteur, titre)
 }
 \description{
 evolution de l'abondance par parametre (fonction graphique)
+\code{evo_facto} fonction graphique
 }
 \examples{
 lapply(param_pa, evo_facto, tab=tableau_pa_ab, "PA")
