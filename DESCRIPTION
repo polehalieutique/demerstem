@@ -38,9 +38,9 @@ Depends:
     officer,
     flextable,
     rmdformats,
-knitr,
-flextable,
-officer,
-officedown,
+    knitr,
+    flextable,
+    officer,
+    officedown,
     propagate
 VignetteBuilder: knitr
