@@ -236,10 +236,6 @@ L'ajustement est réalisé sur la relation entre les $IA$ et $mE_{fox}$ qui perm
 
 ```{r, include = T, echo = F, ft.align="center", message = F}
 # Tableau 2 : points de référence
-library(knitr)
-library(flextable)
-library(officer)
-library(officedown)
 set_flextable_defaults(font.family = "Palatino Linotype")
 Tableau_indicateurs <- data.frame("Scénario" = c(NA, "", ""), 
                                   "Modèle" = c(NA,"Fox", "Pella-Tomlinson"),
