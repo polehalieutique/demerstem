@@ -29,8 +29,7 @@ You need devtools to use the function install_github()
 install.packages('devtools')
 library(devtools)
 ```
-You also need to install Jags for bayesian simulation
-Available here :
+You also need to install Jags for bayesian simulation :
 https://sourceforge.net/projects/mcmc-jags/files/JAGS/4.x/Windows/
 
 Then, you can install the package
